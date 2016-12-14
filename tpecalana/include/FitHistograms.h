@@ -24,7 +24,8 @@ class FitHistograms {
 public:
     FitHistograms();
     ~FitHistograms();
-    std::vector<Double_t> FitPedestals(TH1F* histo);
+    std::vector<Double_t> FitPedestal(TH1F* histo);
+    std::vector<Double_t> FitSignal(TH1F* histo);
 
 private:
 

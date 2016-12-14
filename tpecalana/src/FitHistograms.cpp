@@ -12,7 +12,7 @@ FitHistograms::FitHistograms(){}
 
 FitHistograms::~FitHistograms(){/* no op*/}
 
-std::vector<Double_t> FitHistograms::FitPedestals(TH1F * pedestal_histo){
+std::vector<Double_t> FitHistograms::FitPedestal(TH1F * pedestal_histo){
 
 
   // Fit to a gaussian
@@ -62,3 +62,17 @@ std::vector<Double_t> FitHistograms::FitPedestals(TH1F * pedestal_histo){
 
   return pedestal;
 }
+
+
+std::vector<Double_t> FitHistograms::FitSignal(TH1F * pedestal_histo){
+
+
+  std::vector<Double_t> pedestal;
+  pedestal.push_back(-999); // MPV
+  pedestal.push_back(-999); // Nentries
+  pedestal.push_back(-999); // other parameters of the fit
+
+
+  return pedestal;
+}
+
