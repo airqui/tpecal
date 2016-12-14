@@ -76,8 +76,8 @@ int main (int argc, const char * argv[])
 
 	ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
 	if(globalvariables::getAnalysisType() == "Pedestal" ) {
-		adcManager.acquireRunInformation(	ExperimentalSetup::getInstance(),
-				TString::Format("trigger%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) );
+		adcManager.acquireRunInformation(ExperimentalSetup::getInstance(),
+						 TString::Format("trigger%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ), true, true, "");
 	} else anaManager.acquireRunInformation(	ExperimentalSetup::getInstance(),
 			TString::Format("trigger%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) );
 
@@ -87,10 +87,9 @@ int main (int argc, const char * argv[])
 	
     }
     //
-    anaManager.displayResults();
-    if(globalvariables::getAnalysisType() == "Pedestal" ) {
-        adcManager.displayResults();
-   	} anaManager.displayResults();
+   // if(globalvariables::getAnalysisType() == "Pedestal" ) {
+   //     adcManager.displayResults(true,true);
+   //   } anaManager.displayResults();
     
     
     fooApp.Run();

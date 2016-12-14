@@ -41,28 +41,35 @@ public:
     //A map of buffer and vector that holds the graphs of the pedestal values for each channel
     typedef std::map<unsigned, std::vector<TGraphErrors*> >  TGraphPedestalVec_t;
 
-    void acquireRunInformation(ExperimentalSetup*, TString);
+    void acquireRunInformation(ExperimentalSetup*, TString, bool, bool, TString);
     void pedestalAnalysis(ExperimentalSetup*, TString);
-    void signalAnalysis(ExperimentalSetup*, TString);
+    void signalAnalysis(ExperimentalSetup*, TString, TString);
 
-    void displayResults();
+    void displayResults(bool, bool);
     // basic analysis graphics: read the pedestal/signal info and make some fits for each channel/buffer
     void pedestalAnalysisGraphicsBasic();
     void signalAnalysisGraphicsBasic();
 
-    // more elaborated analysis graphics for scan runs (threshold scans, etc)
+    // more elaborated analysis graphics for scan runs (threshold scans, etc), only written for pedestal
     void pedestalAnalysisGraphics();
     void pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_t::iterator);
 
 private:
     TFile* f_pedestal_scan;
     TFile* f_pedestal;
-    ofstream myfile_pedestal;
+
+    TFile* f_signal_scan;
+    TFile* f_signal;
 
     //Pedestal analysis, for scans (thresholds, etc)
     bufferchannelInfoComplDouble_t _pedestalVecMap; // Pedestal Mean
     bufferchannelInfoComplTH1_t _pedestalVecMapTH1;  // Pedestal Histograms
-    TGraphPedestalVec_t _tGraphPedestalVec;
+    TGraphPedestalVec_t _tGraphPedestalVec; // for scan analysis
+
+    bufferchannelInfoComplDouble_t _signalVecMap; // Pedestal Mean
+    bufferchannelInfoComplTH1_t _signalVecMapTH1;  // Pedestal Histograms
+    TGraphPedestalVec_t _tGraphSignalVec; // for scan analysis
+
 
     //A helper method to fill graphs
     double* vectortoarray(std::vector<double> thevec, double* theArray );
