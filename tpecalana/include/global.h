@@ -33,6 +33,7 @@ namespace globalvariables
   // choose the gain to be used in the AnaManager
   extern int global_gain;
   int getGainAnalysis();
+  TString getGainTStringAnalysis();
   void setGainAnalysis(int);
 
   // enabled chips

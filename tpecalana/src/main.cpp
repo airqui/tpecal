@@ -30,20 +30,28 @@ using namespace::std;
 using namespace globalvariables;
 using namespace boost::filesystem; 
 
-int main (int argc, const char * argv[])
+
+int main(int argc, char **argv) 
 {
 
-   char** dummyappl;
-   int dummyint = 0;
-   TApplication fooApp("fooApp",&dummyint,dummyappl);
+  char** dummyappl;
+  int dummyint = 0;
+  TApplication fooApp("fooApp",&dummyint,dummyappl);
 
 
-    RunManager runmanager;    
+  if(argc < 2)
+    {
+      std::cout << "Provide input folder (full path), output folder(relative) " << std::endl;
+      return 1;
+    }
+
+
+      
     globalvariables::setGlobal_deepAnalysis(true);
     globalvariables::setGainAnalysis(1); //high =1, low =0
-    globalvariables::setEnabledChipsNumber(1); //
-
-    globalvariables::setAnalysisType("Pedestal"); //
+    globalvariables::setEnabledChipsNumber(16); //
+      
+    globalvariables::setAnalysisType("scurves"); //
 
     globalvariables::pushScanValue(175);
     globalvariables::pushScanValue(178);
@@ -60,16 +68,10 @@ int main (int argc, const char * argv[])
     globalvariables::pushScanValue(211);
     globalvariables::pushScanValue(214);
 
-    AnaManager anaManager;
-    anaManager.init();
-
-    ADCManager adcManager;
-    adcManager.init();
-
-
     //Where are the data?
-    std::string datadirStr="/home/irles/2016/testbench_nov2016/rawdata/daq_tests/20161212_120730/scurves_by1/";
-    std::string datadirStr_output=datadirStr+"/output/";
+    std::string datadirStr=argv[1];//
+    std::string datadirStr_output=datadirStr+"/"+argv[2]+"/";
+    int step = atoi(argv[3]);
 
     std::cout << "Directory where the data is: "<<datadirStr<<std::endl;
 
@@ -85,6 +87,11 @@ int main (int argc, const char * argv[])
     }
 
 
+    RunManager runmanager;    
+    AnaManager anaManager;    anaManager.init();
+    ADCManager adcManager;    adcManager.init();
+
+
     for (unsigned irun=0; irun < globalvariables::getScanVectorDoubles().size();irun++) {
         std::stringstream inputFileStr;
         //Set the ASU mappings for a given run
@@ -96,7 +103,7 @@ int main (int argc, const char * argv[])
 	std::cout<<"  ----------------------------------------- " <<std::endl;
 	std::cout<<" New Trigger: "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
 
-	for(int ifile =0; ifile<1; ifile++) {
+	for(int ifile =0; ifile<64; ifile+=step) {
 	  std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
 	  inputFileStr.str("");
 	  inputFileStr << datadirStr << "/"<<ifile<<"/scurve_trig" << globalvariables::getScanVectorDoubles().at(irun) << "_by_dif0.raw.root";
@@ -104,26 +111,31 @@ int main (int argc, const char * argv[])
 	}
 
 	ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
-	TString output_path =  TString(datadirStr_output) + TString::Format("/trigger%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) ;
 
-	if(globalvariables::getAnalysisType() == "Pedestal" ) 
+	TString output_path ;
+	output_path =  TString(datadirStr_output) + TString::Format("/trigger%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) ;
+
+	if(globalvariables::getAnalysisType() == "Pedestal" ) {
 	  adcManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, false, "");
+	  adcManager.displayResults(output_path, true,false);
+	}
 
-	if(globalvariables::getAnalysisType() == "PedestalSignal" ) 
+	if(globalvariables::getAnalysisType() == "PedestalSignal" ) {
 	  adcManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, true, "");
+	  adcManager.displayResults(output_path, true,true);
+	}
 	
 	if(globalvariables::getAnalysisType() == "scurves" ) 
-	  anaManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path );
+	  anaManager.acquireRunInformation(ExperimentalSetup::getInstance());
 
         ////reset experimental setup and run manager
 	ExperimentalSetup::getInstance()->reset();
         runmanager.reset();
 	
     }
-    //
-    if(globalvariables::getAnalysisType() == "Pedestal" )        adcManager.displayResults(true,false);
-    if(globalvariables::getAnalysisType() == "PedestalSignal" )  adcManager.displayResults(true,true);
-    if(globalvariables::getAnalysisType() == "scurves" )         anaManager.displayResults();
+
+    if(globalvariables::getAnalysisType() == "scurves" )         anaManager.displayResults(TString(datadirStr_output)+"/Scurves");
+    std::cout<< "end" << std::endl;
     
     
     fooApp.Run();

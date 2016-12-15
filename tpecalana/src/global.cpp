@@ -3,7 +3,6 @@
 namespace globalvariables
 {
 
-
   //------------------------------------------------------------------
   // for scan runs, (threshold scans, hold scans)
   std::vector<Double_t> scanValVec;
@@ -35,10 +34,18 @@ namespace globalvariables
 
   //------------------------------------------------------------------
   // variable to decide if we doo deep analysis (saves long vectors to create histograms, requires x10 more memory and computation time
-  int global_gain = 1;
+  int global_gain = -1;
   int getGainAnalysis()
   {
     return global_gain;
+  }
+
+  TString getGainTStringAnalysis( ) {
+    TString gains="";
+    if( global_gain==1 ) gains="_highGain";
+    else if(global_gain==0) gains="_lowGain";
+    else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
+    return gains;
   }
 
   void setGainAnalysis(int gain )
@@ -54,6 +61,7 @@ namespace globalvariables
       global_gain = 1;
     }
   }
+
 
   //------------------------------------------------------------------
   // enabled chips

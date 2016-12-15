@@ -47,24 +47,22 @@ void AnaManager::init(){
 
 }
 
-void AnaManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString file_sufix){
+void AnaManager::acquireRunInformation(ExperimentalSetup* aExpSetup){
   std::cout << "************** AcquireRunInformation new run: " << _nRuns << "***********************" << std::endl;
   //simpleChannelAnalysis(aExpSetup);
-  // sCurveAnalysis(aExpSetup);
+  sCurveAnalysis(aExpSetup);
   //deeperDataAnalysis(aExpSetup);
 
   _nRuns++;
   std::cout<<_nRuns<<std::endl;
 }
 
-void AnaManager::displayResults(){
+void AnaManager::displayResults(TString file_prefix){
 
   //Call the graphics part related to the simple graphics analysis (should be realised automatically if graphics is requires
   // simpleChannelAnalysisGraphics();
-  // sCurveAnalysisGraphics();
+  sCurveAnalysisGraphics(file_prefix);
   //deeperDataAnalysisGraphics();
-
-  TString kind_analisys = globalvariables::getAnalysisType();
 
 }
 
@@ -81,7 +79,7 @@ void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup) {
       //reads out the trigger of each channel
       unsigned ntrigmtmp(0);
       unsigned nentrtmp(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getChannelEntries(ichan));
-      for(int ibuf=0; ibuf<1; ibuf++) ntrigmtmp+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers(ichan);
+      for(int ibuf=0; ibuf<15; ibuf++) ntrigmtmp+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers(ichan);
 
       //Add for each run the value in that channel
       //fills the triggers into a vector that is a part of a map of chips and channels
@@ -223,16 +221,21 @@ void AnaManager::simpleChannelAnalysisGraphics() {
 }
 
 
-void AnaManager::sCurveAnalysisGraphics() {
+void AnaManager::sCurveAnalysisGraphics(TString file_sufix) {
     
   //Loop over all enabled chips
   for (channelInfoComplUnsigned_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
-    sCurveAnalysisGraphicsPainter(mapiter);
+    sCurveAnalysisGraphicsPainter(mapiter,file_sufix);
   }
 }
 
-void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator aMapIter) {
+void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator aMapIter, TString file_sufix) {
     
+
+  TString gain = globalvariables::getGainTStringAnalysis();
+  TFile *f_scurve = TFile::Open(file_sufix+gain+".root", "RECREATE");
+  TDirectory *cdscurve = f_scurve->mkdir("scurves_graphs");
+
   //Declare and open a Canvas
   std::stringstream canvasNameStr;
   canvasNameStr << "Chip" << (*aMapIter).first;//the iterator gives the chip ID
@@ -244,11 +247,6 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
   //A vector of graphs
   std::vector<TGraph*> graphScurve;//vector of graphs... extract the proper graph
     
-  //The vector with the thresholds (This has to come from an external source, e.g. the run manager
-    
-  //std::vector<double> trigValVec{190, 192, 194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214, 216, 218, 220, 222, 224, 226, 228, 230, 232, 234, 236, 238};
-  //  std::vector<double> trigValVec{180, 190, 200, 210, 220, 230, 240};//, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 240};//170, 172, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192, 194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214};//186, 188, 190, 192, 194, 196, 198, 200, 202, 204, 206, 208, 210, 212};//170, 172, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192, 194, 196, 198, 200};//180, 185, 190, 195};  
-
   //An iterator used to fetch the maximum number of counts
   std::map<unsigned, std::vector<unsigned> >::iterator helpMapIter = _maxHithelpVec.find((*aMapIter).first);
   //Loopover all chips
@@ -292,6 +290,9 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
       //	std::cout << "Relative counts " << runval/ref << std::endl;
       irun++;
     }
+
+    f_scurve->cd();
+    cdscurve->cd();
     //Now define and fill a graph for each channel
     double vecarrayhelp[(*chanVeciter).size()];
     double* vecarray;
@@ -315,8 +316,11 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
       graphScurve.back()->GetXaxis()->SetTitle("Threshold");
       graphScurve.back()->GetYaxis()->SetTitle("Nhit/Nref");
       if(ref>10) graphScurve.back()->Draw("APSL");
-    } else
+    } else {
+      graphScurve.back()->SetName(TString::Format("Chip%i_chn%i",int((*aMapIter).first),int(ichan)));
+      graphScurve.back()->Write();
       if(ref > 10) graphScurve.back()->Draw("PSL");
+    }
     //}
         
     /*
@@ -355,7 +359,8 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
       ichan++;
     }
   }
-        
+ 
+  f_scurve->Close();     
 }
 
 void AnaManager::deeperDataAnalysisGraphics() {

@@ -41,7 +41,7 @@ void ADCManager::init(){
   }
 }
 
-void ADCManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString file_sufix,bool pedestal_analysis=true, bool signal_analysis=true, TString pedestal_file_name=""){
+void ADCManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString file_sufix, bool pedestal_analysis=true, bool signal_analysis=true, TString pedestal_file_name=""){
   std::cout << "************** AcquireRunInformation new file: " << _nRuns << "***********************" << std::endl;
   std::cout<<" ****Init the Analysis Manager for ADC analysis, with getAnalysisType()="<<globalvariables::getAnalysisType()<<" ****"<<std::endl;
 
@@ -50,8 +50,8 @@ void ADCManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString fil
   _nRuns++;
 }
 
-void ADCManager::displayResults(bool pedestal_analysis=true, bool signal_analysis=true){
-	if(pedestal_analysis == true) pedestalAnalysisGraphicsBasic();
+void ADCManager::displayResults(TString file_sufix, bool pedestal_analysis=true, bool signal_analysis=true){
+	if(pedestal_analysis == true) pedestalAnalysisGraphicsBasic(file_sufix);
 	if(signal_analysis   == true)   signalAnalysisGraphicsBasic();
 
 }
@@ -60,12 +60,10 @@ void ADCManager::displayResults(bool pedestal_analysis=true, bool signal_analysi
 // if we want to do calibration, the function will be very similar, just chosing events with hit bit =1 and making a more complicated fit
 
 void ADCManager::pedestalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix) {
-  TString gain = "";
 
-  if( globalvariables::getGainAnalysis()==1) gain="_highGain";
-  else if(globalvariables::getGainAnalysis()==0) gain="_lowGain";
-  else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
-  f_pedestal_scan = TFile::Open(file_sufix+"_Pedestal_"+gain+".root", "RECREATE");
+  TString gain = globalvariables::getGainTStringAnalysis();
+  TFile *f_pedestal_scan = TFile::Open(file_sufix+gain+".root", "RECREATE");
+  TDirectory *cdtof = f_pedestal_scan->mkdir("pedestal_histos");
 
   //      Loop over all enabled chips
   for (bufferchannelInfoComplDouble_t::iterator mapiter_chip = _pedestalVecMap.begin(); mapiter_chip!=_pedestalVecMap.end();mapiter_chip++) {
@@ -91,12 +89,11 @@ void ADCManager::pedestalAnalysis(ExperimentalSetup* aExpSetup, TString file_suf
 	  // FULL analysis with histograms for each channel, each memory cell, each chip, each asu, each dif
 	  // too much memory and computing demand
 	  // //save the histograms
-	  TString gain = "";
-	  if( globalvariables::getGainAnalysis()==1)   gain="_highGain";
-	  else  if(globalvariables::getGainAnalysis()==0) gain="_lowGain";
-	  else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
+	  TString gain = globalvariables::getGainTStringAnalysis();
 
 	  f_pedestal_scan->cd();
+	  cdtof->cd();
+
 	  std::stringstream TitleNameStr;
 	  TitleNameStr << "Chip"<<(*mapiter_chip).first<<"_Chn"<<ichan<<"_buf"<<(*mapiter).first<<gain;//the iterator gives the chip ID
 
@@ -139,17 +136,16 @@ void ADCManager::pedestalAnalysis(ExperimentalSetup* aExpSetup, TString file_suf
       }
     }
   }
+  f_pedestal_scan->Close();
 }
 
 // signal analysis, read the info and do a LandauGauss fit to the signal histogram per channel, buffer, scan value and chip.
 
 void ADCManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix, TString pedestal_file_name) {
 
-  TString gain = "";
-  if( globalvariables::getGainAnalysis()==1) gain="_highGain";
-  else if(globalvariables::getGainAnalysis()==0) gain="_lowGain";
-  else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
-  f_signal_scan = TFile::Open(file_sufix+"_Signal"+gain+".root", "RECREATE");
+  TString gain = globalvariables::getGainTStringAnalysis();
+  TFile *f_signal_scan = TFile::Open(file_sufix+gain+".root", "UPDATE");
+  TDirectory *cdtof = f_signal_scan->mkdir("signal_histos");
 
 
   //      Loop over all enabled chips
@@ -183,12 +179,10 @@ void ADCManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix
 	  // FULL analysis with histograms for each channel, each memory cell, each chip, each asu, each dif
 	  // too much memory and computing demand
 	  // //save the histograms
-	  TString gain = "";
-	  if( globalvariables::getGainAnalysis()==1)   gain="_highGain";
-	  else  if(globalvariables::getGainAnalysis()==0) gain="_lowGain";
-	  else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
+	  TString gain = globalvariables::getGainTStringAnalysis();
 
 	  f_signal_scan->cd();
+	  cdtof->cd();
 	  std::stringstream TitleNameStr;
 	  TitleNameStr << "Chip"<<(*mapiter_chip).first<<"_Chn"<<ichan<<"_buf"<<(*mapiter).first<<gain;//the iterator gives the chip ID
 
@@ -213,6 +207,8 @@ void ADCManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix
       }
     }
   }
+  f_signal_scan->Close();
+
 }
 
 
@@ -223,18 +219,17 @@ void ADCManager::signalAnalysisGraphicsBasic() {
 //
 }
 
-void ADCManager::pedestalAnalysisGraphicsBasic() {
+void ADCManager::pedestalAnalysisGraphicsBasic(TString file_sufix) {
 
 	//
 	// basic functionality for graphic analysis of the pedestal data
 	// reads the different map objects and creates few th2f, for every chip, with pedestal mean, error etc values
 	//
 
-  TString gain = "";
-  if( globalvariables::getGainAnalysis()==1) gain="_highGain";
-  else if(globalvariables::getGainAnalysis()==0) gain="_lowGain";
-  else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
-  f_pedestal = TFile::Open("Pedestal_"+gain+".root", "RECREATE");
+  TString gain = globalvariables::getGainTStringAnalysis();
+
+  TFile *f_pedestal_scan = TFile::Open(file_sufix+gain+".root", "UPDATE");
+  TDirectory *cdtof = f_pedestal_scan->mkdir("pedestal_results");
 
   //Loop over all enabled chips to create the graphs and fill them
 
@@ -248,7 +243,7 @@ void ADCManager::pedestalAnalysisGraphicsBasic() {
       TString::Format("PedestalsUncert_for_Chip%i",(*mapiter_chip).first);//the iterator gives the chip ID
     TCanvas* c_chip= new TCanvas(canvasNameStr, canvasNameStr,11,30,1600,700);
     //Divide the canvas
-    c_chip->Divide(1,2);
+    c_chip->Divide(2,1);
     
     TH2F *pedestal_map = new TH2F(canvasNameStr,canvasNameStr,15,-0.5,14.5,64,-0.5,63.5);
     TH2F *pedestalUnc_map = new TH2F(errorNameStr,errorNameStr,15,-0.5,14.5,64,-0.5,63.5);
@@ -295,16 +290,15 @@ void ADCManager::pedestalAnalysisGraphicsBasic() {
    pedestalUnc_map->GetYaxis()->SetTitle("channel");
    pedestalUnc_map->Draw("colz");
 
-   f_pedestal->cd();
+   f_pedestal_scan->cd();
+   cdtof->cd();
    // once than the plotting for one chip is finished, save the canvas
-   canvasNameStr = TString::Format("Pedestals_for_Chip%i.png",(*mapiter_chip).first);//the iterator gives the chip ID
-   c_chip->Print(canvasNameStr);
    c_chip->Write();
    pedestal_map->Write();
    pedestalUnc_map->Write();
   }
   
-  f_pedestal->Close();
+  f_pedestal_scan->Close();
   
 }
 
@@ -315,11 +309,8 @@ void ADCManager::pedestalAnalysisGraphicsBasic() {
 
 void ADCManager::pedestalAnalysisGraphics() {
 
-  TString gain = "";
-  if( globalvariables::getGainAnalysis()==1) gain="_highGain";
-  else if(globalvariables::getGainAnalysis()==0) gain="_lowGain";
-  else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
-  f_pedestal = TFile::Open("Pedestal_"+gain+".root", "RECREATE");
+  TString gain = globalvariables::getGainTStringAnalysis();
+  TFile *f_pedestal = TFile::Open("Pedestal_"+gain+".root", "RECREATE");
 
   //Loop over all enabled chips to create the graphs and fill them
   for (bufferchannelInfoComplDouble_t::iterator mapiter_chip = _pedestalVecMap.begin();mapiter_chip!=_pedestalVecMap.end();mapiter_chip++) {
@@ -396,14 +387,16 @@ void ADCManager::pedestalAnalysisGraphics() {
 void ADCManager::pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_t::iterator aMapIter) {
 
   //Loop over all chips
+  TString gain = globalvariables::getGainTStringAnalysis();
   std::cout << "AnaManager::pedestalAnalysisGraphicsPainter Chip: " << (*aMapIter).first << std::endl;
-
-
   unsigned bufdepth((*aMapIter).second.size());
 
   for (unsigned ibuf=0;ibuf<bufdepth;ibuf++) {
     _tGraphPedestalVec.insert(std::make_pair(ibuf, std::vector<TGraphErrors*>  () ) );
   }
+
+  TFile *f_pedestal = TFile::Open("Pedestal_"+gain+".root", "UPDATE");
+
 
   for (channelInfoComplDouble_t::iterator mapiter = (*aMapIter).second.begin(); mapiter!=(*aMapIter).second.end(); mapiter++) {
 

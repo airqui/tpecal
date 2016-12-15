@@ -45,9 +45,9 @@ public:
     void pedestalAnalysis(ExperimentalSetup*, TString);
     void signalAnalysis(ExperimentalSetup*, TString, TString);
 
-    void displayResults(bool, bool);
+    void displayResults(TString, bool, bool);
     // basic analysis graphics: read the pedestal/signal info and make some fits for each channel/buffer
-    void pedestalAnalysisGraphicsBasic();
+    void pedestalAnalysisGraphicsBasic(TString);
     void signalAnalysisGraphicsBasic();
 
     // more elaborated analysis graphics for scan runs (threshold scans, etc), only written for pedestal
@@ -55,8 +55,8 @@ public:
     void pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_t::iterator);
 
 private:
-    TFile* f_pedestal_scan;
-    TFile* f_pedestal;
+    //    TFile* f_pedestal_scan;
+    //TFile* f_pedestal;
 
     TFile* f_signal_scan;
     TFile* f_signal;
