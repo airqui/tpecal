@@ -4,10 +4,11 @@ SET(ext_inc_paths "./include" )
 
 INCLUDE(../cmake/FindROOT.cmake)
 
-LINK_DIRECTORIES( ${ROOT_LIBRARY_DIR})
-INCLUDE_DIRECTORIES( ${ext_inc_paths} ${ROOT_INCLUDE_DIR})
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+LINK_DIRECTORIES( ${Boost_LIBRARY_DIRS} ${ROOT_LIBRARY_DIR})
+INCLUDE_DIRECTORIES( ${ext_inc_paths} ${Boost_INCLUDE_DIRS} ${ROOT_INCLUDE_DIR})
 ADD_EXECUTABLE(${name} ${sourcefiles})
-TARGET_LINK_LIBRARIES(${name} ${ROOT_LIBRARIES} -lSpectrum)
+TARGET_LINK_LIBRARIES(${name} ${Boost_LIBRARIES} ${ROOT_LIBRARIES} -lSpectrum)
 
 INSTALL(TARGETS ${name}
     RUNTIME DESTINATION bin

@@ -24,9 +24,11 @@
 #include "ADCManager.h"
 #include "global.h"
 
+#include "boost/filesystem.hpp"   
 
 using namespace::std;
 using namespace globalvariables;
+using namespace boost::filesystem; 
 
 int main (int argc, const char * argv[])
 {
@@ -42,9 +44,21 @@ int main (int argc, const char * argv[])
     globalvariables::setEnabledChipsNumber(1); //
 
     globalvariables::setAnalysisType("Pedestal"); //
-    std::cout<<globalvariables::getAnalysisType()<<std::endl;
 
-    globalvariables::pushScanValue(200);
+    globalvariables::pushScanValue(175);
+    globalvariables::pushScanValue(178);
+    globalvariables::pushScanValue(181);
+    globalvariables::pushScanValue(184);
+    globalvariables::pushScanValue(187);
+    globalvariables::pushScanValue(190);
+    globalvariables::pushScanValue(193);
+    globalvariables::pushScanValue(196);
+    globalvariables::pushScanValue(199);
+    globalvariables::pushScanValue(202);
+    globalvariables::pushScanValue(205);
+    globalvariables::pushScanValue(208);
+    globalvariables::pushScanValue(211);
+    globalvariables::pushScanValue(214);
 
     AnaManager anaManager;
     anaManager.init();
@@ -54,7 +68,22 @@ int main (int argc, const char * argv[])
 
 
     //Where are the data?
-    std::string datadirStr="/home/irles/2016/testbench_nov2016/rawdata/20161201_145847/scurves";
+    std::string datadirStr="/home/irles/2016/testbench_nov2016/rawdata/daq_tests/20161212_120730/scurves_by1/";
+    std::string datadirStr_output=datadirStr+"/output/";
+
+    std::cout << "Directory where the data is: "<<datadirStr<<std::endl;
+
+    if ( !exists( datadirStr ) ) {
+      std::cout << " Data directory doesn't exist !!! STOP THE EXECUTABLE  "<<std::endl;
+      return 0;
+    }   
+    if ( !exists( datadirStr_output ) ) {
+      std::cout << " Data OUTPUT directory doesn't exist !!! STOP THE EXECUTABLE  "<<std::endl;
+      std::cout << " Please, type and rerun: "<<std::endl;
+      std::cout << "mkdir "<<datadirStr_output<<std::endl;
+      return 0;
+    }
+
 
     for (unsigned irun=0; irun < globalvariables::getScanVectorDoubles().size();irun++) {
         std::stringstream inputFileStr;
@@ -67,7 +96,7 @@ int main (int argc, const char * argv[])
 	std::cout<<"  ----------------------------------------- " <<std::endl;
 	std::cout<<" New Trigger: "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
 
-	for(int ifile =0; ifile<64; ifile+=8) {
+	for(int ifile =0; ifile<1; ifile++) {
 	  std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
 	  inputFileStr.str("");
 	  inputFileStr << datadirStr << "/"<<ifile<<"/scurve_trig" << globalvariables::getScanVectorDoubles().at(irun) << "_by_dif0.raw.root";
@@ -75,11 +104,16 @@ int main (int argc, const char * argv[])
 	}
 
 	ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
-	if(globalvariables::getAnalysisType() == "Pedestal" ) {
-		adcManager.acquireRunInformation(ExperimentalSetup::getInstance(),
-						 TString::Format("trigger%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ), true, true, "");
-	} else anaManager.acquireRunInformation(	ExperimentalSetup::getInstance(),
-			TString::Format("trigger%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) );
+	TString output_path =  TString(datadirStr_output) + TString::Format("/trigger%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) ;
+
+	if(globalvariables::getAnalysisType() == "Pedestal" ) 
+	  adcManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, false, "");
+
+	if(globalvariables::getAnalysisType() == "PedestalSignal" ) 
+	  adcManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, true, "");
+	
+	if(globalvariables::getAnalysisType() == "scurves" ) 
+	  anaManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path );
 
         ////reset experimental setup and run manager
 	ExperimentalSetup::getInstance()->reset();
@@ -87,15 +121,13 @@ int main (int argc, const char * argv[])
 	
     }
     //
-   // if(globalvariables::getAnalysisType() == "Pedestal" ) {
-   //     adcManager.displayResults(true,true);
-   //   } anaManager.displayResults();
+    if(globalvariables::getAnalysisType() == "Pedestal" )        adcManager.displayResults(true,false);
+    if(globalvariables::getAnalysisType() == "PedestalSignal" )  adcManager.displayResults(true,true);
+    if(globalvariables::getAnalysisType() == "scurves" )         anaManager.displayResults();
     
     
     fooApp.Run();
     return 0;
 }
 
-//  myfile_pedestal.open ("Pedestal_"+file_sufix+gain+".tsv");
-//  myfile_pedestal <<"#pedestal positions & errors for all buffers " << endl;
-//  myfile_pedestal <<"#dif\chip\tchn\tpedbuffer0\tpederrorbuffer0\..\tpederrorbuffer14" << endl;
+

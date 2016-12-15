@@ -27,7 +27,6 @@ ADCManager::~ADCManager(){/* no op*/}
 
 
 void ADCManager::init(){
-  std::cout<<"init"<<std::endl;
 
   std::cout<<"Init the Analysis Manager for ADC analysis, with getAnalysisType()="<<globalvariables::getAnalysisType()<<std::endl;
 
@@ -66,7 +65,7 @@ void ADCManager::pedestalAnalysis(ExperimentalSetup* aExpSetup, TString file_suf
   if( globalvariables::getGainAnalysis()==1) gain="_highGain";
   else if(globalvariables::getGainAnalysis()==0) gain="_lowGain";
   else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
-  f_pedestal_scan = TFile::Open("Pedestal_"+file_sufix+gain+".root", "RECREATE");
+  f_pedestal_scan = TFile::Open(file_sufix+"_Pedestal_"+gain+".root", "RECREATE");
 
   //      Loop over all enabled chips
   for (bufferchannelInfoComplDouble_t::iterator mapiter_chip = _pedestalVecMap.begin(); mapiter_chip!=_pedestalVecMap.end();mapiter_chip++) {
@@ -150,7 +149,7 @@ void ADCManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix
   if( globalvariables::getGainAnalysis()==1) gain="_highGain";
   else if(globalvariables::getGainAnalysis()==0) gain="_lowGain";
   else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
-  f_signal_scan = TFile::Open("Signal_"+file_sufix+gain+".root", "RECREATE");
+  f_signal_scan = TFile::Open(file_sufix+"_Signal"+gain+".root", "RECREATE");
 
 
   //      Loop over all enabled chips

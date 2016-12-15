@@ -4,25 +4,24 @@ namespace globalvariables
 {
 
 
-//------------------------------------------------------------------
- // for scan runs, (threshold scans, hold scans)
-    std::vector<Double_t> scanValVec;
-	TString ScanType = "";
-	void setScanType(TString type) {
-		ScanType = type;
-	}
-	TString getScanType() { return ScanType; }
+  //------------------------------------------------------------------
+  // for scan runs, (threshold scans, hold scans)
+  std::vector<Double_t> scanValVec;
+  TString ScanType = "";
+  void setScanType(TString type) {
+    ScanType = type;
+  }
+  TString getScanType() { return ScanType; }
+  void pushScanValue(Double_t value) {
+    scanValVec.push_back(value);
+  }
+  std::vector<Double_t> getScanVectorDoubles() {
+    return scanValVec;
+  }
 
-	void pushScanValue(Double_t value) {
-		scanValVec.push_back(value);
-	}
-	std::vector<Double_t> getScanVectorDoubles() {
-		return scanValVec;
-	}
-
-//------------------------------------------------------------------
+  //------------------------------------------------------------------
   // variable to decide if we do deep analysis (saves long vectors to create histograms, requires x10 more memory and computation time
- bool global_bool_deepanalysis = false;
+  bool global_bool_deepanalysis = false;
 
   bool getGlobal_deepAnalysis()
   {
@@ -62,19 +61,19 @@ namespace globalvariables
   // enabled
   std::vector<unsigned> enabledChipsVec;
   void setEnabledChipsNumber( unsigned nchips) {
-	  enabledChipsVec.clear();
-	  for(unsigned i=0; i<nchips; i++) enabledChipsVec.push_back(i);
+    enabledChipsVec.clear();
+    for(unsigned i=0; i<nchips; i++) enabledChipsVec.push_back(i);
   }
 
   std::vector<unsigned> getEnabledChipsVec() {
-	  	 return enabledChipsVec;
+    return enabledChipsVec;
   }
 
   //------------------------------------------------------------------
   // type of analysis
   TString type_analysis;
   void setAnalysisType(TString type) {
-	  type_analysis = type;
+    type_analysis = type;
   }
   TString getAnalysisType() { return type_analysis; }
 
