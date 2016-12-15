@@ -97,7 +97,7 @@ void Dif::dataAnalysis(TFile* aDifFile, int PlaneEventThreshold) {
 
       for(unsigned i=0; i<NASICS; i++) {
 	for(unsigned j=0; j<MAXBUFDEPTH; j++ ) {
-	  if(nhits[i][j] > PlaneEventThreshold) {
+	  if(nhits[i][j] > PlaneEventThreshold || badbcid[i][j] != 0) {
 	    for(unsigned k=0; k<MAXCHAN; k++) {
 	      low_gain[i][j][k]=0;
 	      high_gain[i][j][k]=0;
