@@ -47,10 +47,10 @@ void AnaManager::init(){
 
 }
 
-void AnaManager::acquireRunInformation(ExperimentalSetup* aExpSetup){
+void AnaManager::acquireRunInformation(ExperimentalSetup* aExpSetup, int buffer){
   std::cout << "************** AcquireRunInformation new run: " << _nRuns << "***********************" << std::endl;
   //simpleChannelAnalysis(aExpSetup);
-  sCurveAnalysis(aExpSetup);
+  sCurveAnalysis(aExpSetup, buffer);
   //deeperDataAnalysis(aExpSetup);
 
   _nRuns++;
@@ -66,7 +66,7 @@ void AnaManager::displayResults(TString file_prefix){
 
 }
 
-void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup) {
+void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
     
   //Loop over all enabled chips
   for (channelInfoComplUnsigned_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
@@ -78,8 +78,9 @@ void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup) {
       if((*mapiter).second.size() < ichan+1) (*mapiter).second.push_back (std::vector<unsigned> () );
       //reads out the trigger of each channel
       unsigned ntrigmtmp(0);
-      unsigned nentrtmp(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getChannelEntries(ichan));
-      for(int ibuf=0; ibuf<15; ibuf++) ntrigmtmp+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers(ichan);
+      unsigned nentrtmp(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelEntries(ichan));
+      //  for(int ibuf=0; ibuf<1; ibuf++) 
+      ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelTriggers(ichan);
 
       //Add for each run the value in that channel
       //fills the triggers into a vector that is a part of a map of chips and channels
@@ -88,13 +89,13 @@ void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup) {
       if(ntrigmtmp>0) std::cout << "AnaManager::sCurveAnalysis - chip " << (*mapiter).first << " Channel: " << ichan << " Entries: " << nentrtmp << " Triggers: " << ntrigmtmp << std::endl;
       //Store the maximum nummber of triggers
       if (helpMapIter != _maxHithelpVec.end()) {
-	if ((*helpMapIter).second.size()<ichan+1 ) (*helpMapIter).second.push_back(ntrigmtmp);
-	else {
-	  if (ntrigmtmp >  (*helpMapIter).second.at(ichan)) {
-	    (*helpMapIter).second.at(ichan) = ntrigmtmp;
-	  }
+  	if ((*helpMapIter).second.size()<ichan+1 ) (*helpMapIter).second.push_back(ntrigmtmp);
+  	else {
+  	  if (ntrigmtmp >  (*helpMapIter).second.at(ichan)) {
+  	    (*helpMapIter).second.at(ichan) = ntrigmtmp;
+  	  }
                     
-	}
+  	}
       }          
     }      
   }
@@ -334,6 +335,7 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
     */
     ichan++;
   }
+
   /*
   //Writes files to be later overlayed
   ///////////////////////////////////////////////////////////////
@@ -360,6 +362,8 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
     }
   }
  
+  f_scurve->cd();
+  c_chips->Write();
   f_scurve->Close();     
 }
 

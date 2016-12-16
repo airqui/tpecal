@@ -31,7 +31,7 @@ public:
     //Initialise the manager
     void init();
     //Retrieve information
-    void acquireRunInformation(ExperimentalSetup*);
+    void acquireRunInformation(ExperimentalSetup*,int);
     //A method called to desplay results of whatever nature
     void displayResults(TString);
     //All graphics is realised in methods called by this method
@@ -61,7 +61,7 @@ private:
     std::map<int,vector<double> > _sigVecMapLow;
 
     //S-curve analysis
-    void sCurveAnalysis(ExperimentalSetup*);
+    void sCurveAnalysis(ExperimentalSetup*,int);
     //The method that will effectively call the graphics part
     void sCurveAnalysisGraphics(TString);
     //A map that holds the number of triggers of all channels for all runs for all enabled chips
