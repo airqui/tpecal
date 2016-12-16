@@ -47,14 +47,14 @@ int main(int argc, char **argv)
 
 
       
-    globalvariables::setGlobal_deepAnalysis(true);
+    globalvariables::setGlobal_deepAnalysis(false);
     globalvariables::setGainAnalysis(1); //high =1, low =0
-    globalvariables::setEnabledChipsNumber(1); //
+    globalvariables::setEnabledChipsNumber(16); //
       
     globalvariables::setAnalysisType("scurves"); //
 
-    // globalvariables::pushScanValue(175);
-    // globalvariables::pushScanValue(178);
+    globalvariables::pushScanValue(175);
+    globalvariables::pushScanValue(178);
     globalvariables::pushScanValue(181);
     globalvariables::pushScanValue(184);
     globalvariables::pushScanValue(187);
@@ -64,9 +64,9 @@ int main(int argc, char **argv)
     globalvariables::pushScanValue(199);
     globalvariables::pushScanValue(202);
     globalvariables::pushScanValue(205);
-    // globalvariables::pushScanValue(208);
-    // globalvariables::pushScanValue(211);
-    // globalvariables::pushScanValue(214);
+    globalvariables::pushScanValue(208);
+    globalvariables::pushScanValue(211);
+    globalvariables::pushScanValue(214);
 
     //Where are the data?
     std::string datadirStr=argv[1];//
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	std::cout<<"  ----------------------------------------- " <<std::endl;
 	std::cout<<" New Trigger: "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
 
-	for(int ifile =0; ifile<8; ifile+=step) {
+	for(int ifile =0; ifile<64; ifile+=step) {
 	  std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
 	  inputFileStr.str("");
 	  inputFileStr << datadirStr << "/"<<ifile<<"/scurve_trig" << globalvariables::getScanVectorDoubles().at(irun) << "_by_dif0.raw.root";
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
     }
 
     TString scurvefile= TString(datadirStr_output)+TString::Format("/Scurves_buff%i_",buffer);
-    if(globalvariables::getAnalysisType() == "scurves" )         anaManager.displayResults( scurvefile );
+    if(globalvariables::getAnalysisType() == "scurves" )         anaManager.displayResults( scurvefile,buffer );
     
     //   fooApp.Run();
     return 1;

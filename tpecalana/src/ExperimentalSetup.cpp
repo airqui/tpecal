@@ -95,17 +95,10 @@ void ExperimentalSetup::executeExperiment(std::vector<TFile*> aFileVec, int Plan
 
     //Read in the dif files
     if(_difVec.size() < aFileVec.size()) {
-      for (unsigned ifile=0; ifile < aFileVec.size(); ifile++){
-	cout<<"            idif"<<endl;
+      for (unsigned ifile=0; ifile < aFileVec.size(); ifile++)
 	_difVec.at(_difVec.size()-1).dataAnalysis(aFileVec.at(ifile),PlaneEventThreshold);
-	cout<<"            idif-endl"<<endl;
-      }
     }  else {
-      for (unsigned idif=0; idif < _difVec.size(); idif++) {
-	cout<<"            *idif"<<endl;
-	_difVec.at(idif).dataAnalysis(aFileVec.at(idif),PlaneEventThreshold);
-	cout<<"            *idif-end"<<endl;
-      }
+      for (unsigned idif=0; idif < _difVec.size(); idif++) _difVec.at(idif).dataAnalysis(aFileVec.at(idif),PlaneEventThreshold);
     }
    
 }

@@ -33,7 +33,7 @@ public:
     //Retrieve information
     void acquireRunInformation(ExperimentalSetup*,int);
     //A method called to desplay results of whatever nature
-    void displayResults(TString);
+    void displayResults(TString,int);
     //All graphics is realised in methods called by this method
     //void launchGraphicsPresentation();
 
@@ -63,7 +63,7 @@ private:
     //S-curve analysis
     void sCurveAnalysis(ExperimentalSetup*,int);
     //The method that will effectively call the graphics part
-    void sCurveAnalysisGraphics(TString);
+    void sCurveAnalysisGraphics(TString,int);
     //A map that holds the number of triggers of all channels for all runs for all enabled chips
     typedef std::map<unsigned, std::vector<std::vector<unsigned> > > channelInfoComplUnsigned_t;
     channelInfoComplUnsigned_t _ntrigVecMapHigh;
@@ -73,7 +73,7 @@ private:
     std::map<unsigned, std::vector<unsigned> > _maxHithelpVec;
 
     //... and here finally the job is done
-    void sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator, TString);
+    void sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator, TString,int);
 
     //data quality analysis
     void deeperDataAnalysis(ExperimentalSetup*);

@@ -6,12 +6,13 @@
 //
 //
 
-#include "AnaManager.h"
 #include <string>
 #include <sstream>
 #include "TF1.h"
 #include "TGraph.h"
 #include "TH1F.h"
+#include "AnaManager.h"
+#include "FitGraphs.h"
 #include "global.h"
 
 using namespace globalvariables;
@@ -48,20 +49,19 @@ void AnaManager::init(){
 }
 
 void AnaManager::acquireRunInformation(ExperimentalSetup* aExpSetup, int buffer){
-  std::cout << "************** AcquireRunInformation new run: " << _nRuns << "***********************" << std::endl;
+  std::cout << "************** AcquireRunInformation new file: " << _nRuns << "***********************" << std::endl;
   //simpleChannelAnalysis(aExpSetup);
   sCurveAnalysis(aExpSetup, buffer);
   //deeperDataAnalysis(aExpSetup);
 
   _nRuns++;
-  std::cout<<_nRuns<<std::endl;
 }
 
-void AnaManager::displayResults(TString file_prefix){
+void AnaManager::displayResults(TString file_prefix, int buffer){
 
   //Call the graphics part related to the simple graphics analysis (should be realised automatically if graphics is requires
   // simpleChannelAnalysisGraphics();
-  sCurveAnalysisGraphics(file_prefix);
+  sCurveAnalysisGraphics(file_prefix,buffer);
   //deeperDataAnalysisGraphics();
 
 }
@@ -80,13 +80,13 @@ void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
       unsigned ntrigmtmp(0);
       unsigned nentrtmp(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelEntries(ichan));
       //  for(int ibuf=0; ibuf<1; ibuf++) 
-      ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelTriggers(ichan);
+      if(buffer < 15) ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelTriggers(ichan);
+      else for(int ibuf=0; ibuf<1; ibuf++) ntrigmtmp+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelTriggers(ichan);
 
       //Add for each run the value in that channel
       //fills the triggers into a vector that is a part of a map of chips and channels
       (*mapiter).second.at(ichan).push_back(ntrigmtmp);
-      //(*mapiter).second.at(_nRuns).push_back(ntrigmtmp);
-      if(ntrigmtmp>0) std::cout << "AnaManager::sCurveAnalysis - chip " << (*mapiter).first << " Channel: " << ichan << " Entries: " << nentrtmp << " Triggers: " << ntrigmtmp << std::endl;
+      // if(ntrigmtmp>0) std::cout << "AnaManager::sCurveAnalysis - chip " << (*mapiter).first << " Channel: " << ichan << " Entries: " << nentrtmp << " Triggers: " << ntrigmtmp << std::endl;
       //Store the maximum nummber of triggers
       if (helpMapIter != _maxHithelpVec.end()) {
   	if ((*helpMapIter).second.size()<ichan+1 ) (*helpMapIter).second.push_back(ntrigmtmp);
@@ -222,32 +222,54 @@ void AnaManager::simpleChannelAnalysisGraphics() {
 }
 
 
-void AnaManager::sCurveAnalysisGraphics(TString file_sufix) {
+void AnaManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
     
   //Loop over all enabled chips
   for (channelInfoComplUnsigned_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
-    sCurveAnalysisGraphicsPainter(mapiter,file_sufix);
+    sCurveAnalysisGraphicsPainter(mapiter,file_sufix, buffer);
   }
 }
 
-void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator aMapIter, TString file_sufix) {
+void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator aMapIter, TString file_sufix, int buffer) {
     
 
   TString gain = globalvariables::getGainTStringAnalysis();
-  TFile *f_scurve = TFile::Open(file_sufix+gain+".root", "RECREATE");
-  TDirectory *cdscurve = f_scurve->mkdir("scurves_graphs");
+  TFile *f_scurve = TFile::Open(file_sufix+gain+".root", "UPDATE");
+  TDirectory *dir = f_scurve->GetDirectory(TString::Format("scurves_graphs_buffer%i",buffer));
+  if (!dir) dir = f_scurve->mkdir(TString::Format("scurves_graphs_buffer%i",buffer));
 
   //Declare and open a Canvas
   std::stringstream canvasNameStr;
-  canvasNameStr << "Chip" << (*aMapIter).first;//the iterator gives the chip ID
+  canvasNameStr << "Chip" << (*aMapIter).first << "_buffer" << buffer;//the iterator gives the chip ID
   TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1000,800);
   //Divide the canvas
   c_chips->Divide(2,2);
   //Helper variable to allow to switch to another pad in the canvas
   unsigned ipad(0);
   //A vector of graphs
-  std::vector<TGraph*> graphScurve;//vector of graphs... extract the proper graph
+  std::vector<TGraphErrors*> graphScurve;//vector of graphs... extract the proper graph
     
+  TH2F * fitParScurve_1 = new TH2F(TString::Format("Chip%i_fitParScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_1",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
+  TH2F * fitParScurve_2 = new TH2F(TString::Format("Chip%i_fitParScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_2",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
+  TH2F * fitParScurve_3 = new TH2F(TString::Format("Chip%i_fitParScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_3",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
+  TH2F * fitParScurve_4 = new TH2F(TString::Format("Chip%i_fitParScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_4",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
+ 
+  TH2F * fitParErrScurve_1 = new TH2F(TString::Format("Chip%i_fitParErrScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_1",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
+  TH2F * fitParErrScurve_2 = new TH2F(TString::Format("Chip%i_fitParErrScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_2",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
+  TH2F * fitParErrScurve_3 = new TH2F(TString::Format("Chip%i_fitParErrScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_3",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
+  TH2F * fitParErrScurve_4 = new TH2F(TString::Format("Chip%i_fitParErrScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_4",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
+
+
+  TH1F * hist_fitParScurve_1 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_1",int((*aMapIter).first)),100,0,2);
+  TH1F * hist_fitParScurve_2 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_2",int((*aMapIter).first)),200,150,250);
+  TH1F * hist_fitParScurve_3 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_3",int((*aMapIter).first)),100,0,20);
+  TH1F * hist_fitParScurve_4 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_4",int((*aMapIter).first)),100,-10,10);
+ 
+  TH1F * hist_fitParErrScurve_1 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_1",int((*aMapIter).first)),100,0,0.5);
+  TH1F * hist_fitParErrScurve_2 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_2",int((*aMapIter).first)),100,0,5);
+  TH1F * hist_fitParErrScurve_3 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_3",int((*aMapIter).first)),100,0,5);
+  TH1F * hist_fitParErrScurve_4 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_4",int((*aMapIter).first)),500,0,5);
+
   //An iterator used to fetch the maximum number of counts
   std::map<unsigned, std::vector<unsigned> >::iterator helpMapIter = _maxHithelpVec.find((*aMapIter).first);
   //Loopover all chips
@@ -263,7 +285,7 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
     //At least as a sanity check we verify that the size of the vector for wach channel corresponds to the size of the
     //vector holding the thresholds as defined above
     if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
-      std::cout << "AnaManager::sCurveAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for channe" << ichan << std::endl;
+      std::cout << "AnaManager::sCurveAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for channel" << ichan << std::endl;
       std::cout << "Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
       std::cout << "Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
     }
@@ -271,49 +293,51 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
     //if ((*helpMapIter).second.at(ichan) > 0) {
     //Define an array that holds the entries for each run
     double valarray[ (*chanVeciter).size()];
+    double evalarray[ (*chanVeciter).size()];
+    double evalarray_x[ (*chanVeciter).size()];
     //A local variable that holds the reference values
     double ref(static_cast<double>((*helpMapIter).second.at(ichan)));
     if(ref>2)  { 
       chanlistVec.push_back(ichan);
-      std::cout << "Channel: " << ichan << " hits: " << ref << std::endl;
+      // std::cout << "Channel: " << ichan << " hits: " << ref << std::endl;
     }
     //Loop over the entries with trigger in the given runs
     //Helper variable to count runs
     unsigned irun(0);
     for (std::vector<unsigned>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
-      std::cout << "AnaManager::sCurveAnalysisGraphicsPainter: Run " << irun << ": " << (*runIter) << std::endl;
+      // std::cout << "AnaManager::sCurveAnalysisGraphicsPainter: Run " << irun << ": " << (*runIter) << std::endl;
       //Fetch the value for that run
       double runval(static_cast<double>((*runIter)));
       //Fill the array with the relative counts for a given channel in a given run
-      if(ref > 2) valarray[irun] = runval/ref;
-      //	if(ref > 0) valarray[irun] = runval/ref;
-      else valarray[irun] = 0;
+      if(ref > 2) {
+	valarray[irun] = runval/ref;
+	evalarray[irun] = sqrt(runval)/ref;
+      }   else {
+	valarray[irun] = 0;
+	evalarray[irun] = 0;
+      }
+      evalarray_x[irun] = 0;///ref;
+
       //	std::cout << "Relative counts " << runval/ref << std::endl;
       irun++;
     }
 
     f_scurve->cd();
-    cdscurve->cd();
+    dir->cd();
     //Now define and fill a graph for each channel
     double vecarrayhelp[(*chanVeciter).size()];
     double* vecarray;
     vecarray = vectortoarray(globalvariables::getScanVectorDoubles(), &vecarrayhelp[0]);
-    graphScurve.push_back(new TGraph(globalvariables::getScanVectorDoubles().size(), vecarray, valarray));
+    graphScurve.push_back(new TGraphErrors(globalvariables::getScanVectorDoubles().size(), vecarray, valarray,  evalarray_x, evalarray));
     graphScurve.back()->SetMarkerStyle(20+ichan%16);
     //We have only 15 different marker symbols but in principle 16 channels to draw
     if (ichan%16==15) graphScurve.back()->SetMarkerStyle(5);
-    std::cout << "AnaManager::sCurveAnalysisGraphicsPainter: ichan: " << ichan << ", Markerstyle: " << 20+ichan%16 << std::endl;
     graphScurve.back()->SetMarkerSize(1.2);
-    //TF1 *f1 = new TF1("f1","[0]*TMath::Erf((x-[1])/[2])",290,310);
-    //graphScurve.back()->Fit("f1");
     if (ichan%16 == 0) {
       c_chips->cd(ipad+1);
-      //TH2F * h2_threshold = new TH2F("SCurve","SCurve",100,190.0,230.0,100,0.,1.1);
-      //TH2F * h2_threshold = new TH2F("SCurve","SCurve",350,150.0,500.0,1000,0.,2000);
-      //h2_threshold->GetXaxis()->SetTitle("Threshold");
-      //h2_threshold->GetYaxis()->SetTitle("Nhit/Nref");
-      //h2_threshold->Draw("l");
       ipad++;
+      graphScurve.back()->SetName(TString::Format("Chip%i_chn%i",int((*aMapIter).first),int(ichan)));
+      graphScurve.back()->Write();
       graphScurve.back()->GetXaxis()->SetTitle("Threshold");
       graphScurve.back()->GetYaxis()->SetTitle("Nhit/Nref");
       if(ref>10) graphScurve.back()->Draw("APSL");
@@ -322,8 +346,28 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
       graphScurve.back()->Write();
       if(ref > 10) graphScurve.back()->Draw("PSL");
     }
-    //}
-        
+    FitGraphs fit;
+    TF1 * f = fit.FitScurve(graphScurve.back());
+    fitParScurve_1->Fill(buffer,ichan,f->GetParameter(0));
+    fitParScurve_2->Fill(buffer,ichan,f->GetParameter(1));
+    fitParScurve_3->Fill(buffer,ichan,f->GetParameter(2));
+    fitParScurve_4->Fill(buffer,ichan,f->GetParameter(3));
+
+    fitParErrScurve_1->Fill(buffer,ichan,f->GetParError(0));
+    fitParErrScurve_2->Fill(buffer,ichan,f->GetParError(1));
+    fitParErrScurve_3->Fill(buffer,ichan,f->GetParError(2));
+    fitParErrScurve_4->Fill(buffer,ichan,f->GetParError(3));
+
+    hist_fitParScurve_1->Fill(f->GetParameter(0));
+    hist_fitParScurve_2->Fill(f->GetParameter(1));
+    hist_fitParScurve_3->Fill(f->GetParameter(2));
+    hist_fitParScurve_4->Fill(f->GetParameter(3));
+
+    hist_fitParErrScurve_1->Fill(f->GetParError(0));
+    hist_fitParErrScurve_2->Fill(f->GetParError(1));
+    hist_fitParErrScurve_3->Fill(f->GetParError(2));
+    hist_fitParErrScurve_4->Fill(f->GetParError(3));
+
     /*
     //For debugging purposes we maintain the possibility to display the values in a simple loop
     //Helper variable to count runs
@@ -336,22 +380,6 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
     ichan++;
   }
 
-  /*
-  //Writes files to be later overlayed
-  ///////////////////////////////////////////////////////////////
-  TFile *f = TFile::Open("board3_5MIP_1.2pF_chip0_third16.root", "RECREATE");
-  std::cout << "Number channels with hits above reference: " <<   chanlistVec.size() << std::endl;
-  for (unsigned nchan=0;nchan< chanlistVec.size();nchan++) {
-  std::stringstream nchanStr;
-  nchanStr.str("");
-  f->cd();
-  unsigned chantest(chanlistVec.at(nchan));
-  nchanStr << "Channel" << chantest;
-  graphScurve.at(chantest)->Write(nchanStr.str().c_str());
-  f->ls(); 
-  }
-  f->Close();
-  */
   //Loop over all chips and display the maximum number of hits in a given channel
     
   if (helpMapIter != _maxHithelpVec.end()) {
@@ -364,6 +392,25 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
  
   f_scurve->cd();
   c_chips->Write();
+  fitParScurve_1->Write();
+  fitParScurve_2->Write();
+  fitParScurve_3->Write();
+  fitParScurve_4->Write();
+  
+  fitParErrScurve_1->Write();
+  fitParErrScurve_2->Write();
+  fitParErrScurve_3->Write();
+  fitParErrScurve_4->Write();
+
+  hist_fitParScurve_1->Write();
+  hist_fitParScurve_2->Write();
+  hist_fitParScurve_3->Write();
+  hist_fitParScurve_4->Write();
+  
+  hist_fitParErrScurve_1->Write();
+  hist_fitParErrScurve_2->Write();
+  hist_fitParErrScurve_3->Write();
+  hist_fitParErrScurve_4->Write();
   f_scurve->Close();     
 }
 
