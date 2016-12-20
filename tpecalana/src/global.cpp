@@ -15,6 +15,7 @@ namespace globalvariables
     scanValVec.push_back(value);
   }
   std::vector<Double_t> getScanVectorDoubles() {
+    std::sort (scanValVec.begin(), scanValVec.end()) ;
     return scanValVec;
   }
 

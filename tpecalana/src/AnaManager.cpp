@@ -78,10 +78,12 @@ void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
       if((*mapiter).second.size() < ichan+1) (*mapiter).second.push_back (std::vector<unsigned> () );
       //reads out the trigger of each channel
       unsigned ntrigmtmp(0);
-      unsigned nentrtmp(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelEntries(ichan));
+      //unsigned nentrtmp(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelEntries(ichan));
       //  for(int ibuf=0; ibuf<1; ibuf++) 
-      if(buffer < 15) ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelTriggers(ichan);
-      else for(int ibuf=0; ibuf<1; ibuf++) ntrigmtmp+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelTriggers(ichan);
+      unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
+      if(buffer < 15) {
+	ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelTriggers(ichan);
+      }   else for(unsigned ibuf=0; ibuf<bufdepth; ibuf++) ntrigmtmp+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers(ichan);
 
       //Add for each run the value in that channel
       //fills the triggers into a vector that is a part of a map of chips and channels
