@@ -23,15 +23,15 @@ ChipBuffer::ChipBuffer(unsigned bufferID){
 ChipBuffer::~ChipBuffer(){/*no op*/}
 
 void ChipBuffer::init(unsigned numchans){
-    _numChans=numchans;
-    //Create a vector holding the channels of this buffer
-    for (unsigned ichan=0; ichan < _numChans; ichan++){
-      _channelVec.push_back(Channel (ichan) );
-    }
+  _numChans=numchans;
+  //Create a vector holding the channels of this buffer
+  for (unsigned ichan=0; ichan < _numChans; ichan++){
+    _channelVec.push_back(Channel (ichan) );
+  }
 }
 
 
-bool ChipBuffer::setChannelVals(int valHigh, int valLow, int gainHitHigh, int gainHitLow) {
+bool ChipBuffer::setChannelVals(int nhits, int badbcid, int valHigh, int valLow, int gainHitHigh, int gainHitLow) {
 
   //pass the measured value to the corresponding channel  
 
@@ -41,7 +41,7 @@ bool ChipBuffer::setChannelVals(int valHigh, int valLow, int gainHitHigh, int ga
     if(gainHitHigh==1 && valHigh>0)  _channelHighHistoVec.at(_channelCount).push_back(valHigh);
     if(gainHitLow==1 && valLow>0)  _channelLowHistoVec.at(_channelCount).push_back(valLow);
   }
-  _channelVec.at(_channelCount).acquireData(valHigh, valLow, gainHitHigh, gainHitLow);
+  _channelVec.at(_channelCount).acquireData(nhits, badbcid, valHigh, valLow, gainHitHigh, gainHitLow);
 
   //increment the channel count
   _channelCount++;
@@ -58,25 +58,25 @@ bool ChipBuffer::setChannelVals(int valHigh, int valLow, int gainHitHigh, int ga
 
 
 void ChipBuffer::setNumberOfASICChannels(unsigned numChans) {
-    _numChans=numChans;
+  _numChans=numChans;
 
-    //Create a vector holding the channels of this buffer
-    for (unsigned ichan=0; ichan < _numChans; ichan++) {
-        _channelVec.push_back(Channel (ichan) );
-	if(globalvariables::getGlobal_deepAnalysis()==true) {
-	  _channelPedHighHistoVec.push_back (std::vector<int> () );
-	  _channelPedLowHistoVec.push_back (std::vector<int> () );
-	  _channelHighHistoVec.push_back (std::vector<int> () );
-	  _channelLowHistoVec.push_back (std::vector<int> () );
-	}
+  //Create a vector holding the channels of this buffer
+  for (unsigned ichan=0; ichan < _numChans; ichan++) {
+    _channelVec.push_back(Channel (ichan) );
+    if(globalvariables::getGlobal_deepAnalysis()==true) {
+      _channelPedHighHistoVec.push_back (std::vector<int> () );
+      _channelPedLowHistoVec.push_back (std::vector<int> () );
+      _channelHighHistoVec.push_back (std::vector<int> () );
+      _channelLowHistoVec.push_back (std::vector<int> () );
     }
+  }
 }
 
 
 unsigned ChipBuffer::getTotalNumberOfTriggers() {
-    unsigned ntot(0);
-    for (unsigned ichan=0; ichan < _numChans; ichan++) ntot+=_channelVec.at(ichan).getNTriggers();
-    return ntot;
+  unsigned ntot(0);
+  for (unsigned ichan=0; ichan < _numChans; ichan++) ntot+=_channelVec.at(ichan).getNTriggers();
+  return ntot;
 }
 
 unsigned ChipBuffer::getNumberOfChannels() {return _numChans;}
@@ -91,13 +91,24 @@ double ChipBuffer::getChannelRMS(unsigned ichan, std::string modeStr, int trig) 
 }
 
 unsigned ChipBuffer::getChannelEntries(unsigned ichan) {
-    //std::cout << "example val: " <<  _channelVec.at(ichan).getMean() << std::endl;
-    return  _channelVec.at(ichan).getNEntries();
+  //std::cout << "example val: " <<  _channelVec.at(ichan).getMean() << std::endl;
+  return  _channelVec.at(ichan).getNEntries();
 }
 
 unsigned ChipBuffer::getChannelTriggers(unsigned ichan) {
-    //std::cout << "example val: " <<  _channelVec.at(ichan).getMean() << std::endl;
-    return  _channelVec.at(ichan).getNTriggers();
+  return  _channelVec.at(ichan).getNTriggers();
+}
+
+unsigned ChipBuffer::getChannelTriggers_planeEvents(unsigned ichan) {
+  return  _channelVec.at(ichan).getNTriggers_planeEvents();
+}
+
+unsigned ChipBuffer::getChannelTriggers_overRunningBcid(unsigned ichan) {
+  return  _channelVec.at(ichan).getNTriggers_overRunningBcid();
+}
+
+unsigned ChipBuffer::getChannelTriggers_negativeData(unsigned ichan) {
+  return  _channelVec.at(ichan).getNTriggers_negativeData();
 }
 
 std::vector<int> ChipBuffer::getChannelPedHisto(unsigned ichan, unsigned gainbit) {

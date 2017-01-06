@@ -21,11 +21,14 @@ public:
     ~Channel();
     void init();
     //A method to acquire data 
-    void acquireData(int, int, int, int);
+    void acquireData(int, int, int, int, int, int);
     //Return the number of entries
     unsigned getNEntries();
     //Return the number of triggers
     unsigned getNTriggers();
+    unsigned getNTriggers_planeEvents();
+    unsigned getNTriggers_overRunningBcid();
+    unsigned getNTriggers_negativeData();
     //Return the number of undefined entries
     unsigned getNUndefined();
     //Return the mean of that channel
@@ -33,14 +36,6 @@ public:
     //Return the rms of that channel
     double getRMS(std::string, int);
 
-    /* //Return histograms */
-    /* TH1F * getPedHisto(unsigned); */
-    /* TH1F * getChargeHisto(unsigned); */
-
-    /* TH1F * _pedHighTH1 = NULL;// = TH1F("_pedHighTH1","_pedHighTH1",4096,0.5,4096.5); */
-    /* TH1F * _pedLowTH1 = NULL; */
-    /* TH1F * _HighTH1 = NULL; */
-    /* TH1F * _LowTH1 = NULL; */
 
 private:
     //The channelID
@@ -66,6 +61,10 @@ private:
     unsigned _numEntr;
     //A data member that holds the number of triggers for that channel
     unsigned _nTriggers;
+    unsigned _nTriggers_planeEvents;
+    unsigned _nTriggers_overRunningBcid;
+    unsigned _nTriggers_negativeData;
+
     //A data memeber that holds the number of undefined entries (<0)
     unsigned _nUndefined;
     //Method to sum up the measured values and their squares

@@ -44,14 +44,30 @@ private:
     //A map that holds the number of triggers of all channels for all buffers for all enabled chips
     typedef std::map<unsigned, std::vector<std::vector<unsigned> > > channelInfoComplUnsigned_t;
     channelInfoComplUnsigned_t _ntrigVecMapHigh;
+    channelInfoComplUnsigned_t _ntrigVecMapHigh_overRunningBcid;
+    channelInfoComplUnsigned_t _ntrigVecMapHigh_planeEvents;
+    channelInfoComplUnsigned_t _ntrigVecMapHigh_negativeData;
 
     //A helper map that stores for each chip and each channel the maximum number of hits
     //for normalisation purposes
     std::map<unsigned, std::vector<unsigned> > _nHithelpVec;
 
-
+    // maps with the mean (median) value of the buffers used to save triggered data
     std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMean;
     std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian;
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMean_overRunningBcid;
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian_overRunningBcid;
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMean_planeEvents;
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian_planeEvents;
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMean_negativeData;
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian_negativeData;
+
+
+   // vector with the total number of triggers for each chip
+    std::vector<unsigned>  _TrigChipVec;
+    std::vector<unsigned>  _TrigChipVec_overRunningBcid;
+    std::vector<unsigned>  _TrigChipVec_planeEvents;
+    std::vector<unsigned>  _TrigChipVec_negativeData;
 
     //A simple map that holds the values for mean (median) of the overcounting rate for a selected channel
     std::map<unsigned,std::vector<Double_t> >  _overBcidCounterVecMapMean;

@@ -51,8 +51,8 @@ std::vector<Double_t> FitHistograms::FitPedestal(TH1F * pedestal_histo){
 	pedestal_error = 0;
       }
     } else {
-	pedestal_mean = 0;
-	pedestal_error = 0;
+      pedestal_mean = 0;
+      pedestal_error = 0;
     }
   }
 

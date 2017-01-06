@@ -22,7 +22,7 @@ public:
     ~ChipBuffer();
     void init(unsigned);
     //A method to acquire the values of the individual channels
-    bool setChannelVals(int, int, int, int);
+    bool setChannelVals(int, int, int, int, int, int);
     //Set the number oc channels, a fall back solution in case a proper mapping file is missing
     void setNumberOfASICChannels(unsigned);
     //Number of channels served by an individual buffer
@@ -34,6 +34,10 @@ public:
     unsigned getChannelEntries(unsigned);
     //A method to return the number of triggers for the channel
     unsigned getChannelTriggers(unsigned);
+    unsigned getChannelTriggers_planeEvents(unsigned);
+    unsigned getChannelTriggers_overRunningBcid(unsigned);
+    unsigned getChannelTriggers_negativeData(unsigned);
+
     //Get the total number of triggers in this buffer
     unsigned getTotalNumberOfTriggers();
 

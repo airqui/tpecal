@@ -53,8 +53,8 @@ void ADCManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString fil
 }
 
 void ADCManager::displayResults(TString file_sufix, bool pedestal_analysis=true, bool signal_analysis=true){
-	if(pedestal_analysis == true) pedestalAnalysisGraphicsBasic(file_sufix);
-	if(signal_analysis   == true)   signalAnalysisGraphicsBasic();
+  if(pedestal_analysis == true) pedestalAnalysisGraphicsBasic(file_sufix);
+  if(signal_analysis   == true)   signalAnalysisGraphicsBasic();
 
 }
 
@@ -153,12 +153,12 @@ void ADCManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix
   //      Loop over all enabled chips
   for (bufferchannelInfoComplDouble_t::iterator mapiter_chip = _signalVecMap.begin(); mapiter_chip!=_signalVecMap.end();mapiter_chip++) {
     std::cout << "*************New chip, HIGH GAIN:" << (*mapiter_chip).first << "********************" << std::endl;
-  /*
-    PEDESTAL EXTRACTOR PART
-    if(pedestal_file_name != "") --> 
-    extract the pedestals from a th2 object in root file, and save them in a 
-    channelInfoComplDouble_t object.
-   */
+    /*
+      PEDESTAL EXTRACTOR PART
+      if(pedestal_file_name != "") --> 
+      extract the pedestals from a th2 object in root file, and save them in a 
+      channelInfoComplDouble_t object.
+    */
 
     // fill the iterator object for each chip with the right object
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getBufferDepth());
@@ -215,18 +215,18 @@ void ADCManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix
 
 
 void ADCManager::signalAnalysisGraphicsBasic() {
-//
-// basic functionality for graphic analysis of the signal data
-// reads the different map objects and creates few th2f, for every chip, with MIP Value and error
-//
+  //
+  // basic functionality for graphic analysis of the signal data
+  // reads the different map objects and creates few th2f, for every chip, with MIP Value and error
+  //
 }
 
 void ADCManager::pedestalAnalysisGraphicsBasic(TString file_sufix) {
 
-	//
-	// basic functionality for graphic analysis of the pedestal data
-	// reads the different map objects and creates few th2f, for every chip, with pedestal mean, error etc values
-	//
+  //
+  // basic functionality for graphic analysis of the pedestal data
+  // reads the different map objects and creates few th2f, for every chip, with pedestal mean, error etc values
+  //
 
   TString gain = globalvariables::getGainTStringAnalysis();
 
@@ -282,22 +282,22 @@ void ADCManager::pedestalAnalysisGraphicsBasic(TString file_sufix) {
 
     //  unsigned ichn= (*chanVeciter).first;
     c_chip->cd(1);
-   pedestal_map->SetTitle(canvasNameStr);
-   pedestal_map->GetXaxis()->SetTitle("buffer");
-   pedestal_map->GetYaxis()->SetTitle("channel");
-   pedestal_map->Draw("colz");
-   c_chip->cd(2);
-   pedestalUnc_map->SetTitle(errorNameStr);
-   pedestalUnc_map->GetXaxis()->SetTitle("buffer");
-   pedestalUnc_map->GetYaxis()->SetTitle("channel");
-   pedestalUnc_map->Draw("colz");
+    pedestal_map->SetTitle(canvasNameStr);
+    pedestal_map->GetXaxis()->SetTitle("buffer");
+    pedestal_map->GetYaxis()->SetTitle("channel");
+    pedestal_map->Draw("colz");
+    c_chip->cd(2);
+    pedestalUnc_map->SetTitle(errorNameStr);
+    pedestalUnc_map->GetXaxis()->SetTitle("buffer");
+    pedestalUnc_map->GetYaxis()->SetTitle("channel");
+    pedestalUnc_map->Draw("colz");
 
-   f_pedestal_scan->cd();
-   cdtof->cd();
-   // once than the plotting for one chip is finished, save the canvas
-   c_chip->Write();
-   pedestal_map->Write();
-   pedestalUnc_map->Write();
+    f_pedestal_scan->cd();
+    cdtof->cd();
+    // once than the plotting for one chip is finished, save the canvas
+    c_chip->Write();
+    pedestal_map->Write();
+    pedestalUnc_map->Write();
   }
   
   f_pedestal_scan->Close();
