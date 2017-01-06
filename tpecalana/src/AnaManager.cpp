@@ -22,6 +22,7 @@ AnaManager::AnaManager(){
   _sigVecMapLow.clear();
   _ntrigVecMapHigh.clear();
   _nRuns=0;
+  f_scurve=0;
 }
 
 AnaManager::~AnaManager(){/* no op*/}
@@ -88,7 +89,7 @@ void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
       //Add for each run the value in that channel
       //fills the triggers into a vector that is a part of a map of chips and channels
       (*mapiter).second.at(ichan).push_back(ntrigmtmp);
-      // if(ntrigmtmp>0) std::cout << "AnaManager::sCurveAnalysis - chip " << (*mapiter).first << " Channel: " << ichan << " Entries: " << nentrtmp << " Triggers: " << ntrigmtmp << std::endl;
+      if(ntrigmtmp>0) std::cout << "AnaManager::sCurveAnalysis - chip " << (*mapiter).first << " Channel: " << ichan << " Triggers: " << ntrigmtmp << std::endl;
       //Store the maximum nummber of triggers
       if (helpMapIter != _maxHithelpVec.end()) {
   	if ((*helpMapIter).second.size()<ichan+1 ) (*helpMapIter).second.push_back(ntrigmtmp);

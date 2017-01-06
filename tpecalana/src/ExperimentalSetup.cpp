@@ -8,7 +8,9 @@
 
 #include "ExperimentalSetup.h"
 #include "Dif.h"
+//#include "global.h"
 
+//using namespace globalvariables;
 
 ExperimentalSetup *ExperimentalSetup::theInstance = 0;
 
@@ -69,7 +71,8 @@ void ExperimentalSetup::setRunSetup(std::vector<std::string> aFileNameVec) {
         unsigned numASU(1);
         for(unsigned iasu=0;iasu<numASU;iasu++) {
              //Define the ASU type
-            if (iasu==0) _asuInfoVec.at(idif).push_back(make_pair("SKIROC", make_pair(16,0)));
+	  if (iasu==0) _asuInfoVec.at(idif).push_back(make_pair("SKIROC", make_pair(16,0)));
+	  //globalvariables::getEnabledChipsVec().size(),0)));
          }
         _difVec.push_back( Dif(idif) );
         _difVec.at(idif).init(_asuInfoVec.at(idif));
@@ -169,6 +172,6 @@ unsigned ExperimentalSetup::getASICBufferDepth(std::string chipType) {
 }
 
 unsigned ExperimentalSetup::getNumberofASICs(unsigned idif, unsigned iasu) {
-    return _asuInfoVec.at(idif).at(iasu).second.first;
+  return _asuInfoVec.at(idif).at(iasu).second.first;
 }
 

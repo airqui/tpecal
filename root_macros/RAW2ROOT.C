@@ -894,63 +894,58 @@ void RAW2ROOT::readEvent(std::vector < unsigned short int > & eventData , int Pl
 	//tag plane events
 	if (nhits[k][ibc] > PlaneEventThreshold) {
 	  badbcid[k][ibc]=16; h_TagHist[k]->Fill(ibc);
-        } 
-        
-	else {
+        } else {
 	  //tag successive bcids
 	  if (ibc==0) {
 	    badbcid[k][ibc]=0;	//first col is always ok
-	    for (int ichan=0; ichan<NCHANNELS; ichan++) {if(gain_hit_high[k][ibc][ichan]%2==1){
+	    for (int ichan=0; ichan<NCHANNELS; ichan++) {
+	      if(gain_hit_high[k][ibc][ichan]%2==1){
 		h_hit_filtered[k]->Fill(ichan);
 		//h_chargeHigh_withHit[k][ichan]->Fill(charge_high[k][ibc][ichan]);
-	      }}
-
-	  } 
-	  else {
-	    for (int ichan=0; ichan<NCHANNELS; ichan++) {if(gain_hit_high[k][ibc][ichan]%2==1){
+	      }
+	    }
+	  } else {
+	    for (int ichan=0; ichan<NCHANNELS; ichan++) {
+	      if(gain_hit_high[k][ibc][ichan]%2==1){
 		h_hit_filtered[k]->Fill(ichan);
 		//h_chargeHigh_withHit[k][ichan]->Fill(charge_high[k][ibc][ichan]);
-	      }}
+	      }
+	    }
 	    if (corrected_bcid[k][ibc] > corrected_bcid[k][ibc-1] + MinBcidIncrement) {
 	      badbcid[k][ibc]=0;
-	    } 
-	    else {
+	    } else {
 	      badbcid[k][ibc]=1; h_TagHist[k]->Fill(ibc);
 	    }
-
-
-              
-
-	  }//if ibc
+       	  }//if ibc == 0
 	   
-	   
-	   
-	   
-	  /*      
-		  for (int i=0; i<NCHIP*MEMDEPTH; i++) {
-		  if(bcid[k][ibc] - allbcid[i] > 0 && (bcid[k][ibc] - allbcid[i] < 6 ) && nhits[k][ibc]==0) badbcid[k][ibc]=3;
-		  //if(bcid[k][ibc] - allbcid[i] < 0 && (4096+bcid[k][ibc] - allbcid[i] < 6 ) && nhits[k][ibc]==0 ) badbcid[k][ibc]=3;	  
-
-		  if(bcid[k][ibc] - allbcid[i] > 0 && (bcid[k][ibc] - allbcid[i] < 6 ) && nhits[k][ibc]!=0) badbcid[k][ibc]=2;
-		  //if(bcid[k][ibc] - allbcid[i] < 0 && (4096+bcid[k][ibc] - allbcid[i] < 6 ) && nhits[k][ibc]!=0 ) badbcid[k][ibc]=2;	  
-
-		  //	cout<<k<<"  "<<ibc<<"  "<<bcid[k][ibc]<<"  "<<allbcid[i]<<"  "<<badbcid[k][ibc]<<"  "<<bcid[k][ibc] - allbcid[i]<<endl;
-
-		  }
-		  if(bcid[k][ibc] - bcid[k][ibc-1] > 0 && (bcid[k][ibc] - bcid[k][ibc-1] < 2 ) && nhits[k][ibc]==0) badbcid[k][ibc]=1;
-		  //if(bcid[k][ibc] - bcid[k][ibc-1] < 0 && (4096+bcid[k][ibc] - bcid[k][ibc-1] < 2 ) && nhits[k][ibc]==0 ) badbcid[k][ibc]=1;
-		  */
-    
+   	  /* for (int i=0; i<NCHIP*MEMDEPTH; i++) {
+	     if(bcid[k][ibc] - allbcid[i] > 0 && (bcid[k][ibc] - allbcid[i] < 6 ) && nhits[k][ibc]==0) badbcid[k][ibc]=3;
+	     //if(bcid[k][ibc] - allbcid[i] < 0 && (4096+bcid[k][ibc] - allbcid[i] < 6 ) && nhits[k][ibc]==0 ) badbcid[k][ibc]=3;	  
+	     
+	     if(bcid[k][ibc] - allbcid[i] > 0 && (bcid[k][ibc] - allbcid[i] < 6 ) && nhits[k][ibc]!=0) badbcid[k][ibc]=2;
+	     //if(bcid[k][ibc] - allbcid[i] < 0 && (4096+bcid[k][ibc] - allbcid[i] < 6 ) && nhits[k][ibc]!=0 ) badbcid[k][ibc]=2;	  
+	     
+	     //	cout<<k<<"  "<<ibc<<"  "<<bcid[k][ibc]<<"  "<<allbcid[i]<<"  "<<badbcid[k][ibc]<<"  "<<bcid[k][ibc] - allbcid[i]<<endl;
+	     
+	     }
+	     if(bcid[k][ibc] - bcid[k][ibc-1] > 0 && (bcid[k][ibc] - bcid[k][ibc-1] < 2 ) && nhits[k][ibc]==0) badbcid[k][ibc]=1;
+	     //if(bcid[k][ibc] - bcid[k][ibc-1] < 0 && (4096+bcid[k][ibc] - bcid[k][ibc-1] < 2 ) && nhits[k][ibc]==0 ) badbcid[k][ibc]=1;
+	     */
+	  
 	}//nhits
 	
 	//tag zero data
 	count_negdata=0;
 
         for (int ichan=0; ichan<NCHANNELS; ichan++) {
-	  if  (charge_high[k][ibc][ichan] < NEGDATA_THR) {count_negdata++;}
+	  if  (charge_high[k][ibc][ichan] < NEGDATA_THR) {
+	    count_negdata++;
+	  }
 	}//ichan
-	if (count_negdata>1) {badbcid[k][ibc]+=32;}
-
+	if (count_negdata>1) {
+	  badbcid[k][ibc]+=32;
+	}
+	
 	
       }//ibc
     }//chipID

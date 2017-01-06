@@ -30,13 +30,6 @@ Channel::Channel(unsigned ichan){
     _valsumLow_0=0;
     _val2sumLow_0=0;
 
-    //  if(_pedHighTH1 == NULL) 
-    // delete _pedHighTH1 ;
-    // _pedHighTH1 = new TH1F("_pedHighTH1","_pedHighTH1",4096,0.5,4096.5);
-    // _pedLowTH1 = new TH1F("_pedLowTH1","_pedLowTH1",4096,0.5,4096.5);
-    // _HighTH1 = new TH1F("_HighTH1","_HighTH1",4096,0.5,4096.5);
-    // _LowTH1 = new TH1F("_LowTH1","_LowTH1",4096,0.5,4096.5);
-
     //reset the number of entries
     _numEntr=0;
     //reset the number of triggers
@@ -114,7 +107,7 @@ void Channel::acquireData(int valHigh, int valLow, int gainHitHigh, int gainHitL
   //Count number of entries
   if( valHigh>0 ) _numEntr++;
   //Count number of triggers
-  if (gainHitHigh == 1 && valHigh>10) _nTriggers++;
+  if (gainHitHigh == 1) _nTriggers++;
   //Count number of undefined entries
   if (gainHitHigh < 0) _nUndefined++;
   //std::cout << "example val: " <<  val << std::endl;

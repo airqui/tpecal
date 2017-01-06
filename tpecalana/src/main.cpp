@@ -22,6 +22,8 @@
 #include "ExperimentalSetup.h"
 #include "AnaManager.h"
 #include "ADCManager.h"
+#include "MonitorManager.h"
+
 #include "global.h"
 //#include "Analisys.h"
 
@@ -56,7 +58,6 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
 
   RunManager runmanager;    
   AnaManager anaManager;    anaManager.init();
-  ADCManager adcManager;    adcManager.init();
 
  
 
@@ -101,19 +102,17 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
   }
 
   if(globalvariables::getAnalysisType() == "scurves" )  {
-    TString scurvefile= TString(datadirStr_output)+TString::Format("/Scurves_buff%i_",buffer);
-    anaManager.displayResults( scurvefile,buffer );
+    //TString scurvefile= TString(datadirStr_output)+TString::Format("/Scurves_buff%i_",buffer);
+    //   anaManager.displayResults( scurvefile,buffer );
   }
 
 }
-
 
 
 void NormalRun(string datadirStr, string datadirStr_output ) {
 
 
   RunManager runmanager;    
-  AnaManager anaManager;    anaManager.init();
   ADCManager adcManager;    adcManager.init();
 
  
@@ -151,6 +150,41 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
   
 }
 
+void MonitorRun(string datadirStr, string datadirStr_output ) {
+
+
+  RunManager runmanager;    
+  MonitorManager monManager;    monManager.init();
+
+ 
+  std::stringstream inputFileStr;
+  //Set the ASU mappings for a given run
+  std::vector<std::string> mapfilesStrvec;
+  mapfilesStrvec.clear();
+  mapfilesStrvec.push_back("/home/irles/2016/testbench_nov2016/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
+  
+  inputFileStr.str("");
+  inputFileStr << datadirStr;
+  runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
+  
+  
+  ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
+  
+  TString output_path ;
+  output_path =  TString(datadirStr_output) + "/" ;
+
+  monManager.acquireRunInformation(ExperimentalSetup::getInstance());
+  monManager.displayResults(output_path);
+
+ 
+  
+  ////reset experimental setup and run manager
+  ExperimentalSetup::getInstance()->reset();
+  runmanager.reset();
+  
+}
+
 
 
 int main(int argc, char **argv) 
@@ -159,7 +193,8 @@ int main(int argc, char **argv)
 
   char** dummyappl;
   int dummyint = 0;
-  TApplication fooApp("fooApp",&dummyint,dummyappl);
+  TApplication fooApp("fooApp",&argc,argv);
+
 
   if(argc < 4)
     {
@@ -218,7 +253,6 @@ int main(int argc, char **argv)
   int buffer = 0;
   if(argc > 6) buffer = atoi(argv[6]);
 
-
   if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan") {
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
@@ -231,8 +265,14 @@ int main(int argc, char **argv)
     NormalRun(datadirStr, datadirStr_output) ;
   }
 
+  if(globalvariables::getAnalysisType() == "Monitor" ) {
+    globalvariables::setGainAnalysis(1); //high =1, low =0
+    globalvariables::setGlobal_deepAnalysis(false);
+    MonitorRun(datadirStr, datadirStr_output) ;
+  }
 
-  // fooApp.Run();
-  // return 1;
+
+  fooApp.Run();
+  return 1;
 
 }

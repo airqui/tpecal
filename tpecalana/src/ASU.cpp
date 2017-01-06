@@ -69,14 +69,11 @@ void ASU::init(std::string asicType, unsigned itype, unsigned idif) {
 void ASU::transferChipChannelData(int* chipid, int *aValArrayHigh, int  *aValArrayLow, int *aGainHitArrayHigh, int *aGainHitArrayLow) {
     
     for (unsigned ichip=0;ichip<_numChips;ichip++) {
-        unsigned istep(_chipVec.at(ichip).getNumberOfASICChannels()*_chipVec.at(ichip).getBufferDepth());
-        //_chipVec.at(ichip).setBufferDepth(15);
-        //std::cout << "Qddress of high gqin: " << &high_gain << std::endl;
-        //_chipVec.at(ichip).acquireData(&high_gain[ichip][0][0], &low_gain[ichip][0][0], &gain_hit_high[ichip][0][0]);
-        if (chipid[ichip] > -1 ) {
-	  if (chipid[ichip] < static_cast<int>(_numChips)) _chipVec.at(chipid[ichip]).acquireChipChannelData(aValArrayHigh+ichip*istep, aValArrayLow+ichip*istep, aGainHitArrayHigh+ichip*istep, aGainHitArrayLow+ichip*istep);
-            else std::cout << "Info: chipid > 15 encountered! " << "Chipid is: " << chipid[ichip] << std::endl;
-        }
+      unsigned istep(_chipVec.at(ichip).getNumberOfASICChannels()*_chipVec.at(ichip).getBufferDepth());
+      if (chipid[ichip] > -1 ) {
+	if (chipid[ichip] < static_cast<int>(_numChips)) _chipVec.at(chipid[ichip]).acquireChipChannelData(aValArrayHigh+ichip*istep, aValArrayLow+ichip*istep, aGainHitArrayHigh+ichip*istep, aGainHitArrayLow+ichip*istep);
+	else std::cout << "Info: chipid > 15 encountered! " << "Chipid is: " << chipid[ichip] << std::endl;
+      }
     }
 }
 
@@ -84,9 +81,6 @@ void ASU::transferChipBufferData(int* chipid, int *bcid, int  *corrected_bcid, i
     
     for (unsigned ichip=0;ichip<_numChips;ichip++) {
         unsigned istep(_chipVec.at(ichip).getBufferDepth());
-        //_chipVec.at(ichip).setBufferDepth(15);
-        //std::cout << "Qddress of high gqin: " << &high_gain << std::endl;
-        //_chipVec.at(ichip).acquireData(&high_gain[ichip][0][0], &low_gain[ichip][0][0], &gain_hit_high[ichip][0][0]);
         if (chipid[ichip] > -1 ) {
             if (chipid[ichip] < static_cast<int>(_numChips)) _chipVec.at(chipid[ichip]).acquireChipBufferData(bcid+ichip*istep, corrected_bcid+ichip*istep, badbcid+ichip*istep);
             else std::cout << "Info: chipid > 15 encountered! " << "Chipid is: " << chipid[ichip] << std::endl;

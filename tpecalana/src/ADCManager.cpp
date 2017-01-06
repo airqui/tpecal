@@ -21,6 +21,8 @@ ADCManager::ADCManager(){
   _signalVecMapTH1.clear();
   _tGraphSignalVec.clear();
   _nRuns=0;
+  f_signal_scan=0;
+  f_signal=0;
 }
 
 ADCManager::~ADCManager(){/* no op*/}
@@ -214,7 +216,7 @@ void ADCManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix
 
 void ADCManager::signalAnalysisGraphicsBasic() {
 //
-// basic functionality for graphic analysis of the sognal data
+// basic functionality for graphic analysis of the signal data
 // reads the different map objects and creates few th2f, for every chip, with MIP Value and error
 //
 }

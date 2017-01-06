@@ -15,6 +15,7 @@ Dif::Dif(unsigned difID){
     _numASU=0;
     //Reset the vector that stores the number of events in each acquisition
     _difStatVec.clear();
+    _theDifFile = 0;
 }
 
 
@@ -24,6 +25,7 @@ Dif::~Dif(){/* no op*/}
 void Dif::init(std::vector< std::pair<std::string, std::pair<unsigned,unsigned> > > asuInfoVec) {
     //The size of the input vector defines the number of asus connected to this dif
     _numASU=asuInfoVec.size();
+    std::cout<<_numASU<<std::endl;
     for (unsigned iasu=0; iasu<_numASU; iasu++) {
      //set the ASUId
      _asuVec.push_back(ASU (0) );
@@ -95,16 +97,16 @@ void Dif::dataAnalysis(TFile* aDifFile, int PlaneEventThreshold) {
     std::cout << "nentries " << nentries << std::endl;
     for (unsigned ientr =0; ientr < nentries; ientr++) {
 
-      for(unsigned i=0; i<NASICS; i++) {
-	for(unsigned j=0; j<MAXBUFDEPTH; j++ ) {
-	  if(nhits[i][j] > PlaneEventThreshold || badbcid[i][j] != 0) {
-	    for(unsigned k=0; k<MAXCHAN; k++) {
-	      low_gain[i][j][k]=0;
-	      high_gain[i][j][k]=0;
-	    }
-	  }
-	}
-      }
+/*    	for(unsigned i=0; i<NASICS; i++) {
+    		for(unsigned j=0; j<MAXBUFDEPTH; j++ ) {
+    			if(nhits[i][j] > PlaneEventThreshold || badbcid[i][j] >1) {
+    				for(unsigned k=0; k<MAXCHAN; k++) {
+    					low_gain[i][j][k]=0;
+    					high_gain[i][j][k]=0;
+    				}
+    			}
+    		}
+    	}*/
         
         //std::cout << "ientr: " << ientr << std::endl;
         t1->GetEntry(ientr);

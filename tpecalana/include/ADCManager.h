@@ -50,14 +50,12 @@ public:
     void pedestalAnalysisGraphicsBasic(TString);
     void signalAnalysisGraphicsBasic();
 
-    // more elaborated analysis graphics for scan runs (threshold scans, etc), only written for pedestal
+    // more elaborated analysis graphics for scan runs (threshold scans, etc),
+    // toy code only written for pedestal scans
     void pedestalAnalysisGraphics();
     void pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_t::iterator);
 
 private:
-    //    TFile* f_pedestal_scan;
-    //TFile* f_pedestal;
-
     TFile* f_signal_scan;
     TFile* f_signal;
 

@@ -32,21 +32,11 @@ public:
     void init();
     //Retrieve information
     void acquireRunInformation(ExperimentalSetup*,int);
-    //A method called to desplay results of whatever nature
+    //A method called to display results of whatever nature
     void displayResults(TString,int);
-    //All graphics is realised in methods called by this method
-    //void launchGraphicsPresentation();
-
-    //boolean to decide if we do deep analysis 
-    //(saving full histograms of pedestals and hit charge for each channel, 
-    //each buffer, each chip, each asu and each dif 
-    //---> this is a lot of histograms that take a lot of time to be created. 
-    //So innefficient :-(
-    bool deepanalysis=false;
 
 private:
 
-    TFile* f_charge;
     TFile* f_scurve;
 
     //Number of runs analysed by the manager
