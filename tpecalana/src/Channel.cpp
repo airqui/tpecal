@@ -7,8 +7,11 @@
 //
 
 #include "Channel.h"
-#include <cmath>
 #include "ChipBuffer.h"
+#include "global.h"
+#include <cmath>
+
+using namespace globalvariables;
 
 Channel::Channel(unsigned ichan){
   //Set the channel ID
@@ -35,7 +38,9 @@ Channel::Channel(unsigned ichan){
   //reset the number of triggers
   _nTriggers=0;
   _nTriggers_planeEvents=0;
-  _nTriggers_overRunningBcid=0;
+  _nTriggers_consBcid1=0;
+  _nTriggers_consBcid5=0;
+  _nTriggers_consBcid10=0;
   _nTriggers_negativeData=0;
   //reset the number of undefined entries )can happen for buffers > 1 in case of 'clean' fonctioning i.e. no retriggering bcid+1 etc.)
   _nUndefined=0;
@@ -106,19 +111,48 @@ double Channel::getRMS(std::string modeStr, int trigger = 1 ) {
 
 void Channel::acquireData(int nhits, int badbcid, int valHigh, int valLow, int gainHitHigh, int gainHitLow) {
 
+  int gain = globalvariables::getGainAnalysis();
+  int thresh = globalvariables::getPlaneEventsThreshold();
 
-  //Count number of entries
-  if( valHigh>0 ) _numEntr++;
-  //Count number of triggers
-  if (gainHitHigh == 1 && badbcid < 2 ) _nTriggers++;
-  if (gainHitHigh == 1 && badbcid == 1 ) _nTriggers_overRunningBcid++;
-  if (gainHitHigh == 1 && badbcid == 16 ) _nTriggers_planeEvents++;
-  if (gainHitHigh == 1 && (badbcid > 30 || valHigh < 50 ) ) _nTriggers_negativeData++;
+  if(gain == 1) {
+    //Count number of entries
+    if( valHigh>0 ) _numEntr++;
+    if( gainHitHigh == 1 ) {
+      //Count number of triggers
+      if (  badbcid == 1   &&  valHigh>50 && nhits < thresh  ) _nTriggers_consBcid1++;
+      if (  (badbcid >1 && badbcid < 6)   && valHigh>50 && nhits < thresh  ) _nTriggers_consBcid5++;
+      if (  (badbcid >5 && badbcid < 11)   &&  valHigh>50 && nhits < thresh  ) _nTriggers_consBcid10++;
+      if (  ( badbcid == 0 || (badbcid >5 && badbcid<11) )   &&  valHigh>50 && nhits < thresh ) _nTriggers++;
+      else {
+	if (nhits > (thresh-1) ) _nTriggers_planeEvents++;
+	if ((badbcid > 30 || valHigh < 50 ) ) _nTriggers_negativeData++;
+      }
+    }
+    //Count number of undefined entries
+    if (gainHitHigh < 0) _nUndefined++;
 
-  //Count number of undefined entries
-  if (gainHitHigh < 0) _nUndefined++;
-  //std::cout << "example val: " <<  val << std::endl;
-  calculateSums(valHigh, valLow, gainHitHigh, gainHitLow);
+  } else if(gain == 0) {
+    //Count number of entries
+    if( valLow>0  ) _numEntr++;
+
+    if( gainHitLow == 1 ) {
+      //Count number of triggers
+      if (  badbcid == 1   &&  valLow>50 && nhits < thresh  ) _nTriggers_consBcid1++;
+      if (  (badbcid >1 && badbcid < 6)   && valLow>50 && nhits < thresh  ) _nTriggers_consBcid5++;
+      if (  (badbcid >5 && badbcid < 11)   &&  valLow>50 && nhits < thresh  ) _nTriggers_consBcid10++;
+      if (  ( badbcid == 0 || (badbcid >5 && badbcid<11) )  &&  valLow>50 && nhits < thresh ) _nTriggers++;
+      else {
+	if (nhits > (thresh-1) ) _nTriggers_planeEvents++;
+	if ((badbcid > 30 || valLow < 50 ) ) _nTriggers_negativeData++;
+      }
+    }
+    
+    //Count number of undefined entries
+    if (gainHitLow < 0) _nUndefined++;
+
+  } else std::cout<<"ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
+    //std::cout << "example val: " <<  val << std::endl;
+    calculateSums(valHigh, valLow, gainHitHigh, gainHitLow);
 }
 
 
@@ -156,7 +190,9 @@ void Channel::calculateSums(int valHigh, int valLow, int gainHitHigh, int gainHi
 unsigned Channel::getNEntries() {return _numEntr;}
 unsigned Channel::getNTriggers() {return _nTriggers;}
 unsigned Channel::getNTriggers_planeEvents() {return _nTriggers_planeEvents;}
-unsigned Channel::getNTriggers_overRunningBcid() {return _nTriggers_overRunningBcid;}
+unsigned Channel::getNTriggers_consBcid1() {return _nTriggers_consBcid1;}
+unsigned Channel::getNTriggers_consBcid5() {return _nTriggers_consBcid5;}
+unsigned Channel::getNTriggers_consBcid10() {return _nTriggers_consBcid10;}
 unsigned Channel::getNTriggers_negativeData() {return _nTriggers_negativeData;}
 unsigned Channel::getNUndefined() {return _nUndefined;}
 

@@ -103,8 +103,16 @@ unsigned ChipBuffer::getChannelTriggers_planeEvents(unsigned ichan) {
   return  _channelVec.at(ichan).getNTriggers_planeEvents();
 }
 
-unsigned ChipBuffer::getChannelTriggers_overRunningBcid(unsigned ichan) {
-  return  _channelVec.at(ichan).getNTriggers_overRunningBcid();
+unsigned ChipBuffer::getChannelTriggers_consBcid1(unsigned ichan) {
+  return  _channelVec.at(ichan).getNTriggers_consBcid1();
+}
+
+unsigned ChipBuffer::getChannelTriggers_consBcid5(unsigned ichan) {
+  return  _channelVec.at(ichan).getNTriggers_consBcid5();
+}
+
+unsigned ChipBuffer::getChannelTriggers_consBcid10(unsigned ichan) {
+  return  _channelVec.at(ichan).getNTriggers_consBcid10();
 }
 
 unsigned ChipBuffer::getChannelTriggers_negativeData(unsigned ichan) {

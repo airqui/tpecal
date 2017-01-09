@@ -35,7 +35,9 @@ public:
     //A method to return the number of triggers for the channel
     unsigned getChannelTriggers(unsigned);
     unsigned getChannelTriggers_planeEvents(unsigned);
-    unsigned getChannelTriggers_overRunningBcid(unsigned);
+    unsigned getChannelTriggers_consBcid1(unsigned);
+    unsigned getChannelTriggers_consBcid5(unsigned);
+    unsigned getChannelTriggers_consBcid10(unsigned);
     unsigned getChannelTriggers_negativeData(unsigned);
 
     //Get the total number of triggers in this buffer

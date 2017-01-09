@@ -37,6 +37,12 @@ namespace globalvariables
   TString getGainTStringAnalysis();
   void setGainAnalysis(int);
 
+  // choose the Plane Event Threshold
+  extern int planeEvent_th;
+  int getPlaneEventsThreshold();
+  TString getPlaneEventsThresholdTStringAnalysis( );
+  void setPlaneEventsThreshold(int);
+
   // enabled chips
   // to be modified by a method that actually looks into a rundb file or an xml file and knows how many chips were
   // enabled

@@ -34,7 +34,7 @@ namespace globalvariables
   }
 
   //------------------------------------------------------------------
-  // variable to decide if we doo deep analysis (saves long vectors to create histograms, requires x10 more memory and computation time
+  // choose the gain to be used
   int global_gain = -1;
   int getGainAnalysis()
   {
@@ -60,6 +60,40 @@ namespace globalvariables
       std::cout<<  " please, choose gain=0 (low gain) or gain+1(high gain) "<<std::endl;
       std::cout<<  " in the meanwhile FORCED TO DO HIGH GAIN ANALYSIS with gain=1" <<std::endl;
       global_gain = 1;
+    }
+  }
+
+ //------------------------------------------------------------------
+  // Plane Event Threshold
+  int planeEvent_th = -1;
+  int getPlaneEventsThreshold()
+  {
+    if( planeEvent_th > 1 ) {
+      return planeEvent_th;
+    } else { 
+      std::cout<<  " WRONG THRESHOLD CHOICE for the analysis, threshold="<< planeEvent_th<<std::endl;
+      std::cout<<  " automatically set to 32 " <<std::endl;
+      planeEvent_th = 32;
+    }
+    return planeEvent_th;
+  }
+
+  TString getPlaneEventsThresholdTStringAnalysis( ) {
+    TString gains="";
+    gains=TString::Format("_plEventThres%i",planeEvent_th);
+    return gains;
+  }
+
+
+  void setPlaneEventsThreshold(int threshold )
+  {
+    if(threshold > 1 ) {
+      planeEvent_th = threshold;
+      std::cout<<  " Plane Event Threshold set to "<< threshold <<std::endl;
+    } else { 
+      std::cout<<  " WRONG THRESHOLD CHOICE for the analysis, threshold="<< threshold <<std::endl;
+      std::cout<<  " automatically set to 32 " <<std::endl;
+      planeEvent_th = 32;
     }
   }
 

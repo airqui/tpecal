@@ -27,7 +27,9 @@ public:
     //Return the number of triggers
     unsigned getNTriggers();
     unsigned getNTriggers_planeEvents();
-    unsigned getNTriggers_overRunningBcid();
+    unsigned getNTriggers_consBcid1();
+    unsigned getNTriggers_consBcid5();
+    unsigned getNTriggers_consBcid10();
     unsigned getNTriggers_negativeData();
     //Return the number of undefined entries
     unsigned getNUndefined();
@@ -62,19 +64,15 @@ private:
     //A data member that holds the number of triggers for that channel
     unsigned _nTriggers;
     unsigned _nTriggers_planeEvents;
-    unsigned _nTriggers_overRunningBcid;
+    unsigned _nTriggers_consBcid1;
+    unsigned _nTriggers_consBcid5;
+    unsigned _nTriggers_consBcid10;
     unsigned _nTriggers_negativeData;
 
     //A data memeber that holds the number of undefined entries (<0)
     unsigned _nUndefined;
     //Method to sum up the measured values and their squares
     void calculateSums(int, int, int, int);
-
-    //   TH1F* _pedHighTH1  = new TH1F("_pedHighTH1","_pedHighTH1",400,100.5,500.5);
-    //TH1F* _pedLowTH1   = new TH1F("_pedLowTH1","_pedLowTH1",400,100.5,500.5);
-    //TH1F* _HighTH1  = new TH1F("_HighTH1","_HighTH1",4096,0.5,4096.5);
-    //TH1F* _LowTH1 = new TH1F("_LowTH1","_LowTH1",4096,0.5,4096.5);
-
 
 };
 
