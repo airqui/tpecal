@@ -238,7 +238,7 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
 
   TString gain = globalvariables::getGainTStringAnalysis();
   TString filerecreate = "RECREATE";
-  if(buffer > 0) filerecreate="UPDATE";
+  if((*aMapIter).first  > 0) filerecreate="UPDATE";
   TFile *f_scurve = TFile::Open(file_sufix+gain+".root", filerecreate);
   TDirectory *dir = f_scurve->GetDirectory(TString::Format("scurves_graphs_buffer%i",buffer));
   if (!dir) dir = f_scurve->mkdir(TString::Format("scurves_graphs_buffer%i",buffer));
@@ -268,12 +268,12 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
   TH1F * hist_fitParScurve_1 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_1",int((*aMapIter).first)),100,0,2);
   TH1F * hist_fitParScurve_2 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_2",int((*aMapIter).first)),200,150,250);
   TH1F * hist_fitParScurve_3 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_3",int((*aMapIter).first)),100,0,20);
-  TH1F * hist_fitParScurve_4 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_4",int((*aMapIter).first)),100,-10,10);
+  TH1F * hist_fitParScurve_4 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_4",int((*aMapIter).first)),100,-2,2);
  
   TH1F * hist_fitParErrScurve_1 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_1",int((*aMapIter).first)),100,0,0.5);
   TH1F * hist_fitParErrScurve_2 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_2",int((*aMapIter).first)),100,0,5);
   TH1F * hist_fitParErrScurve_3 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_3",int((*aMapIter).first)),100,0,5);
-  TH1F * hist_fitParErrScurve_4 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_4",int((*aMapIter).first)),500,0,5);
+  TH1F * hist_fitParErrScurve_4 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_4",int((*aMapIter).first)),200,0,1);
 
   //An iterator used to fetch the maximum number of counts
   std::map<unsigned, std::vector<unsigned> >::iterator helpMapIter = _maxHithelpVec.find((*aMapIter).first);
