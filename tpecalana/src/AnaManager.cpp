@@ -237,7 +237,9 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
     
 
   TString gain = globalvariables::getGainTStringAnalysis();
-  TFile *f_scurve = TFile::Open(file_sufix+gain+".root", "UPDATE");
+  TString filerecreate = "RECREATE";
+  if(buffer > 0) filerecreate="UPDATE";
+  TFile *f_scurve = TFile::Open(file_sufix+gain+".root", filerecreate);
   TDirectory *dir = f_scurve->GetDirectory(TString::Format("scurves_graphs_buffer%i",buffer));
   if (!dir) dir = f_scurve->mkdir(TString::Format("scurves_graphs_buffer%i",buffer));
 
