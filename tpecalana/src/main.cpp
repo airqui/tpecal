@@ -102,8 +102,8 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
   }
 
   if(globalvariables::getAnalysisType() == "scurves" )  {
-    //TString scurvefile= TString(datadirStr_output)+TString::Format("/Scurves_buff%i_",buffer);
-    //   anaManager.displayResults( scurvefile,buffer );
+    TString scurvefile= TString(datadirStr_output)+TString::Format("/Scurves_buff%i_",buffer);
+    anaManager.displayResults( scurvefile,buffer );
   }
 
 }
@@ -172,13 +172,32 @@ void MonitorRun(string datadirStr, string datadirStr_output ) {
   ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
   
   TString output_path ;
-  output_path =  TString(datadirStr_output) + "/" ;
+  output_path =  TString(datadirStr_output);
 
-  monManager.acquireRunInformation(ExperimentalSetup::getInstance());
-  monManager.displayResults(output_path);
+  monManager.init();
+  monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"goodevents");
+  monManager.displayResults(output_path,"goodevents");
 
+  // monManager.init();
+  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"bcid1");
+  // monManager.displayResults(output_path,"bcid1");
  
-  
+  // monManager.init();
+  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"bcid5");
+  // monManager.displayResults(output_path,"bcid5");
+
+  // monManager.init();
+  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"bcid10");
+  // monManager.displayResults(output_path,"bcid10");
+
+  // monManager.init();
+  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"planevents");
+  // monManager.displayResults(output_path,"planevents");
+
+  // monManager.init();
+  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"negativedata");
+  // monManager.displayResults(output_path,"negativedata");
+
   ////reset experimental setup and run manager
   ExperimentalSetup::getInstance()->reset();
   runmanager.reset();
@@ -191,8 +210,6 @@ int main(int argc, char **argv)
 {
 
 
-  char** dummyappl;
-  int dummyint = 0;
   TApplication fooApp("fooApp",&argc,argv);
 
 
@@ -221,8 +238,7 @@ int main(int argc, char **argv)
       std::cout << "    output_folder == output folder (full path) " << std::endl;
       std::cout << "    analysis_type == Pedestal, PedestalSignal" << std::endl;
       std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
-      std::cout << "    step          == in case of scans, the number of channels in each subrun (default 8) " << std::endl;
-      std::cout << "    buffer        == buffer to analyze (for scans) 0-14. If 15, all are analyzed together. (default 0)" << std::endl;
+      std::cout << "    value         == free parameter, i.e. for Monitoring == PlaneEventsThreshold  " << std::endl;
       return 1;
     }
 
@@ -236,11 +252,11 @@ int main(int argc, char **argv)
     return 0;
   }   
   if ( !exists( datadirStr_output ) ) {
-    std::cout << " Data OUTPUT directory doesn't exist !!! STOP THE EXECUTABLE  "<<std::endl;
-    std::cout << " Please, create the folder: "<<std::endl;
-    std::cout << " mkdir "<<datadirStr_output<<std::endl;
-    return 0;
-  }
+    std::cout << " OUTPUT directory doesn't exist !!! are you sure that you want to continue? "<<std::endl;
+    // TString cont ="n";
+    //  std::cin>> cont;
+    //  if(cont != "y") return 0;
+   }
 
  
   globalvariables::setAnalysisType(TString(argv[3]));
@@ -253,26 +269,31 @@ int main(int argc, char **argv)
   int buffer = 0;
   if(argc > 6) buffer = atoi(argv[6]);
 
+
   if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan") {
     globalvariables::setGainAnalysis(1); //high =1, low =0
+    globalvariables::setPlaneEventsThreshold(32); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     ScanAnalysis(step, buffer, datadirStr, datadirStr_output) ;
   }
 
   if(globalvariables::getAnalysisType() == "Pedestal" || globalvariables::getAnalysisType() == "PedestalSignal") {
     globalvariables::setGainAnalysis(1); //high =1, low =0
+    globalvariables::setPlaneEventsThreshold(32); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(true);
     NormalRun(datadirStr, datadirStr_output) ;
   }
 
   if(globalvariables::getAnalysisType() == "Monitor" ) {
+    globalvariables::setPlaneEventsThreshold(step); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
+
     globalvariables::setGlobal_deepAnalysis(false);
     MonitorRun(datadirStr, datadirStr_output) ;
   }
 
 
-  fooApp.Run();
-  return 1;
+  //  fooApp.Run();
+  return 0;
 
 }
