@@ -911,10 +911,13 @@ void RAW2ROOT::readEvent(std::vector < unsigned short int > & eventData , int Pl
 		//h_chargeHigh_withHit[k][ichan]->Fill(charge_high[k][ibc][ichan]);
 	      }
 	    }
-	    if (corrected_bcid[k][ibc] > corrected_bcid[k][ibc-1] + MinBcidIncrement) {
-	      badbcid[k][ibc]=0;
+	    //irles 
+	    if( ( corrected_bcid[k][ibc] - corrected_bcid[k][ibc-1]) > 0  &&  (corrected_bcid[k][ibc] - corrected_bcid[k][ibc-1]) < 10 ) {
+	      //if (corrected_bcid[k][ibc] > corrected_bcid[k][ibc-1] + MinBcidIncrement) {
+	      badbcid[k][ibc]=corrected_bcid[k][ibc] - corrected_bcid[k][ibc-1];
+	      h_TagHist[k]->Fill(ibc);
 	    } else {
-	      badbcid[k][ibc]=1; h_TagHist[k]->Fill(ibc);
+	      badbcid[k][ibc]=0; //h_TagHist[k]->Fill(ibc);
 	    }
        	  }//if ibc == 0
 	   

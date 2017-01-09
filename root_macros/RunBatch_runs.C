@@ -7,7 +7,7 @@ void RunBatch_runs(TString path, bool overwrite){
   const int Step = 3;
   const int Stop = 214;
 
-  const int PlanEventTh = 20;
+  const int PlanEventTh = 32;
   const int MinBcidInc = 10;
 
   gSystem->Load("RAW2ROOT_C");
