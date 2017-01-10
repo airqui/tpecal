@@ -108,7 +108,7 @@ void MonitorManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup, TString
 
 	//Add for each run the value in that channel
 	//fills the triggers into a vector that is a part of a map of chips and channels
-	for (unsigned itrig=0; itrig < ntrigmtmp; itrig++) (*mapiter).second.at(ichan).push_back(ibuf);
+	for (unsigned itrig=0; itrig < ntrigmtmp; itrig++) (*mapiter).second.at(ichan).push_back(ibuf+0.25);
 
 	//reads out the trigger of each channel
 	ntrigm+=ntrigmtmp;
