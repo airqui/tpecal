@@ -22,13 +22,13 @@ public:
     ~ChipBuffer();
     void init(unsigned);
     //A method to acquire the values of the individual channels
-    bool setChannelVals(int, int, int, int, int, int);
+    bool setChannelVals(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t);
     //Set the number oc channels, a fall back solution in case a proper mapping file is missing
     void setNumberOfASICChannels(unsigned);
     //Number of channels served by an individual buffer
     unsigned getNumberOfChannels();
     //A method to access relevant values of indivudual channels I.E. mean and rms, for low/high and hit bit=0,1 or both (option 0,1,-1)
-    double getChannelMean(unsigned, std::string, int);
+    double getChannelMean(unsigned, std::string, Int_t);
     double getChannelRMS(unsigned, std::string, int);
     //A method to return the number of entries for the channel (only for high has to be extended for low)
     unsigned getChannelEntries(unsigned);

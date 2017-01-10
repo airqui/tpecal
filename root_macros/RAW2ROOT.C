@@ -845,8 +845,7 @@ void RAW2ROOT::readEvent(std::vector < unsigned short int > & eventData , int Pl
                 //h_chargeHigh_withHit[c][ichan]->Fill(charge_high[chipid][ibc][ichan]);
                 h_hits_BCID[c][ichan]->Fill(bcid[chipid][ibc]);
               }
-            }
-            else {
+            } else {
               cout << "<!> ERROR <!> High Gain : Bad number of columns: " << ibc << " or bad number of channels: " << ichan << endl;
             }
             ichan++;

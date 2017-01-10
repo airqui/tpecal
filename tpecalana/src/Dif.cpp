@@ -66,50 +66,70 @@ void Dif::dataAnalysis(TFile* aDifFile, int PlaneEventThreshold) {
   //The following is very much coupled to the actual structure of the root file
   //This has to be made more generic by avoiding a time consuming back and forth copying
   //Not trivial though ... 
-  //We start now to analyse the rot file
-  int high_gain[NASICS][MAXBUFDEPTH][MAXCHAN];
-  int low_gain[NASICS][MAXBUFDEPTH][MAXCHAN];
-  int gain_hit_high[NASICS][MAXBUFDEPTH][MAXCHAN];
-  int gain_hit_low[NASICS][MAXBUFDEPTH][MAXCHAN];
-  int bcid[NASICS][MAXBUFDEPTH];
-  int corrected_bcid[NASICS][MAXBUFDEPTH];
-  int badbcid[NASICS][MAXBUFDEPTH];
-  int chipid[NASICS];
-  int acqNumber;
-  int nhits[NASICS][MAXBUFDEPTH];
+  //We start now to analyse the root file
+  Int_t high_gain[NASICS][MAXBUFDEPTH][MAXCHAN];
+  Int_t low_gain[NASICS][MAXBUFDEPTH][MAXCHAN];
+  Int_t gain_hit_high[NASICS][MAXBUFDEPTH][MAXCHAN];
+  Int_t gain_hit_low[NASICS][MAXBUFDEPTH][MAXCHAN];
+  Int_t bcid[NASICS][MAXBUFDEPTH];
+  Int_t corrected_bcid[NASICS][MAXBUFDEPTH];
+  Int_t badbcid[NASICS][MAXBUFDEPTH];
+  Int_t chipid[NASICS];
+  Int_t acqNumber;
+  Int_t nhits[NASICS][MAXBUFDEPTH];
+
+
+  //initialize the variables since we
+  // were obtaining very crazy numbers at the end not initializing here.
+  for(unsigned i=0; i<NASICS; i++) {                                                                                                                             
+    for(unsigned j=0; j<MAXBUFDEPTH; j++ ) {                                                                                                                       
+      for(unsigned k=0; k<MAXCHAN; k++) {                                                                                                                            
+	gain_hit_high[i][j][k]=-999;
+	gain_hit_low[i][j][k]=-999;
+	high_gain[i][j][k]=-999;
+	low_gain[i][j][k]=-999;
+      }
+      nhits[i][j]=-999;
+      bcid[i][j]=-999;
+      corrected_bcid[i][j]=-999;
+    }                                                                                                                                                              
+    chipid[i]=-999;
+  }   
+  acqNumber=-999;
     
   TTree *t1 = (TTree*) aDifFile->Get("fev10");
   //Set the branch address for the hits with high gain
     
-  t1->SetBranchAddress("charge_lowGain",&low_gain);
-  t1->SetBranchAddress("charge_hiGain",&high_gain);
-  t1->SetBranchAddress("gain_hit_high",&gain_hit_high);
-  t1->SetBranchAddress("gain_hit_low",&gain_hit_low);
-  t1->SetBranchAddress("bcid",&bcid);
-  t1->SetBranchAddress("corrected_bcid",&corrected_bcid);
-  t1->SetBranchAddress("badbcid",&badbcid);
-  t1->SetBranchAddress("chipid",&chipid);
+  t1->SetBranchAddress("charge_lowGain",low_gain);
+  t1->SetBranchAddress("charge_hiGain",high_gain);
+  t1->SetBranchAddress("gain_hit_high",gain_hit_high);
+  t1->SetBranchAddress("gain_hit_low",gain_hit_low);
+  t1->SetBranchAddress("bcid",bcid);
+  t1->SetBranchAddress("corrected_bcid",corrected_bcid);
+  t1->SetBranchAddress("badbcid",badbcid);
+  t1->SetBranchAddress("chipid",chipid);
   t1->SetBranchAddress("acqNumber",&acqNumber);
-  t1->SetBranchAddress("nhits",&nhits);
-
+  t1->SetBranchAddress("nhits",nhits);
+  
   unsigned nentries(t1->GetEntries());
 
   std::cout << "nentries " << nentries << std::endl;
   for (unsigned ientr =0; ientr < nentries; ientr++) {
-
-    /*    	for(unsigned i=0; i<NASICS; i++) {
-    		for(unsigned j=0; j<MAXBUFDEPTH; j++ ) {
-		if(nhits[i][j] > PlaneEventThreshold || badbcid[i][j] >1) {
-		for(unsigned k=0; k<MAXCHAN; k++) {
-		low_gain[i][j][k]=0;
-		high_gain[i][j][k]=0;
-		}
-		}
-    		}
-		}*/
-        
     //std::cout << "ientr: " << ientr << std::endl;
     t1->GetEntry(ientr);
+
+    for(int ichip=0; ichip<16; ichip++){
+      for(int ibuf=0; ibuf<15; ibuf++) {
+	for(int ich=0; ich<64; ich++) {
+	  if(gain_hit_high[ichip][ibuf][ich]==1 && nhits[ichip][ibuf]==0)
+	    std::cout<<" ALERT : "<<ientr<< " chip="<<ichip<<" ibuf="<<ibuf<<" ich="<<ich<<
+	      " badbcid="<<badbcid[ichip][ibuf]<<" gain_hit_high="<<gain_hit_high[ichip][ibuf][ich]<<
+	      " valHigh="<<high_gain[ichip][ibuf][ich]<<" nhits="<<nhits[ichip][ibuf]<<
+	      std::endl;
+	}
+      }
+    }
+
         
     unsigned containerEntryofASU(0);
     unsigned ntot(0);

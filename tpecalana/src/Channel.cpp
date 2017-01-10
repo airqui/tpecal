@@ -109,23 +109,26 @@ double Channel::getRMS(std::string modeStr, int trigger = 1 ) {
   return 0.0;
 }
 
-void Channel::acquireData(int nhits, int badbcid, int valHigh, int valLow, int gainHitHigh, int gainHitLow) {
+void Channel::acquireData(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t valLow, Int_t gainHitHigh, Int_t gainHitLow) {
 
-  int gain = globalvariables::getGainAnalysis();
-  int thresh = globalvariables::getPlaneEventsThreshold();
+  Int_t gain = globalvariables::getGainAnalysis();
+  Int_t thresh = globalvariables::getPlaneEventsThreshold();
 
   if(gain == 1) {
     //Count number of entries
     if( valHigh>0 ) _numEntr++;
     if( gainHitHigh == 1 ) {
       //Count number of triggers
-      if (  badbcid == 1   &&  valHigh>50 && nhits < thresh  ) _nTriggers_consBcid1++;
-      if (  (badbcid >1 && badbcid < 6)   && valHigh>50 && nhits < thresh  ) _nTriggers_consBcid5++;
-      if (  (badbcid >5 && badbcid < 11)   &&  valHigh>50 && nhits < thresh  ) _nTriggers_consBcid10++;
-      if (  ( badbcid == 0 || (badbcid >5 && badbcid<11) )   &&  valHigh>50 && nhits < thresh ) _nTriggers++;
-      else {
+      if (  badbcid == 1   &&  valHigh>10 && nhits < thresh  ) _nTriggers_consBcid1++;
+      if (  (badbcid >1 && badbcid < 6)   && valHigh>10 && nhits < thresh  ) _nTriggers_consBcid5++;
+      if (  (badbcid >5 && badbcid < 11)   &&  valHigh>10 && nhits < thresh  ) _nTriggers_consBcid10++;
+      if (  ( badbcid == 0 || (badbcid >5 && badbcid<11) )   &&  valHigh>10 && nhits < thresh ) {
+	_nTriggers++;
+	if(nhits==0)
+	  std::cout<<"ALERTCHN  badbcid =="<<badbcid<<", nhits ="<<nhits<<" valHigh="<<valHigh<<" "<<gainHitHigh<<" "<<gainHitLow<<std::endl;
+      } else {
 	if (nhits > (thresh-1) ) _nTriggers_planeEvents++;
-	if ((badbcid > 30 || valHigh < 50 ) ) _nTriggers_negativeData++;
+	if ((badbcid > 30 || valHigh < 10 ) ) _nTriggers_negativeData++;
       }
     }
     //Count number of undefined entries
@@ -135,15 +138,15 @@ void Channel::acquireData(int nhits, int badbcid, int valHigh, int valLow, int g
     //Count number of entries
     if( valLow>0  ) _numEntr++;
 
-    if( gainHitLow == 1 ) {
+    if( gainHitLow%2 == 1 ) {
       //Count number of triggers
-      if (  badbcid == 1   &&  valLow>50 && nhits < thresh  ) _nTriggers_consBcid1++;
-      if (  (badbcid >1 && badbcid < 6)   && valLow>50 && nhits < thresh  ) _nTriggers_consBcid5++;
-      if (  (badbcid >5 && badbcid < 11)   &&  valLow>50 && nhits < thresh  ) _nTriggers_consBcid10++;
-      if (  ( badbcid == 0 || (badbcid >5 && badbcid<11) )  &&  valLow>50 && nhits < thresh ) _nTriggers++;
+      if (  badbcid == 1   &&  valLow>10 && nhits < thresh  ) _nTriggers_consBcid1++;
+      if (  (badbcid >1 && badbcid < 6)   && valLow>10 && nhits < thresh  ) _nTriggers_consBcid5++;
+      if (  (badbcid >5 && badbcid < 11)   &&  valLow>10 && nhits < thresh  ) _nTriggers_consBcid10++;
+      if (  ( badbcid == 0 || (badbcid >5 && badbcid<11) )  &&  valLow>10 && nhits < thresh ) _nTriggers++;
       else {
 	if (nhits > (thresh-1) ) _nTriggers_planeEvents++;
-	if ((badbcid > 30 || valLow < 50 ) ) _nTriggers_negativeData++;
+	if ((badbcid > 30 || valLow < 10 ) ) _nTriggers_negativeData++;
       }
     }
     

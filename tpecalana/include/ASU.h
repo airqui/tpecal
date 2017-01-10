@@ -31,9 +31,9 @@ public:
     //seperately for the global buffer and individual channel information
     //It has to be made sure that the information is kept parallel
     //The method to extract the information from the data container (global buffer information)
-    void transferChipBufferData(int*, int*, int*, int*);
+    void transferChipBufferData(Int_t*, Int_t*, Int_t*, Int_t*);
     //The method to extract the information from the data container (individual channels)
-    void transferChipChannelData(int*, int*, int*, int*, int*, int*, int*);
+    void transferChipChannelData(Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*);
     //Return the number of ASICs
     unsigned getNumberofASICs();
     //Return a given Chip

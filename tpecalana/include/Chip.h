@@ -28,9 +28,9 @@ public:
     //A method to the number of channels of the ASIC "by hand" set in the
     void setNumberOfASICChannels(unsigned);
     //Acquire information that contain global information on the buffers of a chip (at the moment we receive an array which is ugly)
-    void acquireChipBufferData(int*, int*, int*);
+    void acquireChipBufferData(Int_t*, Int_t*, Int_t*);
     //Acquire the data that belong to the channel of this chip (at the moment we receive an array which is ugly)
-    void acquireChipChannelData(int*, int*, int*, int*, int*, int*);
+    void acquireChipChannelData(Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*);
     //Return the number of channels connected to the ASIC
     unsigned getNumberOfASICChannels();
     //Return the bufferdepth

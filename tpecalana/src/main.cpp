@@ -272,7 +272,7 @@ int main(int argc, char **argv)
 
   if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan") {
     globalvariables::setGainAnalysis(1); //high =1, low =0
-    globalvariables::setPlaneEventsThreshold(32); //high =1, low =0
+    globalvariables::setPlaneEventsThreshold(step+1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     ScanAnalysis(step, buffer, datadirStr, datadirStr_output) ;
   }
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
   }
 
   if(globalvariables::getAnalysisType() == "Monitor" ) {
-    globalvariables::setPlaneEventsThreshold(step); 
+    globalvariables::setPlaneEventsThreshold(step+1); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
 
     globalvariables::setGlobal_deepAnalysis(false);

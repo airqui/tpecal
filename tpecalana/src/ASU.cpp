@@ -72,12 +72,24 @@ void ASU::transferChipChannelData(int* chipid, int *aValNHitsArray, int *aValBad
     unsigned istep(_chipVec.at(ichip).getNumberOfASICChannels()*_chipVec.at(ichip).getBufferDepth());
     unsigned istep_buf(_chipVec.at(ichip).getBufferDepth());
 
+    istep=15*64;
+    istep_buf=15;
+
     if (chipid[ichip] > -1 ) {
       if (chipid[ichip] < static_cast<int>(_numChips)) {
 	_chipVec.at(chipid[ichip]).acquireChipChannelData(
-							  aValNHitsArray+ichip*istep_buf,aValBadBcidArray+ichip*istep_buf,
-							  aValArrayHigh+ichip*istep, aValArrayLow+ichip*istep,
-							  aGainHitArrayHigh+ichip*istep, aGainHitArrayLow+ichip*istep);
+							  //						  (aValNHitsArray),(aValBadBcidArray),
+                                                          //(aValArrayHigh), (aValArrayLow),
+                                                          //(aGainHitArrayHigh), (aGainHitArrayLow));
+
+							  (aValNHitsArray+ichip*istep_buf),(aValBadBcidArray+ichip*istep_buf),
+							  (aValArrayHigh+ichip*istep), (aValArrayLow+ichip*istep),
+							  (aGainHitArrayHigh+ichip*istep), (aGainHitArrayLow+ichip*istep));
+
+	//	if( *(aValNHitsArray+ichip*istep_buf)==0 && *(aGainHitArrayHigh+ichip*istep)==1 )
+	//	std::cout<<"ALERT ASU end "<<*(aValNHitsArray+ichip*istep_buf)<<" "<< *(aValArrayHigh+ichip*istep) <<" "<<*(aGainHitArrayHigh+ichip*istep)<<std::endl;
+	//std::cout<<"ALERT ASU beg "<<*(aValNHitsArray)<<" "<< *(aValArrayHigh) <<" "<<*(aGainHitArrayHigh)<<std::endl;
+
       }
       else std::cout << "Info: chipid > 15 encountered! " << "Chipid is: " << chipid[ichip] << std::endl;
     }

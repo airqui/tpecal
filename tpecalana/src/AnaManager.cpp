@@ -315,7 +315,7 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
       double runval(static_cast<double>((*runIter)));
       //Fill the array with the relative counts for a given channel in a given run
       if(ref > 2) {
-	valarray[irun] = runval/ref;
+	valarray[irun] = runval;///ref;
 	evalarray[irun] = sqrt(runval)/ref;
       }   else {
 	valarray[irun] = 0;
