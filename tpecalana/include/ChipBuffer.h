@@ -33,6 +33,7 @@ public:
     //A method to return the number of entries for the channel (only for high has to be extended for low)
     unsigned getChannelEntries(unsigned);
     //A method to return the number of triggers for the channel
+    std::vector<unsigned> getChannelTriggersVec(unsigned);
     unsigned getChannelTriggers(unsigned);
     unsigned getChannelTriggers_planeEvents(unsigned);
     unsigned getChannelTriggers_consBcid1(unsigned);

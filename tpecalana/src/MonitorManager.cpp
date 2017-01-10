@@ -90,8 +90,9 @@ void MonitorManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup, TString
 	if((*mapiter).second.size() < ichan+1)   (*mapiter).second.push_back (std::vector<unsigned> () );
 	 
 
+	std::vector<unsigned> ntrigtmpVect = aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
 	//reads out the trigger of each channel
-	if(type == "goodevents") {
+	/*	if(type == "goodevents") {
 	  ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers(ichan);
 	  ntrigm+=ntrigmtmp;
 	  ntrigm_bcid1+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_consBcid1(ichan);
@@ -104,7 +105,23 @@ void MonitorManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup, TString
 	else if(type == "bcid10") ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_consBcid10(ichan);
 	else if(type == "planevents") ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_planeEvents(ichan);
 	else if(type == "negativedata") ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_negativeData(ichan);
-	else std::cout<<" ERROR  ###################         Wrong analysis type: " << type << " != goodevents or bcid1 or bcid5 or bcid10 or planevents or negativedata  ##################"<<std::endl;
+	else std::cout<<" ERROR  ###################         Wrong analysis type: " << type << " != goodevents or bcid1 or bcid5 or bcid10 or planevents or negativedata  ##################"<<std::endl;*/
+
+        if(type == "goodevents") {
+          ntrigmtmp=ntrigtmpVect.at(0);
+          ntrigm_bcid1+=ntrigtmpVect.at(1);
+          ntrigm_bcid5+=ntrigtmpVect.at(2);
+          ntrigm_bcid10+=ntrigtmpVect.at(3);
+          ntrigm_planeevents+=ntrigtmpVect.at(4);
+          ntrigm_negativedata+=ntrigtmpVect.at(5);
+        } else if(type == "bcid1") ntrigmtmp=ntrigtmpVect.at(1);
+        else if(type == "bcid5") ntrigmtmp=ntrigtmpVect.at(2);
+        else if(type == "bcid10") ntrigmtmp=ntrigtmpVect.at(3);
+        else if(type == "planevents") ntrigmtmp=ntrigtmpVect.at(4);
+        else if(type == "negativedata") ntrigmtmp=ntrigtmpVect.at(5);
+        else std::cout<<" ERROR  ###################         Wrong analysis type: " << type << " != goodevents or bcid1 or bcid5 or bcid10 or planevents or negativedata  ####\
+##############"<<std::endl;
+
 
 	//Add for each run the value in that channel
 	//fills the triggers into a vector that is a part of a map of chips and channels

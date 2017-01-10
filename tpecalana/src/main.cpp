@@ -178,25 +178,6 @@ void MonitorRun(string datadirStr, string datadirStr_output ) {
   monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"goodevents");
   monManager.displayResults(output_path,"goodevents");
 
-  // monManager.init();
-  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"bcid1");
-  // monManager.displayResults(output_path,"bcid1");
- 
-  // monManager.init();
-  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"bcid5");
-  // monManager.displayResults(output_path,"bcid5");
-
-  // monManager.init();
-  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"bcid10");
-  // monManager.displayResults(output_path,"bcid10");
-
-  // monManager.init();
-  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"planevents");
-  // monManager.displayResults(output_path,"planevents");
-
-  // monManager.init();
-  // monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"negativedata");
-  // monManager.displayResults(output_path,"negativedata");
 
   ////reset experimental setup and run manager
   ExperimentalSetup::getInstance()->reset();

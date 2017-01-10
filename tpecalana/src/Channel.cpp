@@ -155,7 +155,9 @@ void Channel::acquireData(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t valLo
 
   } else std::cout<<"ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
     //std::cout << "example val: " <<  val << std::endl;
-    calculateSums(valHigh, valLow, gainHitHigh, gainHitLow);
+
+  // calculate the sums only if the events pass the preselection
+  if (  ( badbcid == 0 || (badbcid >5 && badbcid<11) )  &&  valLow>10 && nhits < thresh )     calculateSums(valHigh, valLow, gainHitHigh, gainHitLow);
 }
 
 
@@ -191,6 +193,18 @@ void Channel::calculateSums(int valHigh, int valLow, int gainHitHigh, int gainHi
 
 
 unsigned Channel::getNEntries() {return _numEntr;}
+
+std::vector<unsigned> Channel::getNTriggersVec() {
+  std::vector<unsigned> _nTriggersVec;
+  _nTriggersVec.push_back(_nTriggers);
+  _nTriggersVec.push_back(_nTriggers_consBcid1);
+  _nTriggersVec.push_back(_nTriggers_consBcid5);
+  _nTriggersVec.push_back(_nTriggers_consBcid10);
+  _nTriggersVec.push_back(_nTriggers_planeEvents);
+  _nTriggersVec.push_back(_nTriggers_negativeData);
+  _nTriggersVec.push_back(_nUndefined);
+  return _nTriggersVec;
+}
 unsigned Channel::getNTriggers() {return _nTriggers;}
 unsigned Channel::getNTriggers_planeEvents() {return _nTriggers_planeEvents;}
 unsigned Channel::getNTriggers_consBcid1() {return _nTriggers_consBcid1;}

@@ -97,6 +97,9 @@ unsigned ChipBuffer::getChannelEntries(unsigned ichan) {
   return  _channelVec.at(ichan).getNEntries();
 }
 
+std::vector<unsigned> ChipBuffer::getChannelTriggersVec(unsigned ichan) {
+  return  _channelVec.at(ichan).getNTriggersVec();
+}
 unsigned ChipBuffer::getChannelTriggers(unsigned ichan) {
   return  _channelVec.at(ichan).getNTriggers();
 }

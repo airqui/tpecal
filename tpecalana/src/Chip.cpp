@@ -50,24 +50,20 @@ void Chip::setBufferDepth(unsigned bufferDepth) {
 
 void Chip::acquireChipChannelData(Int_t *aValNHitsArray, Int_t *aValBadBcidArray, Int_t *aValArrayHigh, int  *aValArrayLow, Int_t *aGainHitArrayHigh, Int_t *aGainHitArrayLow) {
   //It is assumed that we receive a pointer to the first entry in the first buffer positions of a chip
-  //std::cout << "Chip ID: " << _chipID << std::endl;
-  //std::cout << "example val: " << *(aValArray) << std::endl;
 
   unsigned counter(0);
+
   for (unsigned ibuf=0;ibuf<_bufferDepth;ibuf++) {
-    //for (unsigned ibuf=0;ibuf<1;ibuf++) {
     //We fill now channels until the channel counter says stop (all these are terrible hacks)
     bool allChannelsFilled(false);
     while(!allChannelsFilled) {
-      //unsigned val = *(aValArray+counter);
-      //std::cout << "Counter: " << counter%64 << std::endl;
-      //std::cout << "example val: " << *(aValBadBcidArray+counter/_nChannels) << " "<<  *(aValNHitsArray+(counter)/_nChannels) << " "<< *(aValArrayHigh+counter) << std::endl;
-      //      std::cout << "c+1: " << *(aValBadBcidArray+(counter+1)/_nChannels) << " "<<  *(aValNHitsArray+(counter+1)/_nChannels) << " "<< *(aValArrayHigh+counter) << std::endl;
-
       //To do: How to take best into account if no more buffers with valid entries (i.e. n.e. -999) do follow
       //How to verify this independent of the input source?
       //Sure further down we check for valid triggers but still always looping over -999 is a waste of CPU time
       //How to make a check quick and bullet proof
+      // Also: how to do a proper nhit counter since the nhit in the ntuple makes no sense without any further filtering of the data
+      // and I would like to keep all the "filtering" code in the Channel Class.
+
       Int_t nhits = *(aValNHitsArray+ibuf*64/_nChannels);
       Int_t badbcid = *(aValBadBcidArray+ibuf*64/_nChannels);
       Int_t highgain = *(aValArrayHigh+counter);
@@ -75,10 +71,6 @@ void Chip::acquireChipChannelData(Int_t *aValNHitsArray, Int_t *aValBadBcidArray
       Int_t highgain_hit = *(aGainHitArrayHigh+counter);
       Int_t lowgain_hit = *(aGainHitArrayLow+counter);
 
-
-
-      if( nhits==0 && highgain_hit==1 )
-	std::cout<<"ALERT Chip0 "<<nhits<<" "<< highgain <<" "<<highgain_hit<<" "<<_nChannels<<" "<<counter<<" "<<ibuf<<std::endl;
 
       allChannelsFilled = _chipBuffer.at(ibuf).setChannelVals(
 							      nhits, badbcid,

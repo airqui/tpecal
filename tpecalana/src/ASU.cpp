@@ -72,9 +72,6 @@ void ASU::transferChipChannelData(int* chipid, int *aValNHitsArray, int *aValBad
     unsigned istep(_chipVec.at(ichip).getNumberOfASICChannels()*_chipVec.at(ichip).getBufferDepth());
     unsigned istep_buf(_chipVec.at(ichip).getBufferDepth());
 
-    istep=15*64;
-    istep_buf=15;
-
     if (chipid[ichip] > -1 ) {
       if (chipid[ichip] < static_cast<int>(_numChips)) {
 	_chipVec.at(chipid[ichip]).acquireChipChannelData(

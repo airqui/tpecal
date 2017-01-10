@@ -25,6 +25,7 @@ public:
     //Return the number of entries
     unsigned getNEntries();
     //Return the number of triggers
+    std::vector<unsigned> getNTriggersVec(); //stores the following 6 and the undefined events
     unsigned getNTriggers();
     unsigned getNTriggers_planeEvents();
     unsigned getNTriggers_consBcid1();
