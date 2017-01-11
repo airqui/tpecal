@@ -150,7 +150,7 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
   
 }
 
-void MonitorRun(string datadirStr, string datadirStr_output ) {
+void MonitorRun(string datadirStr, string datadirStr_output , TString type) {
 
 
   RunManager runmanager;    
@@ -175,8 +175,8 @@ void MonitorRun(string datadirStr, string datadirStr_output ) {
   output_path =  TString(datadirStr_output);
 
   monManager.init();
-  monManager.acquireRunInformation(ExperimentalSetup::getInstance(),"goodevents");
-  monManager.displayResults(output_path,"goodevents");
+  monManager.acquireRunInformation(ExperimentalSetup::getInstance(),type);
+  monManager.displayResults(output_path,type);
 
 
   ////reset experimental setup and run manager
@@ -217,9 +217,9 @@ int main(int argc, char **argv)
       std::cout << "./tpecalana for normal runs" << std::endl;
       std::cout << "    input_file    == input root file " << std::endl;
       std::cout << "    output_folder == output folder (full path) " << std::endl;
-      std::cout << "    analysis_type == Pedestal, PedestalSignal" << std::endl;
+      std::cout << "    analysis_type == Pedestal, PedestalSignal, MonitorChannel, MonitorChip" << std::endl;
       std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
-      std::cout << "    value         == free parameter, i.e. for Monitoring == PlaneEventsThreshold  " << std::endl;
+      std::cout << "    value         == free parameter...  " << std::endl;
       return 1;
     }
 
@@ -265,16 +265,16 @@ int main(int argc, char **argv)
     NormalRun(datadirStr, datadirStr_output) ;
   }
 
-  if(globalvariables::getAnalysisType() == "Monitor" ) {
+  if(globalvariables::getAnalysisType() == "MonitorChannel" ) {
     globalvariables::setPlaneEventsThreshold(step+1); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
 
     globalvariables::setGlobal_deepAnalysis(false);
-    MonitorRun(datadirStr, datadirStr_output) ;
+    MonitorRun(datadirStr, datadirStr_output,"channel") ;
   }
 
 
-  //  fooApp.Run();
+  fooApp.Run();
   return 0;
 
 }

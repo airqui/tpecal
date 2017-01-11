@@ -20,7 +20,17 @@ MonitorManager::MonitorManager() {
 
   _ntrigVecMapHigh.clear();
   _bufferVecMapMedian.clear();
-  _TrigChipChanneVecMap.clear();
+  _TrigChipChannelVecMap.clear();
+  _PedChipChannelVecMap.clear();
+  _TrigChipChannelVecMap_buf0.clear();
+  _PedChipChannelVecMap_buf0.clear();
+
+  _PedWidthChipChannelVecMap.clear();
+  _SignalWidthChipChannelVecMap.clear();
+
+  _PedMeanChipChannelVecMap.clear();
+  _SignalMeanChipChannelVecMap.clear();
+
   _TrigChipVec.clear(); //vector of unsigned
 
   _TrigChipVec_bcid1.clear(); //vector of unsigned
@@ -37,7 +47,17 @@ void MonitorManager::init(){
 
   _ntrigVecMapHigh.clear();
   _bufferVecMapMedian.clear();
-  _TrigChipChanneVecMap.clear();
+
+  _TrigChipChannelVecMap.clear();
+  _PedChipChannelVecMap.clear();
+  _TrigChipChannelVecMap_buf0.clear();
+  _PedChipChannelVecMap_buf0.clear();
+
+  _PedWidthChipChannelVecMap.clear();
+  _SignalWidthChipChannelVecMap.clear();
+  _PedMeanChipChannelVecMap.clear();
+  _SignalMeanChipChannelVecMap.clear();
+
   _TrigChipVec.clear(); //vector of unsigned
   _TrigChipVec_bcid1.clear(); //vector of unsigned
   _TrigChipVec_bcid5.clear(); //vector of unsigned
@@ -48,26 +68,38 @@ void MonitorManager::init(){
 
   for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
     //scurves maps (triggers for threshold run and maximum of triggers for all threshold runs, per channel and chip)
-    _ntrigVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<unsigned> >  () ));
+    _ntrigVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> >  () ));
+
     _bufferVecMapMedian.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip),  std::vector<Double_t> () ));
-    _TrigChipChanneVecMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<unsigned>  () ));
+
+    _TrigChipChannelVecMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<unsigned>  () ));
+    _PedChipChannelVecMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<unsigned>  () ));
+
+    _TrigChipChannelVecMap_buf0.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<unsigned>  () ));
+    _PedChipChannelVecMap_buf0.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<unsigned>  () ));
+
+    _PedWidthChipChannelVecMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Double_t>  () ));
+    _SignalWidthChipChannelVecMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Double_t>  () ));
+    _PedMeanChipChannelVecMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Double_t>  () ));
+    _SignalMeanChipChannelVecMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Double_t>  () ));
+
   }
 
 }
 
 void MonitorManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString type){
   std::cout << "************** MonitorManager::AcquireRunInformation new file: " << std::endl;
-  simpleChannelAnalysis(aExpSetup, type);
+  if(type == "channel" ) simpleChannelAnalysis(aExpSetup);
 }
 
 void MonitorManager::displayResults(TString file_prefix, TString type){
 
   //Call the graphics part related to the simple graphics analysis (should be realised automatically if graphics is requires
-  simpleChannelAnalysisGraphics(file_prefix, type);
+  if(type == "channel" ) simpleChannelAnalysisGraphics(file_prefix);
 
 }
 
-void MonitorManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup, TString type) {
+void MonitorManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup) {
 
   //Loop over all enabled chips
   for (channelInfoComplUnsigned_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
@@ -80,48 +112,47 @@ void MonitorManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup, TString
 
     for (unsigned ichan=0; ichan < numChans; ichan++) {
 
+      unsigned ntrigm_chn_buf0(0);
       unsigned ntrigm_chn(0);
+      unsigned npedm_chn_buf0(0);
+      unsigned npedm_chn(0);
 
       unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
       // we are going to save the total number of hits per chip
       for (unsigned ibuf=0; ibuf < bufdepth; ibuf++) {
+
+	if(ibuf == 0 ) {
+	  //readout the pedestal and signal RMS
+	  std::vector<double> width=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getChannelRMSVec(ichan, "High");
+	  double signwidth=width.at(0);
+	  double pedwidth=width.at(1);
+	  _SignalWidthChipChannelVecMap.at((*mapiter).first).push_back(signwidth);
+	  _PedWidthChipChannelVecMap.at((*mapiter).first).push_back(pedwidth);
+	  
+	  std::vector<double> mean=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getChannelMeanVec(ichan, "High");
+	  double signmean=mean.at(0);
+	  double pedmean=mean.at(1);
+	  _SignalMeanChipChannelVecMap.at((*mapiter).first).push_back(signmean);
+	  _PedMeanChipChannelVecMap.at((*mapiter).first).push_back(pedmean);
+	}
+
 	unsigned ntrigmtmp(0);
+	unsigned npedmtmp(0);
+
 	//Build up the vector for the individual channels (needs to be done only once)
-	if((*mapiter).second.size() < ichan+1)   (*mapiter).second.push_back (std::vector<unsigned> () );
+	if((*mapiter).second.size() < ichan+1)   (*mapiter).second.push_back (std::vector<Double_t> () );
 	 
-
-	std::vector<unsigned> ntrigtmpVect = aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
 	//reads out the trigger of each channel
-	/*	if(type == "goodevents") {
-	  ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers(ichan);
-	  ntrigm+=ntrigmtmp;
-	  ntrigm_bcid1+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_consBcid1(ichan);
-	  ntrigm_bcid5+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_consBcid5(ichan);
-	  ntrigm_bcid10+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_consBcid10(ichan);
-	  ntrigm_planeevents+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_planeEvents(ichan);
-	  ntrigm_negativedata+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_negativeData(ichan);
-	} else if(type == "bcid1") ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_consBcid1(ichan);
-	else if(type == "bcid5") ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_consBcid5(ichan);
-	else if(type == "bcid10") ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_consBcid10(ichan);
-	else if(type == "planevents") ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_planeEvents(ichan);
-	else if(type == "negativedata") ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers_negativeData(ichan);
-	else std::cout<<" ERROR  ###################         Wrong analysis type: " << type << " != goodevents or bcid1 or bcid5 or bcid10 or planevents or negativedata  ##################"<<std::endl;*/
+	std::vector<unsigned> ntrigtmpVect = aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
 
-        if(type == "goodevents") {
-          ntrigmtmp=ntrigtmpVect.at(0);
-          ntrigm_bcid1+=ntrigtmpVect.at(1);
-          ntrigm_bcid5+=ntrigtmpVect.at(2);
-          ntrigm_bcid10+=ntrigtmpVect.at(3);
-          ntrigm_planeevents+=ntrigtmpVect.at(4);
-          ntrigm_negativedata+=ntrigtmpVect.at(5);
-        } else if(type == "bcid1") ntrigmtmp=ntrigtmpVect.at(1);
-        else if(type == "bcid5") ntrigmtmp=ntrigtmpVect.at(2);
-        else if(type == "bcid10") ntrigmtmp=ntrigtmpVect.at(3);
-        else if(type == "planevents") ntrigmtmp=ntrigtmpVect.at(4);
-        else if(type == "negativedata") ntrigmtmp=ntrigtmpVect.at(5);
-        else std::cout<<" ERROR  ###################         Wrong analysis type: " << type << " != goodevents or bcid1 or bcid5 or bcid10 or planevents or negativedata  ####\
-##############"<<std::endl;
-
+	//reads out the trigger of each channel
+	ntrigmtmp=ntrigtmpVect.at(0);
+	npedmtmp=ntrigtmpVect.at(1);
+	ntrigm_bcid1+=ntrigtmpVect.at(2);
+	ntrigm_bcid5+=ntrigtmpVect.at(3);
+	ntrigm_bcid10+=ntrigtmpVect.at(4);
+	ntrigm_planeevents+=ntrigtmpVect.at(5);
+	ntrigm_negativedata+=ntrigtmpVect.at(6);
 
 	//Add for each run the value in that channel
 	//fills the triggers into a vector that is a part of a map of chips and channels
@@ -129,14 +160,28 @@ void MonitorManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup, TString
 
 	//reads out the trigger of each channel
 	ntrigm+=ntrigmtmp;
-	ntrigm_chn+=ntrigmtmp;
+	if(ibuf>0) {
+	  ntrigm_chn+=ntrigmtmp;
+	  npedm_chn+=npedmtmp;
+	}
+	if(ibuf==0) {
+	  ntrigm_chn_buf0=ntrigmtmp;
+	  npedm_chn_buf0=npedmtmp;
+	}
+
       }
 
       //save the total number of triggers per channel
-      _TrigChipChanneVecMap.at((*mapiter).first).push_back(ntrigm_chn);
+      _TrigChipChannelVecMap.at((*mapiter).first).push_back(ntrigm_chn);
+      _PedChipChannelVecMap.at((*mapiter).first).push_back(npedm_chn);
+
+      //save the total number of triggers per channel
+      _TrigChipChannelVecMap_buf0.at((*mapiter).first).push_back(ntrigm_chn_buf0);
+      _PedChipChannelVecMap_buf0.at((*mapiter).first).push_back(npedm_chn_buf0);
+
 
       // save the maps of mean/median buffer triggered per channel and chip
-      std::vector<unsigned> tempvect = (*mapiter).second.at(ichan);
+      std::vector<Double_t> tempvect = (*mapiter).second.at(ichan);
       double median = GetMedian(tempvect);
       _bufferVecMapMedian.at((*mapiter).first).push_back(median);
       
@@ -155,21 +200,29 @@ void MonitorManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup, TString
 
 
 
-
-void MonitorManager::simpleChannelAnalysisGraphics(TString file_sufix,TString type) {
+//
+void MonitorManager::simpleChannelAnalysisGraphics(TString file_sufix) {
 
 
   //Declare and open a Canvas
   std::stringstream canvasNameStr;
-  canvasNameStr << "SimpleMonitoring_"<<type;//the iterator gives the chip ID
-  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,800,600);
+  canvasNameStr << "SimpleChannelMonitoring";//the iterator gives the chip ID
+  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1400,800);
   //Divide the canvas
-  if(type == "goodevents") c_chips->Divide(2,2);
-  else c_chips->Divide(3,1);
+  c_chips->Divide(4,3);
 
   //maps
   TH2F * bufferMedian = new TH2F("buffer_median","buffer_median",64,-0.5,63,16,-0.5,15.5);
+
   TH2F * TriggersPerChannel = new TH2F("triggers_per_channel","triggers_per_channel",64,-0.5,63,16,-0.5,15.5);
+
+  TH2F * HitsPedestalPerChannel = new TH2F("ratio_hitpedestal_per_channel","ratio_hitpedestal_per_channel",64,-0.5,63,16,-0.5,15.5);
+  TH2F * HitsPedestalPerChannel_buf0 = new TH2F("ratio_hitpedestal_per_channel_buf0","ratio_hitpedestal_per_channel_buf0",64,-0.5,63,16,-0.5,15.5);
+
+  TH2F * PedWidthPerChannel = new TH2F("PedWidth_per_channel","PedWidth_per_channel",64,-0.5,63,16,-0.5,15.5);
+  TH2F * SignalWidthPerChannel = new TH2F("SignalWidth_per_channel","SignalWidth_per_channel",64,-0.5,63,16,-0.5,15.5);
+  TH2F * PedMeanPerChannel = new TH2F("PedMean_per_channel","PedMean_per_channel",64,-0.5,63,16,-0.5,15.5);
+  TH2F * SignalMeanPerChannel = new TH2F("SignalMean_per_channel","SignalMean_per_channel",64,-0.5,63,16,-0.5,15.5);
 
   // histogram of total number of triggers
   TH1F * Triggers = new TH1F("Triggers","Triggers",16,-0.5,15.5);
@@ -182,69 +235,132 @@ void MonitorManager::simpleChannelAnalysisGraphics(TString file_sufix,TString ty
 
   //Loop over all enabled chips
   for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
-
+    // Fill chip histograms
     Triggers->Fill(ichip,_TrigChipVec.at(ichip));
-    if(type == "goodevents") {
-      Triggers_bcid1->Fill(ichip,float(_TrigChipVec_bcid1.at(ichip))/float(_TrigChipVec.at(ichip)));
-      Triggers_bcid5->Fill(ichip,float(_TrigChipVec_bcid5.at(ichip))/float(_TrigChipVec.at(ichip)));
-      Triggers_bcid10->Fill(ichip,float(_TrigChipVec_bcid10.at(ichip))/float(_TrigChipVec.at(ichip)));
-      Triggers_planeEvents->Fill(ichip,float(_TrigChipVec_planeEvents.at(ichip))/float(_TrigChipVec.at(ichip)));
-      Triggers_negativeData->Fill(ichip,float(_TrigChipVec_negativeData.at(ichip))/float(_TrigChipVec.at(ichip)));
+    Triggers_bcid1->Fill(ichip,float(_TrigChipVec_bcid1.at(ichip))/float(_TrigChipVec.at(ichip)));
+    Triggers_bcid5->Fill(ichip,float(_TrigChipVec_bcid5.at(ichip))/float(_TrigChipVec.at(ichip)));
+    Triggers_bcid10->Fill(ichip,float(_TrigChipVec_bcid10.at(ichip))/float(_TrigChipVec.at(ichip)));
+    Triggers_planeEvents->Fill(ichip,float(_TrigChipVec_planeEvents.at(ichip))/float(_TrigChipVec.at(ichip)));
+    Triggers_negativeData->Fill(ichip,float(_TrigChipVec_negativeData.at(ichip))/float(_TrigChipVec.at(ichip)));
+    
+
+    //for(unsigned i=0; i<_bufferVecMapMedian.at(ichip).size(); i++ )  bufferMedian->Fill(i,double(ichip),_bufferVecMapMedian.at(ichip).at(i));
+
+    // fill th2  (channel loop)
+    for(int ichn=0; ichn<64; ichn++) {
+      bufferMedian->Fill(ichn,double(ichip),_bufferVecMapMedian.at(ichip).at(ichn));
+
+      float hitnoise;
+      if(_PedChipChannelVecMap.at(ichip).at(ichn)>0 ) hitnoise = float(_TrigChipChannelVecMap.at(ichip).at(ichn))/float(_PedChipChannelVecMap.at(ichip).at(ichn));
+      else if(_TrigChipChannelVecMap.at(ichip).at(ichn)>0 ) hitnoise=1;
+      else hitnoise=0;
+      HitsPedestalPerChannel->Fill(ichn,ichip,hitnoise);
+
+      if(_PedChipChannelVecMap_buf0.at(ichip).at(ichn)>0 ) hitnoise = float(_TrigChipChannelVecMap_buf0.at(ichip).at(ichn))/float(_PedChipChannelVecMap_buf0.at(ichip).at(ichn));
+      else if(_TrigChipChannelVecMap.at(ichip).at(ichn)>0 ) hitnoise=1;
+      else hitnoise=0;
+      HitsPedestalPerChannel_buf0->Fill(ichn,ichip,hitnoise);
+
+      TriggersPerChannel->Fill(ichn,ichip,_TrigChipChannelVecMap.at(ichip).at(ichn));
+
+      PedWidthPerChannel->Fill(ichn,ichip,_PedWidthChipChannelVecMap.at(ichip).at(ichn));
+      SignalWidthPerChannel->Fill(ichn,ichip,_SignalWidthChipChannelVecMap.at(ichip).at(ichn));
+      PedMeanPerChannel->Fill(ichn,ichip,_PedMeanChipChannelVecMap.at(ichip).at(ichn));
+      SignalMeanPerChannel->Fill(ichn,ichip,_SignalMeanChipChannelVecMap.at(ichip).at(ichn));
     }
-    for(unsigned i=0; i<_bufferVecMapMedian.at(ichip).size(); i++ )  bufferMedian->Fill(i,double(ichip),_bufferVecMapMedian.at(ichip).at(i));
-    for(int ichn=0; ichn<64; ichn++) TriggersPerChannel->Fill(ichn,ichip,_TrigChipChanneVecMap.at(ichip).at(ichn));
 
   }
 
 
   c_chips->cd(1);
-  bufferMedian->SetTitle("median of buffer with triggered entries");
+  bufferMedian->SetTitle("median of buffer with triggered&filtered entries");
   bufferMedian->GetXaxis()->SetTitle("channel");
   bufferMedian->GetYaxis()->SetTitle("chip");
+  bufferMedian->GetZaxis()->SetRangeUser(0,16);
   bufferMedian->Draw("colz");
+
   c_chips->cd(2);
-  Triggers->SetTitle("NHits total");
+  Triggers->SetTitle("NHits total (filtered)");
   Triggers->GetXaxis()->SetTitle("Chip");
   Triggers->GetYaxis()->SetTitle("Nhits");
   Triggers->Draw("h");
+
   c_chips->cd(3);
-  TriggersPerChannel->SetTitle("Ntriggers per channel");
+  Triggers_bcid1->SetTitle("NHits / Nhits (filtered)");
+  Triggers_bcid1->GetXaxis()->SetTitle("Chip");
+  Triggers_bcid1->GetYaxis()->SetTitle("Nhits");
+  Triggers_bcid1->Draw("h");
+  
+  Triggers_bcid5->SetLineColor(2);
+  Triggers_bcid5->SetLineWidth(2);
+  Triggers_bcid5->Draw("hsame");
+  
+  Triggers_bcid10->SetLineColor(3);
+  Triggers_bcid10->SetLineWidth(3);
+  Triggers_bcid10->Draw("hsame");
+  
+  Triggers_planeEvents->SetLineStyle(2);
+  Triggers_planeEvents->SetLineWidth(4);
+  Triggers_planeEvents->SetLineColor(1);
+  Triggers_planeEvents->Draw("hsame");
+  
+  Triggers_negativeData->SetLineStyle(2);
+  Triggers_negativeData->SetLineWidth(4);
+  Triggers_negativeData->SetLineColor(2);
+  Triggers_negativeData->Draw("hsame");
+  
+  TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
+  leg->AddEntry(Triggers_bcid1,"bcid[buf]-bcid[buf-1]==1","l");
+  leg->AddEntry(Triggers_bcid5,"bcid[buf]-bcid[buf-1]<=5 (>1)","l");
+  leg->AddEntry(Triggers_bcid10,"bcid[buf]-bcid[buf-1]<=10 (>5)","l");
+  leg->AddEntry(Triggers_planeEvents,TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"l");
+  leg->AddEntry(Triggers_negativeData,"Negative Data","l");
+  leg->Draw();
+  
+  c_chips->cd(4);
+  TriggersPerChannel->SetTitle("Triggers (filtered) per channel");
   TriggersPerChannel->GetXaxis()->SetTitle("Channel");
   TriggersPerChannel->GetYaxis()->SetTitle("Chip");
   TriggersPerChannel->Draw("colz");
-  if(type == "goodevents") {
-    c_chips->cd(4);
-    Triggers_bcid1->SetTitle("NHits total");
-    Triggers_bcid1->GetXaxis()->SetTitle("Chip");
-    Triggers_bcid1->GetYaxis()->SetTitle("Nhits");
-    Triggers_bcid1->Draw("h");
 
-    Triggers_bcid5->SetLineColor(2);
-    Triggers_bcid5->SetLineWidth(2);
-    Triggers_bcid5->Draw("hsame");
+  c_chips->cd(5);
+  HitsPedestalPerChannel_buf0->SetTitle("NHits/Npedestals (filtered), buffer 0");
+  HitsPedestalPerChannel_buf0->GetXaxis()->SetTitle("Chip");
+  HitsPedestalPerChannel_buf0->GetYaxis()->SetTitle("Channel");
+  HitsPedestalPerChannel_buf0->Draw("colz");
 
-    Triggers_bcid10->SetLineColor(3);
-    Triggers_bcid10->SetLineWidth(3);
-    Triggers_bcid10->Draw("hsame");
+  c_chips->cd(6);
+  HitsPedestalPerChannel->SetTitle("NHits/Npedestals (filtered), buffer>0");
+  HitsPedestalPerChannel->GetXaxis()->SetTitle("Chip");
+  HitsPedestalPerChannel->GetYaxis()->SetTitle("Channel");
+  HitsPedestalPerChannel->Draw("colz");
 
-    Triggers_planeEvents->SetLineStyle(2);
-    Triggers_planeEvents->SetLineWidth(4);
-    Triggers_planeEvents->SetLineColor(1);
-    Triggers_planeEvents->Draw("hsame");
 
-    Triggers_negativeData->SetLineStyle(2);
-    Triggers_negativeData->SetLineWidth(4);
-    Triggers_negativeData->SetLineColor(2);
-    Triggers_negativeData->Draw("hsame");
+  c_chips->cd(9);
+  PedWidthPerChannel->SetTitle("PedestalWidth (filtered) per channel, buffer 0");
+  PedWidthPerChannel->GetXaxis()->SetTitle("Channel");
+  PedWidthPerChannel->GetYaxis()->SetTitle("Chip");
+  PedWidthPerChannel->GetZaxis()->SetRangeUser(0,30);
+  PedWidthPerChannel->Draw("colz");
+  c_chips->cd(10);
+  PedMeanPerChannel->SetTitle("PedestalMean (filtered) per channel, buffer 0");
+  PedMeanPerChannel->GetXaxis()->SetTitle("Channel");
+  PedMeanPerChannel->GetYaxis()->SetTitle("Chip");
+  PedMeanPerChannel->GetZaxis()->SetRangeUser(0,500);
+  PedMeanPerChannel->Draw("colz");
 
-    TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
-    leg->AddEntry(Triggers_bcid1,"bcid[buf]-bcid[buf-1]==1","l");
-    leg->AddEntry(Triggers_bcid5,"bcid[buf]-bcid[buf-1]<=5 (>1)","l");
-    leg->AddEntry(Triggers_bcid10,"bcid[buf]-bcid[buf-1]<=10 (>5)","l");
-    leg->AddEntry(Triggers_planeEvents,TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"l");
-    leg->AddEntry(Triggers_negativeData,"Negative Data","l");
-    leg->Draw();
-  }
+  c_chips->cd(11);
+  SignalWidthPerChannel->SetTitle("SignallWidth (filtered) per channel, buffer 0");
+  SignalWidthPerChannel->GetXaxis()->SetTitle("Channel");
+  SignalWidthPerChannel->GetYaxis()->SetTitle("Chip");
+  SignalWidthPerChannel->GetZaxis()->SetRangeUser(0,30);
+  SignalWidthPerChannel->Draw("colz");
+  c_chips->cd(12);
+  SignalMeanPerChannel->SetTitle("SignallMean (filtered) per channel, buffer 0");
+  SignalMeanPerChannel->GetXaxis()->SetTitle("Channel");
+  SignalMeanPerChannel->GetYaxis()->SetTitle("Chip");
+  SignalMeanPerChannel->GetZaxis()->SetRangeUser(0,500);
+  SignalMeanPerChannel->Draw("colz");
 
 
 
@@ -254,10 +370,9 @@ void MonitorManager::simpleChannelAnalysisGraphics(TString file_sufix,TString ty
   TString planevent = globalvariables::getPlaneEventsThresholdTStringAnalysis();
 
   TString filerecreate = "RECREATE";
-  if(type != "goodevents") filerecreate = "UPDATE";
   TFile *f_scurve = TFile::Open(file_sufix+gain+planevent+"_monitor.root",filerecreate);
-  TDirectory *dir = f_scurve->GetDirectory(type);
-  if (!dir) dir = f_scurve->mkdir(type);
+  TDirectory *dir = f_scurve->GetDirectory("histograms");
+  if (!dir) dir = f_scurve->mkdir("histograms");
 
   f_scurve->cd();
   c_chips->Write();
@@ -265,13 +380,12 @@ void MonitorManager::simpleChannelAnalysisGraphics(TString file_sufix,TString ty
   bufferMedian->Write();
   Triggers->Write();
   TriggersPerChannel->Write();
-  if(type == "goodevents") {
-    Triggers_bcid1->Write();
-    Triggers_bcid5->Write();
-    Triggers_bcid10->Write();
-    Triggers_planeEvents->Write();
-    Triggers_negativeData->Write();
-  }
+  Triggers_bcid1->Write();
+  Triggers_bcid5->Write();
+  Triggers_bcid10->Write();
+  Triggers_planeEvents->Write();
+  Triggers_negativeData->Write();
+
 
   f_scurve->Close();
 
@@ -284,7 +398,7 @@ double* MonitorManager::vectortoarray(std::vector<double> thevec, double* theArr
   return &theArray[0];
 }
 
-Double_t MonitorManager::GetMean(std::vector<unsigned> vec){
+Double_t MonitorManager::GetMean(std::vector<Double_t> vec){
   Double_t sum = 0;
   if(vec.size()>0) {
     for (unsigned k = 0; k<vec.size(); k++)	sum+=vec.at(k);
@@ -293,7 +407,7 @@ Double_t MonitorManager::GetMean(std::vector<unsigned> vec){
   } else return 0;
 }
 
-Double_t MonitorManager::GetMedian(std::vector<unsigned> vec){
+Double_t MonitorManager::GetMedian(std::vector<Double_t> vec){
 
   Double_t median=0;
   if(vec.size()>0) {
@@ -306,7 +420,7 @@ Double_t MonitorManager::GetMedian(std::vector<unsigned> vec){
 
 }
 
-Double_t MonitorManager::GetMode(std::vector<unsigned> vec){
+Double_t MonitorManager::GetMode(std::vector<Double_t> vec){
 
   if(vec.size()>0 ) {
     unsigned number = vec.at(0);

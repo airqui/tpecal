@@ -38,17 +38,26 @@ private:
     TFile* f_file;
 
     //A method for a simple channel by channel
-    void simpleChannelAnalysis(ExperimentalSetup*,TString);
+    void simpleChannelAnalysis(ExperimentalSetup*);
     //The graphical representation
-    void simpleChannelAnalysisGraphics(TString, TString);
+    void simpleChannelAnalysisGraphics(TString);
 
     //A map that holds the number of triggers of all channels for all buffers for all enabled chips
-    typedef std::map<unsigned, std::vector<std::vector<unsigned> > > channelInfoComplUnsigned_t;
+    typedef std::map<unsigned, std::vector<std::vector<Double_t> > > channelInfoComplUnsigned_t;
     channelInfoComplUnsigned_t _ntrigVecMapHigh; 
 
     // maps with the mean (median) value of the buffers used to save triggered data
     std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian; // median of triggerd buffers per chip and channel
-    std::map<unsigned,std::vector<unsigned> > _TrigChipChanneVecMap; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap; //npedestals per chip and channel
+   std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_buf0; //npedestals per chip and channel
+
+    std::map<unsigned,std::vector<Double_t> > _PedWidthChipChannelVecMap; //pedestal width per chip and channel (one buffer)
+    std::map<unsigned,std::vector<Double_t> > _SignalWidthChipChannelVecMap; //signal width per chip and channel (one buffer)
+    std::map<unsigned,std::vector<Double_t> > _PedMeanChipChannelVecMap; //pedestal mean per chip and channel (one buffer)
+    std::map<unsigned,std::vector<Double_t> > _SignalMeanChipChannelVecMap; //signal mean per chip and channel (one buffer)
+
 
    // vector with the total number of triggers for each chip
     std::vector<unsigned>  _TrigChipVec;
@@ -59,9 +68,9 @@ private:
     std::vector<unsigned>  _TrigChipVec_negativeData;
 
 
-    Double_t GetMean(std::vector<unsigned>);
-    Double_t GetMedian(std::vector<unsigned>);
-    Double_t GetMode(std::vector<unsigned>);
+    Double_t GetMean(std::vector<Double_t>);
+    Double_t GetMedian(std::vector<Double_t>);
+    Double_t GetMode(std::vector<Double_t>);
 
 
      double* vectortoarray(std::vector<double> thevec, double* theArray );
