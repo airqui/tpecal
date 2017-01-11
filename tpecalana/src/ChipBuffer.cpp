@@ -92,6 +92,14 @@ double ChipBuffer::getChannelRMS(unsigned ichan, std::string modeStr, int trig) 
   return  _channelVec.at(ichan).getRMS(modeStr, trig);
 }
 
+std::vector<double> ChipBuffer::getChannelMeanVec(unsigned ichan, std::string modeStr) {
+  return  _channelVec.at(ichan).getMeanVec(modeStr);
+}
+
+std::vector<double> ChipBuffer::getChannelRMSVec(unsigned ichan, std::string modeStr) {
+  return  _channelVec.at(ichan).getRMSVec(modeStr);
+}
+
 unsigned ChipBuffer::getChannelEntries(unsigned ichan) {
   //std::cout << "example val: " <<  _channelVec.at(ichan).getMean() << std::endl;
   return  _channelVec.at(ichan).getNEntries();

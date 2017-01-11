@@ -30,6 +30,9 @@ public:
     //A method to access relevant values of indivudual channels I.E. mean and rms, for low/high and hit bit=0,1 or both (option 0,1,-1)
     double getChannelMean(unsigned, std::string, Int_t);
     double getChannelRMS(unsigned, std::string, int);
+    std::vector<double> getChannelMeanVec(unsigned, std::string);
+    std::vector<double> getChannelRMSVec(unsigned, std::string);
+
     //A method to return the number of entries for the channel (only for high has to be extended for low)
     unsigned getChannelEntries(unsigned);
     //A method to return the number of triggers for the channel

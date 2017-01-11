@@ -22,11 +22,13 @@ public:
     void init();
     //A method to acquire data 
     void acquireData(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t);
+    void acquireDataGain(Int_t, Int_t, Int_t, Int_t);
     //Return the number of entries
     unsigned getNEntries();
     //Return the number of triggers
-    std::vector<unsigned> getNTriggersVec(); //stores the following 6 and the undefined events
+    std::vector<unsigned> getNTriggersVec(); //stores the triggers, pedestals, planeevents, bcid1events, bcid5events , bcid10events, negativedata events and the undefined events
     unsigned getNTriggers();
+    unsigned getNPedestals();
     unsigned getNTriggers_planeEvents();
     unsigned getNTriggers_consBcid1();
     unsigned getNTriggers_consBcid5();
@@ -38,6 +40,9 @@ public:
     double getMean(std::string, int);
     //Return the rms of that channel
     double getRMS(std::string, int);
+    std::vector<double> getMeanVec(std::string);
+    std::vector<double> getRMSVec(std::string);
+
 
 
 private:
@@ -64,6 +69,7 @@ private:
     unsigned _numEntr;
     //A data member that holds the number of triggers for that channel
     unsigned _nTriggers;
+    unsigned _nPedestals;
     unsigned _nTriggers_planeEvents;
     unsigned _nTriggers_consBcid1;
     unsigned _nTriggers_consBcid5;
@@ -73,7 +79,7 @@ private:
     //A data memeber that holds the number of undefined entries (<0)
     unsigned _nUndefined;
     //Method to sum up the measured values and their squares
-    void calculateSums(int, int, int, int);
+    void calculateSums(int, int);
 
 };
 
