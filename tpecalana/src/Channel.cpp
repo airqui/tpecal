@@ -56,8 +56,6 @@ void Channel::init(){/*no op*/}
 void Channel::acquireData(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t valLow, Int_t gainHitHigh, Int_t gainHitLow) {
 
   Int_t gainAnalysis = globalvariables::getGainAnalysis();
-  Int_t thresh = globalvariables::getPlaneEventsThreshold();
-
   if(gainAnalysis == 1) acquireDataGain(nhits, badbcid, valHigh, gainHitHigh);
   else if(gainAnalysis == 0) acquireDataGain(nhits, badbcid, valLow, gainHitLow);
   else std::cout<<"ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;

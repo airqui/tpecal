@@ -47,7 +47,7 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
     std::string mystring = cp.string();
     if(mystring.substr(mystring.length() - 4) == "root" ) {
       string scanvalue;
-      if(globalvariables::getAnalysisType() == "scurves") {
+      if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
 	scanvalue =mystring.substr(mystring.find("trig")+4, 3);
 	globalvariables::pushScanValue(atof(scanvalue.c_str()));
 	std::cout<<atof(scanvalue.c_str())<<std::endl;
@@ -74,7 +74,7 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
 
     TString scanstring;
     TString scanstring2;
-    if(globalvariables::getAnalysisType() == "scurves") {
+    if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
       scanstring="scurve_trig";
       scanstring2="trigger";
     }
@@ -92,8 +92,8 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
     output_path =  TString(datadirStr_output) + "/"+ scanstring2 + TString::Format("%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) ;
 
  	
-    if(globalvariables::getAnalysisType() == "scurves" ) 
-      anaManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
+    // if(globalvariables::getAnalysisType() == "scurves" ) 
+    anaManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
 
     ////reset experimental setup and run manager
     ExperimentalSetup::getInstance()->reset();
@@ -101,10 +101,15 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
 	
   }
 
-  if(globalvariables::getAnalysisType() == "scurves" )  {
-    TString scurvefile= TString(datadirStr_output)+TString::Format("/Scurves_buff%i_",buffer);
-    anaManager.displayResults( scurvefile,buffer );
-  }
+  TString scanfile;
+  if(globalvariables::getAnalysisType() == "scurves" )  
+     scanfile= TString(datadirStr_output)+TString::Format("/Scurves_buff%i_",buffer);
+
+  if(globalvariables::getAnalysisType() == "PlaneEventsScan" )  
+     scanfile= TString(datadirStr_output)+"/PlaneEventsScan_";
+
+  anaManager.displayResults( scanfile,buffer );
+
 
 }
 
@@ -251,7 +256,7 @@ int main(int argc, char **argv)
   if(argc > 6) buffer = atoi(argv[6]);
 
 
-  if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan") {
+  if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan" || globalvariables::getAnalysisType() == "PlaneEventsScan" ) {
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setPlaneEventsThreshold(step+1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);

@@ -18,9 +18,8 @@
 using namespace globalvariables;
 
 AnaManager::AnaManager(){
-  _sigVecMapHigh.clear();
-  _sigVecMapLow.clear();
   _ntrigVecMapHigh.clear();
+  _ntrigChipVecMapHigh.clear();
   _nRuns=0;
   f_scurve=0;
 }
@@ -28,44 +27,97 @@ AnaManager::AnaManager(){
 AnaManager::~AnaManager(){/* no op*/}
 
 void AnaManager::init(){
-    
-
+   
   _nRuns=0;
   //to be removed
-  for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
-    //sigVecMapHigh.insert(std::make_pair<UInt_t, std::vector<Double_t> >(enabledChips[ichip],  std::vector<Double_t> () ));
-    //sigVecMapLow.insert(std::make_pair<UInt_t, std::vector<Double_t> >(enabledChips[ichip],  std::vector<Double_t> () ));
-    _sigVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip),  std::vector<Double_t> () ));
-    //scurves maps (triggers for threshold run and maximum of triggers for all threshold runs, per channel and chip)
+  for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size(); ichip++) {
     _ntrigVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<unsigned> >  () ));
     _maxHithelpVec.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<unsigned> () ));
+    _ntrigChipVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> > () ));
   }
   
-  //Reset the graph with the global run information
-  _tGraphVec.clear();
-
-  TString kind_analisys = globalvariables::getAnalysisType();
   std::cout<<"Init the Analysis Manager for general analysis, with getAnalysisType()="<<globalvariables::getAnalysisType()<<std::endl;
 
 }
 
 void AnaManager::acquireRunInformation(ExperimentalSetup* aExpSetup, int buffer){
   std::cout << "************** AcquireRunInformation new file: " << _nRuns << "***********************" << std::endl;
-  //simpleChannelAnalysis(aExpSetup);
-  sCurveAnalysis(aExpSetup, buffer);
-  //deeperDataAnalysis(aExpSetup);
+  if(globalvariables::getAnalysisType()=="scurves") sCurveAnalysis(aExpSetup, buffer);
+  if(globalvariables::getAnalysisType()=="PlaneEventsScan") planeEventsAnalysis(aExpSetup);
 
   _nRuns++;
+
 }
 
 void AnaManager::displayResults(TString file_prefix, int buffer){
-
   //Call the graphics part related to the simple graphics analysis (should be realised automatically if graphics is requires
-  // simpleChannelAnalysisGraphics();
-  sCurveAnalysisGraphics(file_prefix,buffer);
-  //deeperDataAnalysisGraphics();
+  if(globalvariables::getAnalysisType()=="scurves") sCurveAnalysisGraphics(file_prefix,buffer);
+  if(globalvariables::getAnalysisType()=="PlaneEventsScan") planeEventsAnalysisGraphics(file_prefix);
 
 }
+
+
+void AnaManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
+    
+  //Loop over all enabled chips
+  for (ChipInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh.begin();mapiter!=_ntrigChipVecMapHigh.end();mapiter++) {
+    std::cout << "*************New chip: " << (*mapiter).first << "********************" << std::endl;
+
+    unsigned ntrigm(0);
+    unsigned ntrigm_bcid1(0);
+    unsigned ntrigm_bcid5(0);
+    unsigned ntrigm_bcid10(0);
+    unsigned ntrigm_planeevents(0);
+    unsigned ntrigm_negativedata(0);
+    unsigned ntrigm_total(0);
+
+    unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
+
+    for (unsigned ichan=0; ichan < numChans; ichan++) {
+      //Build up the vector for the individual channels (needs to be done only once)
+      //reads out the trigger of each channel
+      unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
+      std::vector<unsigned> trigmtmpvec;
+            
+      for(unsigned ibuf=0; ibuf<bufdepth; ibuf++){
+	trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
+	ntrigm+=trigmtmpvec.at(0);
+	if(ibuf>0) {
+	  ntrigm_bcid1+=trigmtmpvec.at(2);
+	  ntrigm_bcid5+=trigmtmpvec.at(3);
+	  ntrigm_bcid10+=trigmtmpvec.at(4);
+	  ntrigm_planeevents+=trigmtmpvec.at(5);
+	  ntrigm_negativedata+=trigmtmpvec.at(6);
+	  ntrigm_total+=(trigmtmpvec.at(2)+trigmtmpvec.at(4)+trigmtmpvec.at(5)+trigmtmpvec.at(6));
+	}
+      }   
+    }
+
+    //Build up the vector for the different ratio counters
+    for(unsigned isize=0; isize<6; isize++ ) if((*mapiter).second.size() < (isize + 1 )) (*mapiter).second.push_back (std::vector<Double_t> () );
+
+    //Add for each run the value of each ratio
+    //fills the triggers into a vector that is a part of a map of chips and channels
+    if(ntrigm>0){ 
+      (*mapiter).second.at(0).push_back(double(ntrigm_bcid1)/double(ntrigm));
+      (*mapiter).second.at(1).push_back(double(ntrigm_bcid5)/double(ntrigm));
+      (*mapiter).second.at(2).push_back(double(ntrigm_bcid10)/double(ntrigm));
+      (*mapiter).second.at(3).push_back(double(ntrigm_planeevents)/double(ntrigm));
+      (*mapiter).second.at(4).push_back(double(ntrigm_negativedata)/double(ntrigm));
+      (*mapiter).second.at(5).push_back(double(ntrigm_total)/double(ntrigm));
+    } else {
+      (*mapiter).second.at(0).push_back(0);
+      (*mapiter).second.at(1).push_back(0);
+      (*mapiter).second.at(2).push_back(0);
+      (*mapiter).second.at(3).push_back(0);
+      (*mapiter).second.at(4).push_back(0);
+      (*mapiter).second.at(5).push_back(0);
+    }
+
+    if(ntrigm>0) std::cout << "AnaManager::planeEventsAnalysis - chip " << (*mapiter).first << " TriggersBad/TriggersOkay: " << double(ntrigm_total)/double(ntrigm) << std::endl;  
+  }
+}
+
 
 void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
     
@@ -74,17 +126,23 @@ void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
     std::cout << "*************New chip: " << (*mapiter).first << "********************" << std::endl;
     std::map<unsigned, std::vector<unsigned> >::iterator helpMapIter = _maxHithelpVec.find((*mapiter).first);
     unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
+
     for (unsigned ichan=0; ichan < numChans; ichan++) {
       //Build up the vector for the individual channels (needs to be done only once)
       if((*mapiter).second.size() < ichan+1) (*mapiter).second.push_back (std::vector<unsigned> () );
       //reads out the trigger of each channel
       unsigned ntrigmtmp(0);
-      //unsigned nentrtmp(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelEntries(ichan));
-      //  for(int ibuf=0; ibuf<1; ibuf++) 
-      unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
-      if(buffer < 15) {
-	ntrigmtmp=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(buffer).getChannelTriggers(ichan);
-      }   else for(unsigned ibuf=0; ibuf<bufdepth; ibuf++) ntrigmtmp+=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggers(ichan);
+
+      int bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
+      std::vector<unsigned> trigmtmpvec;
+      for(int ibuf=0; ibuf<bufdepth; ibuf++){
+	if(ibuf==buffer || buffer > 14 ) {
+	  trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
+	  ntrigmtmp+=trigmtmpvec.at(0);
+	  trigmtmpvec.clear();
+	}
+      }
+      
 
       //Add for each run the value in that channel
       //fills the triggers into a vector that is a part of a map of chips and channels
@@ -102,126 +160,6 @@ void AnaManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
       }          
     }      
   }
-
-
-}
-
-void AnaManager::simpleChannelAnalysis(ExperimentalSetup* aExpSetup) {
-
-  // ADRIAN --> commented while changing the getChannelMean function for the pedestal studies
-
-  // //Information for high gain
-  // for (std::map<int,vector<double> >::iterator mapiter = _sigVecMapHigh.begin();mapiter!=_sigVecMapHigh.end();mapiter++)
-  // {
-  //     std::cout << "Enabled chips " << (*mapiter).first << std::endl;
-  //     double ampval = aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getChannelMean(1,"High");
-  //     double pedvaltmp(0);
-  //     for(unsigned ichan=0; ichan < 64;ichan++) {
-  //         if(ichan!=1) pedvaltmp += aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getChannelMean(0, "High");
-  //     }
-  //     double pedval(pedvaltmp/63.0);
-  //     std::cout << "pedval: " << pedval << std::endl;
-  //     (*mapiter).second.push_back(ampval-pedval);
-  // }
-  // //Information for low gain
-  // for (std::map<int,vector<double> >::iterator mapiter = _sigVecMapLow.begin();mapiter!=_sigVecMapLow.end();mapiter++)
-  // {
-  //     std::cout << "Enabled chips " << (*mapiter).first << std::endl;
-  //     double ampval = aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getChannelMean(1,"Low");
-  //     double pedvaltmp(0);
-  //     for(unsigned ichan=0; ichan < 64;ichan++) {
-  //         if(ichan!=1) pedvaltmp += aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getChannelMean(0, "Low");
-  //     }
-  //     double pedval(pedvaltmp/63.0);
-  //     std::cout << "pedval: " << pedval << std::endl;
-  //     (*mapiter).second.push_back(ampval-pedval);
-  // }
-
-}
-
-
-void AnaManager::deeperDataAnalysis(ExperimentalSetup* aExpSetup){
-    
-  std::cout << "Entering deeper analysis" << std::endl;
-  //Programme to be worked down
-  //accumulated number of hits as function of aquisition number per dif
-  //for each run in the analysis
-  _tGraphVec.push_back( std::vector<TGraph*> ()  );
-  for (unsigned idif = 0; idif < aExpSetup->getNumberOfDifs(); idif++) {
-    //Obviously we need a local copy of the vector for a safe access, let's think about it later
-    std::vector<std::pair<unsigned, unsigned> > helpVec = aExpSetup->getDif(idif).getDifStatVec();
-    unsigned nentr = helpVec.size();
-    //unsigned nentr = aExpSetup->getDif(idif).getDifStatVec().size();
-    double vecarray[nentr];
-    double valarray[nentr];
-    unsigned ientr(0);
-    //Loop over the vector holding the run statistics for this dif and fill the arrays
-    //for (std::vector<std::pair<unsigned, unsigned> >::iterator statveciter = aExpSetup->getDif(idif).getDifStatVec().begin(); statveciter != aExpSetup->getDif(idif).getDifStatVec().end(); statveciter++) {
-    for (std::vector<std::pair<unsigned, unsigned> >::iterator statveciter = helpVec.begin(); statveciter != helpVec.end(); statveciter++) {
-      //std::cout << "nentr: " << nentr << ", ientr: " << ientr << std::endl;
-      //std::cout << "first: " << (*statveciter).first << ", second: " << (*statveciter).second << std::endl;
-      vecarray[ientr] = static_cast<double>((*statveciter).first);
-      valarray[ientr] = static_cast<double>((*statveciter).second);
-      ientr++;
-            
-    }
-    _tGraphVec.back().push_back(new TGraph(nentr, vecarray, valarray));
-  }
-    
-  //xy hit map per DIF and ASU coloumn 0
-  //xy hit map per DIF and ASU integrated over all coloumns
-    
-  //signals and pedestals per chip
-    
-  //Number of coloumns per ASU per chip
-    
-  //What else????
-    
-  //number of plane events per chip
-}
-
-
-
-void AnaManager::simpleChannelAnalysisGraphics() {
-    
-  //    double att[8] = {5, 10, 20, 50, 100, 200, 500, 1000};
-  double att[23] = {170, 172, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192, 194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214};//
-  //Open a canvas for high gain
-  TCanvas* c_cob1high = new TCanvas("c_cob1high","c_cob1high",1000,800);
-  c_cob1high->cd();
-  //fill some graphs with the signals
-  std::vector<TGraph*> graphVecHigh;
-  unsigned icount(0);
-  for (std::map<int,vector<double> >::iterator mapiter = _sigVecMapHigh.begin();mapiter!=_sigVecMapHigh.end();mapiter++) {
-    double vecarrayhelp[ (*mapiter).second.size()];
-    double* vecarray;
-    vecarray = vectortoarray((*mapiter).second, &vecarrayhelp[0]);
-    graphVecHigh.push_back(new TGraph(_nRuns, att, vecarray));
-    graphVecHigh.back()->SetMarkerStyle(20+icount);
-    graphVecHigh.back()->SetMarkerSize(1.2);
-    if(icount==0)  graphVecHigh.back()->Draw("AP");
-    else graphVecHigh.back()->Draw("PS");
-    icount++;
-  }
-    
-    
-  //Open a canvas for low gain
-  TCanvas* c_cob1low = new TCanvas("c_cob1low","c_cob1low",1000,800);
-  c_cob1low->cd();
-  //fill some graphs with the signals
-  std::vector<TGraph*> graphVecLow;
-  icount=0;
-  for (std::map<int,vector<double> >::iterator mapiter = _sigVecMapLow.begin();mapiter!=_sigVecMapLow.end();mapiter++) {
-    double vecarrayhelp[ (*mapiter).second.size()];
-    double* vecarray;
-    vecarray = vectortoarray((*mapiter).second, &vecarrayhelp[0]);
-    graphVecLow.push_back(new TGraph(_nRuns, att, vecarray));
-    graphVecLow.back()->SetMarkerStyle(20+icount);
-    graphVecLow.back()->SetMarkerSize(1.2);
-    if(icount==0)  graphVecLow.back()->Draw("AP");
-    else graphVecLow.back()->Draw("PS");
-    icount++;
-  }
 }
 
 
@@ -232,6 +170,7 @@ void AnaManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
     sCurveAnalysisGraphicsPainter(mapiter,file_sufix, buffer);
   }
 }
+
 
 void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator aMapIter, TString file_sufix, int buffer) {
     
@@ -248,7 +187,6 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
   canvasNameStr << "Chip" << (*aMapIter).first << "_buffer" << buffer;//the iterator gives the chip ID
   TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1000,800);
   //Divide the canvas
-  c_chips->Divide(2,2);
   //Helper variable to allow to switch to another pad in the canvas
   unsigned ipad(0);
   //A vector of graphs
@@ -282,8 +220,6 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
   //Loop over all channels
   //Helper variable to count channels
   unsigned ichan(0);
-  std::vector<unsigned> chanlistVec;
-  chanlistVec.clear();
     
   for (std::vector<std::vector<unsigned> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
     std::cout << "AnaManager::sCurveAnalysisGraphicsPainter: Nchan: " << ichan << std::endl;
@@ -302,10 +238,7 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
     double evalarray_x[ (*chanVeciter).size()];
     //A local variable that holds the reference values
     double ref(static_cast<double>((*helpMapIter).second.at(ichan)));
-    if(ref>2)  { 
-      chanlistVec.push_back(ichan);
-      // std::cout << "Channel: " << ichan << " hits: " << ref << std::endl;
-    }
+
     //Loop over the entries with trigger in the given runs
     //Helper variable to count runs
     unsigned irun(0);
@@ -315,7 +248,7 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
       double runval(static_cast<double>((*runIter)));
       //Fill the array with the relative counts for a given channel in a given run
       if(ref > 2) {
-	valarray[irun] = runval;///ref;
+	valarray[irun] = runval/ref;
 	evalarray[irun] = sqrt(runval)/ref;
       }   else {
 	valarray[irun] = 0;
@@ -419,37 +352,105 @@ void AnaManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::itera
   f_scurve->Close();     
 }
 
-void AnaManager::deeperDataAnalysisGraphics() {
-  displayRunStat();
-}
 
-void AnaManager::displayRunStat() {
 
-  //Display the accumulated events for a given run
+void AnaManager::planeEventsAnalysisGraphics(TString file_sufix) {
     
-  for (TGraphVec_t::iterator tgraphveciter = _tGraphVec.begin(); tgraphveciter != _tGraphVec.end(); tgraphveciter++) {
-    //Loop over the individual difs
-    unsigned idif(0);
-    std::cout << "Size of grpah vec: " << (*tgraphveciter).size() << std::endl;
-    for (std::vector<TGraph*>::iterator graphiter = (*tgraphveciter).begin(); graphiter != (*tgraphveciter).end(); graphiter++) {
-      std::stringstream canvasNameStr;
-      canvasNameStr << "DIF" << idif;
-      TCanvas* c_dif = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1000,800);
-      c_dif->cd();
-      (*graphiter)->SetMarkerStyle(20+idif);
-      (*graphiter)->SetMarkerSize(1.2);
-      (*graphiter)->Draw("AP");
-      idif++;
-    }        
+  TString gain = globalvariables::getGainTStringAnalysis();
+  TString filerecreate = "RECREATE";
+  TFile *f_planevent = TFile::Open(file_sufix+gain+".root", filerecreate);
+
+  //Loop over all enabled chips
+  for (ChipInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh.begin();mapiter!=_ntrigChipVecMapHigh.end();mapiter++) {
+    planeEventsAnalysisGraphicsPainter(mapiter,f_planevent);
   }
-    
-  /*
-    graphRunStat.push_back(new TGraph(nentr, vecarray, valarray));
-    graphRunStat.back()->SetMarkerStyle(20+idif);
-    graphRunStat.back()->SetMarkerSize(1.2);
-    graphRunStat.back()->Draw("P");
-  */
+
+  f_planevent->Close();   
+
 }
+
+void AnaManager::planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::iterator aMapIter, TFile* f_planevent) {
+    
+  //Declare and open a Canvas
+  std::stringstream canvasNameStr;
+  canvasNameStr << "Chip" << (*aMapIter).first ;//the iterator gives the chip ID
+  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1000,800);
+  //Divide the canvas
+  //A vector of graphs
+  std::vector<TGraphErrors*> graphPlaneEvents;//vector of graphs... extract the proper graph
+    
+  std::cout << "AnaManager::planeEventsAnalysisGraphicsPainter: Chip: " << (*aMapIter).first << std::endl;
+  //Loop over all channels
+  unsigned ierror(0);
+    
+  for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
+     if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
+      std::cout << "AnaManager::planEventsAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for bad event selectionselection" << ierror << std::endl;
+      std::cout << "Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
+      std::cout << "Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
+    }
+    //If the maximum is >2 we assume that this channel was enabled and we process it further
+    //Define an array that holds the entries for each run
+    double valarray[ (*chanVeciter).size()];
+    double evalarray[ (*chanVeciter).size()];
+    double evalarray_x[ (*chanVeciter).size()];
+
+    //Loop over the entries with trigger in the given runs
+    //Helper variable to count runs
+    unsigned irun(0);
+    for (std::vector<Double_t>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
+      //Fetch the value for that run
+      double runval(static_cast<double>((*runIter)));
+      //Fill the array with the relative counts for a given channel in a given run
+      valarray[irun] = runval;
+      evalarray[irun] = 0;
+      evalarray_x[irun] = 0;///ref;
+      irun++;
+    }
+
+    //Now define and fill a graph for each channel
+    double vecarrayhelp[(*chanVeciter).size()];
+    double* vecarray;
+    vecarray = vectortoarray(globalvariables::getScanVectorDoubles(), &vecarrayhelp[0]);
+    graphPlaneEvents.push_back(new TGraphErrors(globalvariables::getScanVectorDoubles().size(), vecarray, valarray,  evalarray_x, evalarray));
+    graphPlaneEvents.back()->SetMarkerStyle(20+ierror);
+    //We have only 15 different marker symbols but in principle 16 channels to draw
+    graphPlaneEvents.back()->SetMarkerColor(ierror+1);
+    graphPlaneEvents.back()->SetLineColor(ierror+1);
+    graphPlaneEvents.back()->SetMarkerSize(1.2);
+    c_chips->cd(0);
+    graphPlaneEvents.back()->SetName(TString::Format("Chip%i_SetError%i",int((*aMapIter).first),int(ierror)));
+    graphPlaneEvents.back()->SetTitle(TString::Format("Chip%i",int((*aMapIter).first)));
+    graphPlaneEvents.back()->Write();
+    graphPlaneEvents.back()->GetXaxis()->SetTitle("Threshold");
+    graphPlaneEvents.back()->GetYaxis()->SetTitle("N_Badhit/N_Ok");
+    if(ierror==0) graphPlaneEvents.back()->Draw("APL");
+    else graphPlaneEvents.back()->Draw("PL");
+    ierror++;
+  }
+
+  c_chips->cd(0);
+  TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
+  leg->AddEntry(TString::Format("Chip%i_SetError0",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]==1","l");
+  leg->AddEntry(TString::Format("Chip%i_SetError1",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=5 (>1)","l");
+  leg->AddEntry(TString::Format("Chip%i_SetError2",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=10 (>5)","l");
+  leg->AddEntry(TString::Format("Chip%i_SetError3",int((*aMapIter).first)),TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"l");
+  leg->AddEntry(TString::Format("Chip%i_SetError4",int((*aMapIter).first)),"Negative Data","l");
+  leg->AddEntry(TString::Format("Chip%i_SetError4",int((*aMapIter).first)),"Total Bad Events","l");
+  leg->Draw();
+  c_chips->Update();
+
+
+  f_planevent->cd();
+  c_chips->Write();
+
+
+}
+
+
+
+
+
 
 double* AnaManager::vectortoarray(std::vector<double> thevec, double* theArray ) {
   for (unsigned i=0; i<thevec.size(); i++) theArray[i] = thevec[i];
