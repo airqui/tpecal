@@ -259,15 +259,15 @@ void ADCManager::pedestalAnalysisGraphicsBasic(TString file_sufix) {
       unsigned ichan(0);
       std::vector<unsigned> chanlistVec;
       chanlistVec.clear();
-      std::cout << "AnaManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << endl;
+      std::cout << "ADCManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << endl;
       for (std::vector<std::vector<std::vector<Double_t> > >::iterator chanVeciter=(*mapiter).second.begin(); chanVeciter!=(*mapiter).second.end(); chanVeciter++) {
-	std::cout << "AnaManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << std::endl;
+	std::cout << "ADCManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << std::endl;
 	//Loop over the entries with pedestal in the given runs
 	//in principle we assumme that all runs are of the same type (not scan runs)
 	for (std::vector<std::vector<Double_t> >::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
 	  //Fetch the value for that run
 	  if((*runIter).size()>1) {
-	    std::cout << "AnaManager::pedestalAnalysisGraphicsBasic: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << " pedestal: " << (*runIter).at(0) << "(" <<  (*runIter).at(1) <<")"<<std::endl;
+	    std::cout << "ADCManager::pedestalAnalysisGraphicsBasic: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << " pedestal: " << (*runIter).at(0) << "(" <<  (*runIter).at(1) <<")"<<std::endl;
 	    double runval(static_cast<double>((*runIter).at(0)));
 	    double erunval(static_cast<double>((*runIter).at(1)));
 	    
@@ -390,7 +390,7 @@ void ADCManager::pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_t::it
 
   //Loop over all chips
   TString gain = globalvariables::getGainTStringAnalysis();
-  std::cout << "AnaManager::pedestalAnalysisGraphicsPainter Chip: " << (*aMapIter).first << std::endl;
+  std::cout << "ADCManager::pedestalAnalysisGraphicsPainter Chip: " << (*aMapIter).first << std::endl;
   unsigned bufdepth((*aMapIter).second.size());
 
   for (unsigned ibuf=0;ibuf<bufdepth;ibuf++) {
@@ -407,13 +407,13 @@ void ADCManager::pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_t::it
     unsigned ichan(0);
     std::vector<unsigned> chanlistVec;
     chanlistVec.clear();
-    std::cout << "AnaManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << endl;
+    std::cout << "ADCManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << endl;
     for (std::vector<std::vector<std::vector<Double_t> > >::iterator chanVeciter=(*mapiter).second.begin(); chanVeciter!=(*mapiter).second.end(); chanVeciter++) {
-      std::cout << "AnaManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << std::endl;
+      std::cout << "ADCManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << std::endl;
       //At least as a sanity check we verify that the size of the vector for wach channel corresponds to the size of the
       //vector holding the thresholds as defined above
       if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
-    	std::cout << "WARNING --> AnaManager::pedestalAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for channe" << ichan << std::endl;
+    	std::cout << "WARNING --> ADCManager::pedestalAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for channe" << ichan << std::endl;
     	std::cout << "WARNING --> Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
     	std::cout << "WARNING --> Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
       }
@@ -428,7 +428,7 @@ void ADCManager::pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_t::it
       for (std::vector<std::vector<Double_t> >::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
     	//Fetch the value for that run
     	if((*runIter).size()>1) {
-	  std::cout << "AnaManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << " Run: " << irun << " pedestal: " << (*runIter).at(0) << "(" <<  (*runIter).at(1) <<")"<<std::endl;
+	  std::cout << "ADCManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << " Run: " << irun << " pedestal: " << (*runIter).at(0) << "(" <<  (*runIter).at(1) <<")"<<std::endl;
 	  double runval(static_cast<double>((*runIter).at(0)));
 	  double erunval(static_cast<double>((*runIter).at(1)));
 	  //Fill the array with the relative counts for a given channel in a given run

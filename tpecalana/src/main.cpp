@@ -20,12 +20,12 @@
 
 #include "RunManager.h"
 #include "ExperimentalSetup.h"
-#include "AnaManager.h"
-#include "ADCManager.h"
+// analysis managers
+#include "ScanManager.h"
+#include "AnalysisManager.h"
 #include "MonitorManager.h"
 
 #include "global.h"
-//#include "Analisys.h"
 
 #include "boost/filesystem.hpp"   
 
@@ -57,7 +57,7 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
 
 
   RunManager runmanager;    
-  AnaManager anaManager;    anaManager.init();
+  ScanManager scanManager;    scanManager.init();
 
  
 
@@ -93,7 +93,7 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
 
  	
     // if(globalvariables::getAnalysisType() == "scurves" ) 
-    anaManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
+    scanManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
 
     ////reset experimental setup and run manager
     ExperimentalSetup::getInstance()->reset();
@@ -108,7 +108,7 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
   if(globalvariables::getAnalysisType() == "PlaneEventsScan" )  
     scanfile= TString(datadirStr_output)+TString::Format("/PlaneEventsScan_PlaneEvThresh%i_",globalvariables::getPlaneEventsThreshold());
 
-  anaManager.displayResults( scanfile,buffer );
+  scanManager.displayResults( scanfile,buffer );
 
 
 }
@@ -118,7 +118,7 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
 
 
   RunManager runmanager;    
-  ADCManager adcManager;    adcManager.init();
+  AnalysisManager analysisManager;    analysisManager.init();
 
  
   std::stringstream inputFileStr;
@@ -139,13 +139,13 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
   output_path =  TString(datadirStr_output) + "/" ;
 
   if(globalvariables::getAnalysisType() == "Pedestal" ) {
-    adcManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, false, "");
-    adcManager.displayResults(output_path, true,false);
+    analysisManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, false, "");
+    analysisManager.displayResults(output_path, true,false);
   }
   
   if(globalvariables::getAnalysisType() == "PedestalSignal" ) {
-    adcManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, true, "");
-    adcManager.displayResults(output_path, true,true);
+    analysisManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, true, "");
+    analysisManager.displayResults(output_path, true,true);
   }
  
   

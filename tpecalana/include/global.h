@@ -31,7 +31,7 @@ namespace globalvariables
   bool getGlobal_deepAnalysis();
   void setGlobal_deepAnalysis(bool);
 
-  // choose the gain to be used in the AnaManager
+  // choose the gain to be used in the Analysis Managers (ScanManager, MonitorManager, ADCManager)
   extern int global_gain;
   int getGainAnalysis();
   TString getGainTStringAnalysis();
