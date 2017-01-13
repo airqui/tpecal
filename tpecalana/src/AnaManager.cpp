@@ -19,6 +19,7 @@ using namespace globalvariables;
 
 AnaManager::AnaManager(){
   _ntrigVecMapHigh.clear();
+  _ntrigChipVecMapHigh_norm.clear();
   _ntrigChipVecMapHigh.clear();
   _nRuns=0;
   f_scurve=0;
@@ -34,6 +35,8 @@ void AnaManager::init(){
     _ntrigVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<unsigned> >  () ));
     _maxHithelpVec.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<unsigned> () ));
     _ntrigChipVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> > () ));
+    _ntrigChipVecMapHigh_norm.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> > () ));
+
   }
   
   std::cout<<"Init the Analysis Manager for general analysis, with getAnalysisType()="<<globalvariables::getAnalysisType()<<std::endl;
@@ -60,8 +63,10 @@ void AnaManager::displayResults(TString file_prefix, int buffer){
 void AnaManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
     
   //Loop over all enabled chips
-  for (ChipInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh.begin();mapiter!=_ntrigChipVecMapHigh.end();mapiter++) {
+  for (ChipInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh_norm.begin();mapiter!=_ntrigChipVecMapHigh_norm.end();mapiter++) {
     std::cout << "*************New chip: " << (*mapiter).first << "********************" << std::endl;
+
+    ChipInfoComplDouble_t::iterator helpMapIter = _ntrigChipVecMapHigh.find((*mapiter).first);
 
     unsigned ntrigm(0);
     unsigned ntrigm_bcid1(0);
@@ -79,7 +84,7 @@ void AnaManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
       unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
       std::vector<unsigned> trigmtmpvec;
             
-      for(unsigned ibuf=0; ibuf<bufdepth; ibuf++){
+      for(unsigned ibuf=1; ibuf<bufdepth; ibuf++){
 	trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
 	ntrigm+=trigmtmpvec.at(0);
 	if(ibuf>0) {
@@ -94,11 +99,15 @@ void AnaManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
     }
 
     //Build up the vector for the different ratio counters
-    for(unsigned isize=0; isize<6; isize++ ) if((*mapiter).second.size() < (isize + 1 )) (*mapiter).second.push_back (std::vector<Double_t> () );
+    for(unsigned isize=0; isize<7; isize++ ) {
+      if( (*mapiter).second.size() < (isize + 1 )) (*mapiter).second.push_back (std::vector<Double_t> () );
+      if( (*helpMapIter).second.size() < (isize + 1 )) (*helpMapIter).second.push_back (std::vector<Double_t> () );
+    }
 
     //Add for each run the value of each ratio
     //fills the triggers into a vector that is a part of a map of chips and channels
     if(ntrigm>0){ 
+      (*mapiter).second.at(6).push_back(double(ntrigm)/double(ntrigm));
       (*mapiter).second.at(0).push_back(double(ntrigm_bcid1)/double(ntrigm));
       (*mapiter).second.at(1).push_back(double(ntrigm_bcid5)/double(ntrigm));
       (*mapiter).second.at(2).push_back(double(ntrigm_bcid10)/double(ntrigm));
@@ -112,9 +121,21 @@ void AnaManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
       (*mapiter).second.at(3).push_back(0);
       (*mapiter).second.at(4).push_back(0);
       (*mapiter).second.at(5).push_back(0);
+      (*mapiter).second.at(6).push_back(0);
     }
 
-    if(ntrigm>0) std::cout << "AnaManager::planeEventsAnalysis - chip " << (*mapiter).first << " TriggersBad/TriggersOkay: " << double(ntrigm_total)/double(ntrigm) << std::endl;  
+    (*helpMapIter).second.at(6).push_back(double(ntrigm));
+    (*helpMapIter).second.at(0).push_back(double(ntrigm_bcid1));
+    (*helpMapIter).second.at(1).push_back(double(ntrigm_bcid5));
+    (*helpMapIter).second.at(2).push_back(double(ntrigm_bcid10));
+    (*helpMapIter).second.at(3).push_back(double(ntrigm_planeevents));
+    (*helpMapIter).second.at(4).push_back(double(ntrigm_negativedata));
+    (*helpMapIter).second.at(5).push_back(double(ntrigm_total));
+    
+
+    if(ntrigm>0) 
+      std::cout << "AnaManager::planeEventsAnalysis - chip " << (*mapiter).first << 
+	" TriggersBad/TriggersOkay: " << double(ntrigm_total)/double(ntrigm) <<" TriggersBad= "<<ntrigm_total<<" TriggersOK="<<ntrigm<< std::endl;  
   }
 }
 
@@ -374,16 +395,82 @@ void AnaManager::planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::itera
   //Declare and open a Canvas
   std::stringstream canvasNameStr;
   canvasNameStr << "Chip" << (*aMapIter).first ;//the iterator gives the chip ID
-  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1000,800);
+  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1200,600);
+  c_chips->Divide(2,1);
+
   //Divide the canvas
   //A vector of graphs
   std::vector<TGraphErrors*> graphPlaneEvents;//vector of graphs... extract the proper graph
-    
+  std::vector<TGraphErrors*> graphPlaneEvents_norm;//vector of graphs... extract the proper graph                                                                                   
+  ChipInfoComplDouble_t::iterator helpMapIter = _ntrigChipVecMapHigh_norm.find((*aMapIter).first);
+
   std::cout << "AnaManager::planeEventsAnalysisGraphicsPainter: Chip: " << (*aMapIter).first << std::endl;
   //Loop over all channels
   unsigned ierror(0);
     
+  c_chips->cd(1);
+
   for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
+     if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
+      std::cout << "AnaManager::planEventsAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for bad event selectionselection" << ierror << std::endl;
+      std::cout << "Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
+      std::cout << "Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
+    }
+    //If the maximum is >2 we assume that this channel was enabled and we process it further
+    //Define an array that holds the entries for each run
+    double valarray[ (*chanVeciter).size()];
+    double evalarray[ (*chanVeciter).size()];
+    double evalarray_x[ (*chanVeciter).size()];
+
+    //Loop over the entries with trigger in the given runs
+    //Helper variable to count runs
+    unsigned irun(0);
+    for (std::vector<Double_t>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
+      //Fetch the value for that run
+      double runval=(static_cast<double>((*runIter)));
+      //Fill the array with the relative counts for a given channel in a given run
+      valarray[irun] = runval;
+      evalarray[irun] = 0;
+      evalarray_x[irun] = 0;///ref;
+      irun++;
+    }
+
+    //Now define and fill a graph for each channel
+    double vecarrayhelp[(*chanVeciter).size()];
+    double* vecarray;
+    vecarray = vectortoarray(globalvariables::getScanVectorDoubles(), &vecarrayhelp[0]);
+    graphPlaneEvents.push_back(new TGraphErrors(globalvariables::getScanVectorDoubles().size(), vecarray, valarray,  evalarray_x, evalarray));
+    graphPlaneEvents.back()->SetMarkerStyle(20+ierror);
+    graphPlaneEvents.back()->SetMarkerColor(ierror+1);
+    graphPlaneEvents.back()->SetLineColor(ierror+1);
+    graphPlaneEvents.back()->SetMarkerSize(1.2);
+    graphPlaneEvents.back()->SetName(TString::Format("Chip%i_SetError%i",int((*aMapIter).first),int(ierror)));
+    graphPlaneEvents.back()->SetTitle(TString::Format("Chip%i, buffer>0",int((*aMapIter).first)));
+    graphPlaneEvents.back()->Write();
+    graphPlaneEvents.back()->GetXaxis()->SetTitle("Threshold");
+    graphPlaneEvents.back()->GetYaxis()->SetTitle("N_hit");
+    if(ierror==0) graphPlaneEvents.back()->Draw("APL");
+    else graphPlaneEvents.back()->Draw("PL");
+    ierror++;
+  }
+  TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
+  leg->AddEntry(TString::Format("Chip%i_SetError0",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]==1","lp");
+  leg->AddEntry(TString::Format("Chip%i_SetError1",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=5 (>1)","lp");
+  leg->AddEntry(TString::Format("Chip%i_SetError2",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=10 (>5)","lp");
+  leg->AddEntry(TString::Format("Chip%i_SetError3",int((*aMapIter).first)),TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"lp");
+  leg->AddEntry(TString::Format("Chip%i_SetError4",int((*aMapIter).first)),"Negative Data","lp");
+  leg->AddEntry(TString::Format("Chip%i_SetError5",int((*aMapIter).first)),"Total Bad Events","lp");
+  leg->AddEntry(TString::Format("Chip%i_SetError6",int((*aMapIter).first)),"Ok","lp");
+  leg->Draw();
+
+  //c_chips->Update();
+
+
+  //-------------------------------------------------------
+  ierror=0;
+  c_chips->cd(2);
+    
+  for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*helpMapIter).second.begin(); chanVeciter!=(*helpMapIter).second.end(); chanVeciter++) {
      if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
       std::cout << "AnaManager::planEventsAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for bad event selectionselection" << ierror << std::endl;
       std::cout << "Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
@@ -412,32 +499,33 @@ void AnaManager::planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::itera
     double vecarrayhelp[(*chanVeciter).size()];
     double* vecarray;
     vecarray = vectortoarray(globalvariables::getScanVectorDoubles(), &vecarrayhelp[0]);
-    graphPlaneEvents.push_back(new TGraphErrors(globalvariables::getScanVectorDoubles().size(), vecarray, valarray,  evalarray_x, evalarray));
-    graphPlaneEvents.back()->SetMarkerStyle(20+ierror);
-    //We have only 15 different marker symbols but in principle 16 channels to draw
-    graphPlaneEvents.back()->SetMarkerColor(ierror+1);
-    graphPlaneEvents.back()->SetLineColor(ierror+1);
-    graphPlaneEvents.back()->SetMarkerSize(1.2);
-    c_chips->cd(0);
-    graphPlaneEvents.back()->SetName(TString::Format("Chip%i_SetError%i",int((*aMapIter).first),int(ierror)));
-    graphPlaneEvents.back()->SetTitle(TString::Format("Chip%i",int((*aMapIter).first)));
-    graphPlaneEvents.back()->Write();
-    graphPlaneEvents.back()->GetXaxis()->SetTitle("Threshold");
-    graphPlaneEvents.back()->GetYaxis()->SetTitle("N_Badhit/N_Ok");
-    if(ierror==0) graphPlaneEvents.back()->Draw("APL");
-    else graphPlaneEvents.back()->Draw("PL");
+    graphPlaneEvents_norm.push_back(new TGraphErrors(globalvariables::getScanVectorDoubles().size(), vecarray, valarray,  evalarray_x, evalarray));
+    graphPlaneEvents_norm.back()->SetMarkerStyle(20+ierror);
+    graphPlaneEvents_norm.back()->SetMarkerColor(ierror+1);
+    graphPlaneEvents_norm.back()->SetLineColor(ierror+1);
+    graphPlaneEvents_norm.back()->SetMarkerSize(1.2);
+    graphPlaneEvents_norm.back()->SetName(TString::Format("Chip%i_SetError%i",int((*helpMapIter).first),int(ierror)));
+    graphPlaneEvents_norm.back()->SetTitle(TString::Format("Chip%i, buffer>0",int((*helpMapIter).first)));
+    graphPlaneEvents_norm.back()->Write();
+    graphPlaneEvents_norm.back()->GetXaxis()->SetTitle("Threshold");
+    graphPlaneEvents_norm.back()->GetYaxis()->SetTitle("N_Badhit/N_Ok");
+    if(ierror==0) graphPlaneEvents_norm.back()->Draw("APL");
+    else graphPlaneEvents_norm.back()->Draw("PL");
     ierror++;
   }
+  //  c_chips->Update();
 
-  c_chips->cd(0);
-  TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
-  leg->AddEntry(TString::Format("Chip%i_SetError0",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]==1","l");
-  leg->AddEntry(TString::Format("Chip%i_SetError1",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=5 (>1)","l");
-  leg->AddEntry(TString::Format("Chip%i_SetError2",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=10 (>5)","l");
-  leg->AddEntry(TString::Format("Chip%i_SetError3",int((*aMapIter).first)),TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"l");
-  leg->AddEntry(TString::Format("Chip%i_SetError4",int((*aMapIter).first)),"Negative Data","l");
-  leg->AddEntry(TString::Format("Chip%i_SetError4",int((*aMapIter).first)),"Total Bad Events","l");
-  leg->Draw();
+  // c_chips->cd(0);
+  TLegend *leg2 = new TLegend(0.6,0.7,0.9,0.9);
+  leg2->AddEntry(TString::Format("Chip%i_SetError0",int((*helpMapIter).first)),"bcid[buf]-bcid[buf-1]==1","lp");
+  leg2->AddEntry(TString::Format("Chip%i_SetError1",int((*helpMapIter).first)),"bcid[buf]-bcid[buf-1]<=5 (>1)","lp");
+  leg2->AddEntry(TString::Format("Chip%i_SetError2",int((*helpMapIter).first)),"bcid[buf]-bcid[buf-1]<=10 (>5)","lp");
+  leg2->AddEntry(TString::Format("Chip%i_SetError3",int((*helpMapIter).first)),TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"lp");
+  leg2->AddEntry(TString::Format("Chip%i_SetError4",int((*helpMapIter).first)),"Negative Data","lp");
+  leg2->AddEntry(TString::Format("Chip%i_SetError5",int((*helpMapIter).first)),"Total Bad Events","lp");
+  leg2->AddEntry(TString::Format("Chip%i_SetError6",int((*helpMapIter).first)),"Ok","lp");
+  leg2->Draw();
+
   c_chips->Update();
 
 

@@ -58,6 +58,7 @@ private:
     //Plane Events analysis, per chip
     typedef std::map<unsigned, std::vector<std::vector<Double_t> > > ChipInfoComplDouble_t;
     ChipInfoComplDouble_t _ntrigChipVecMapHigh;
+    ChipInfoComplDouble_t _ntrigChipVecMapHigh_norm;
     //analysis
     void planeEventsAnalysis(ExperimentalSetup*);
     //... and here finally the job is done

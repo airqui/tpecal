@@ -103,10 +103,10 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
 
   TString scanfile;
   if(globalvariables::getAnalysisType() == "scurves" )  
-     scanfile= TString(datadirStr_output)+TString::Format("/Scurves_buff%i_",buffer);
+    scanfile= TString(datadirStr_output)+TString::Format("/Scurves_PlaneEvThresh%i_buff%i_",globalvariables::getPlaneEventsThreshold(),buffer);
 
   if(globalvariables::getAnalysisType() == "PlaneEventsScan" )  
-     scanfile= TString(datadirStr_output)+"/PlaneEventsScan_";
+    scanfile= TString(datadirStr_output)+TString::Format("/PlaneEventsScan_PlaneEvThresh%i_",globalvariables::getPlaneEventsThreshold());
 
   anaManager.displayResults( scanfile,buffer );
 
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 
   if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan" || globalvariables::getAnalysisType() == "PlaneEventsScan" ) {
     globalvariables::setGainAnalysis(1); //high =1, low =0
-    globalvariables::setPlaneEventsThreshold(step+1); //high =1, low =0
+    globalvariables::setPlaneEventsThreshold(step-3); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     ScanAnalysis(step, buffer, datadirStr, datadirStr_output) ;
   }
@@ -271,9 +271,8 @@ int main(int argc, char **argv)
   }
 
   if(globalvariables::getAnalysisType() == "MonitorChannel" ) {
-    globalvariables::setPlaneEventsThreshold(step+1); 
+    globalvariables::setPlaneEventsThreshold(step-3); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
-
     globalvariables::setGlobal_deepAnalysis(false);
     MonitorRun(datadirStr, datadirStr_output,"channel") ;
   }
