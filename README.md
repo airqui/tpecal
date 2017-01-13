@@ -34,12 +34,12 @@ in the bin folder:
 
 -> for scans (threshold scan, holdscan, etc) 
 ./tpecalana 
-    input_folder  == full path last subrun folder, containing converted root files. For No scan runs, this is the 
-    output_folder == relative path to the ouptut folder, which should be in input_folder/output_folder. 
-    analysis_type == scurves, holdscan" << std::endl;
-    enabled_chips == Number of enabled chips per dif (default 16) 
-    step          == in case of scans, the number of channels in each subrun (default 8) 
-    buffer        == buffer to analyze (for scans) 0-14. If 15, all are analyzed together. (default 0)
+    input_folder  = full path last subrun folder, containing converted root files. For No scan runs, this is the 
+    output_folder = relative path to the ouptut folder, which should be in input_folder/output_folder. 
+    analysis_type = scurves, holdscan"
+    enabled_chips = Number of enabled chips per dif (default 16) 
+    step          = in case of scans, the number of channels in each subrun (default 8) 
+    buffer        = buffer to analyze (for scans) 0-14. If 15, all are analyzed together. (default 0)
 
 -> for single file monitoring or analysis
 ./tpecalana 
