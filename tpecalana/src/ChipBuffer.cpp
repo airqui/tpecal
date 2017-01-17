@@ -18,6 +18,11 @@ ChipBuffer::ChipBuffer(unsigned bufferID){
   _numChans=0;
   //reset the channel count
   _channelCount=0;
+
+  //nhits and bcid analysis
+  _nhitsVec.clear();
+  _chipBcidVec.clear();
+
 }
 
 ChipBuffer::~ChipBuffer(){/*no op*/}
@@ -28,6 +33,7 @@ void ChipBuffer::init(unsigned numchans){
   for (unsigned ichan=0; ichan < _numChans; ichan++){
     _channelVec.push_back(Channel (ichan) );
   }
+
 }
 
 
@@ -48,7 +54,6 @@ bool ChipBuffer::setChannelVals(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t
   //increment the channel count
   _channelCount++;
 
-
   //signalise that all channels are filled for this buffer
   if(_channelCount==_numChans) {
     _channelCount=0; 
@@ -56,6 +61,25 @@ bool ChipBuffer::setChannelVals(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t
   }
   //...else return false
   return false;
+}
+
+
+void ChipBuffer::setChipVals(Int_t bcid, Int_t corrected_bcid, Int_t badbcid, Int_t nhits) {
+  //pass the measured value to the corresponding channel
+	if(badbcid==0 && nhits>0) {
+	  if(_nhitsVec.size() < (nhits+1) ) for (int ichan=0; ichan < (nhits + 1); ichan++)_nhitsVec.push_back(0);
+		_nhitsVec.at(nhits)++;
+	    _chipBcidVec.push_back(corrected_bcid);
+	}
+
+}
+
+std::vector<Int_t> ChipBuffer::getBcidVec() {
+  return _chipBcidVec;
+}
+
+std::vector<Int_t> ChipBuffer::getNhitsRate( ) {
+	return _nhitsVec;
 }
 
 
@@ -77,20 +101,12 @@ void ChipBuffer::setNumberOfASICChannels(unsigned numChans) {
 
 unsigned ChipBuffer::getTotalNumberOfTriggers() {
   unsigned ntot(0);
-  for (unsigned ichan=0; ichan < _numChans; ichan++) ntot+=_channelVec.at(ichan).getNTriggers();
+  for (unsigned ichan=0; ichan < _numChans; ichan++) ntot+=_channelVec.at(ichan).getNTriggersVec().at(0);
   return ntot;
 }
 
 unsigned ChipBuffer::getNumberOfChannels() {return _numChans;}
 
-double ChipBuffer::getChannelMean(unsigned ichan, std::string modeStr, int trig) {
-  //std::cout << "example val: " <<  _channelVec.at(ichan).getMean() << std::endl;
-  return  _channelVec.at(ichan).getMean(modeStr, trig);
-}
-
-double ChipBuffer::getChannelRMS(unsigned ichan, std::string modeStr, int trig) {
-  return  _channelVec.at(ichan).getRMS(modeStr, trig);
-}
 
 std::vector<double> ChipBuffer::getChannelMeanVec(unsigned ichan, std::string modeStr) {
   return  _channelVec.at(ichan).getMeanVec(modeStr);
@@ -108,29 +124,7 @@ unsigned ChipBuffer::getChannelEntries(unsigned ichan) {
 std::vector<unsigned> ChipBuffer::getChannelTriggersVec(unsigned ichan) {
   return  _channelVec.at(ichan).getNTriggersVec();
 }
-unsigned ChipBuffer::getChannelTriggers(unsigned ichan) {
-  return  _channelVec.at(ichan).getNTriggers();
-}
 
-unsigned ChipBuffer::getChannelTriggers_planeEvents(unsigned ichan) {
-  return  _channelVec.at(ichan).getNTriggers_planeEvents();
-}
-
-unsigned ChipBuffer::getChannelTriggers_consBcid1(unsigned ichan) {
-  return  _channelVec.at(ichan).getNTriggers_consBcid1();
-}
-
-unsigned ChipBuffer::getChannelTriggers_consBcid5(unsigned ichan) {
-  return  _channelVec.at(ichan).getNTriggers_consBcid5();
-}
-
-unsigned ChipBuffer::getChannelTriggers_consBcid10(unsigned ichan) {
-  return  _channelVec.at(ichan).getNTriggers_consBcid10();
-}
-
-unsigned ChipBuffer::getChannelTriggers_negativeData(unsigned ichan) {
-  return  _channelVec.at(ichan).getNTriggers_negativeData();
-}
 
 std::vector<int> ChipBuffer::getChannelPedHisto(unsigned ichan, unsigned gainbit) {
 

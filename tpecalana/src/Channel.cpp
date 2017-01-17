@@ -155,14 +155,6 @@ std::vector<unsigned> Channel::getNTriggersVec() {
   _nTriggersVec.push_back(_nUndefined);
   return _nTriggersVec;
 }
-unsigned Channel::getNTriggers() {return _nTriggers;}
-unsigned Channel::getNPedestals() {return _nPedestals;}
-unsigned Channel::getNTriggers_planeEvents() {return _nTriggers_planeEvents;}
-unsigned Channel::getNTriggers_consBcid1() {return _nTriggers_consBcid1;}
-unsigned Channel::getNTriggers_consBcid5() {return _nTriggers_consBcid5;}
-unsigned Channel::getNTriggers_consBcid10() {return _nTriggers_consBcid10;}
-unsigned Channel::getNTriggers_negativeData() {return _nTriggers_negativeData;}
-unsigned Channel::getNUndefined() {return _nUndefined;}
 
 double Channel::getMean(std::string modeStr, int trigger = 1) {
   

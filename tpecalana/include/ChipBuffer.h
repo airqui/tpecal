@@ -37,12 +37,6 @@ public:
     unsigned getChannelEntries(unsigned);
     //A method to return the number of triggers for the channel
     std::vector<unsigned> getChannelTriggersVec(unsigned);
-    unsigned getChannelTriggers(unsigned);
-    unsigned getChannelTriggers_planeEvents(unsigned);
-    unsigned getChannelTriggers_consBcid1(unsigned);
-    unsigned getChannelTriggers_consBcid5(unsigned);
-    unsigned getChannelTriggers_consBcid10(unsigned);
-    unsigned getChannelTriggers_negativeData(unsigned);
 
     //Get the total number of triggers in this buffer
     unsigned getTotalNumberOfTriggers();
@@ -50,6 +44,13 @@ public:
     //A method to access relevant Histograms of indivudual channels for low/high gain = 0,1 (channel, gain)
     std::vector<int> getChannelPedHisto(unsigned,unsigned);
     std::vector<int> getChannelChargeHisto(unsigned,unsigned);
+
+    //chip monitoring tools
+    void setChipVals(Int_t , Int_t , Int_t , Int_t );
+    std::vector<Int_t> getBcidVec();
+    std::vector<Int_t> getNhitsRate();
+
+
 
 private:
     //the buffer ID (=bufferDepth)
@@ -66,6 +67,10 @@ private:
     //a counter thqt holds the acquired channels
     unsigned _channelCount;
     
+    //chip buffer monitoring objects
+    std::vector<Int_t> _nhitsVec;
+    std::vector<Int_t> _chipBcidVec;
+
 };
 
 #endif /* defined(__cobana_project__ChipBuffer__) */

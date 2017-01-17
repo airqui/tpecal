@@ -75,33 +75,27 @@ void ASU::transferChipChannelData(int* chipid, int *aValNHitsArray, int *aValBad
     if (chipid[ichip] > -1 ) {
       if (chipid[ichip] < static_cast<int>(_numChips)) {
 	_chipVec.at(chipid[ichip]).acquireChipChannelData(
-							  //						  (aValNHitsArray),(aValBadBcidArray),
-                                                          //(aValArrayHigh), (aValArrayLow),
-                                                          //(aGainHitArrayHigh), (aGainHitArrayLow));
-
 							  (aValNHitsArray+ichip*istep_buf),(aValBadBcidArray+ichip*istep_buf),
 							  (aValArrayHigh+ichip*istep), (aValArrayLow+ichip*istep),
 							  (aGainHitArrayHigh+ichip*istep), (aGainHitArrayLow+ichip*istep));
-
-	//	if( *(aValNHitsArray+ichip*istep_buf)==0 && *(aGainHitArrayHigh+ichip*istep)==1 )
-	//	std::cout<<"ALERT ASU end "<<*(aValNHitsArray+ichip*istep_buf)<<" "<< *(aValArrayHigh+ichip*istep) <<" "<<*(aGainHitArrayHigh+ichip*istep)<<std::endl;
-	//std::cout<<"ALERT ASU beg "<<*(aValNHitsArray)<<" "<< *(aValArrayHigh) <<" "<<*(aGainHitArrayHigh)<<std::endl;
-
-      }
-      else std::cout << "Info: chipid > 15 encountered! " << "Chipid is: " << chipid[ichip] << std::endl;
+      } else std::cout << "Info: chipid > 15 encountered! " << "Chipid is: " << chipid[ichip] << std::endl;
     }
   }
 }
 
-void ASU::transferChipBufferData(int* chipid, int *bcid, int  *corrected_bcid, int *badbcid) {
+void ASU::transferChipBufferData(int* chipid, int *bcid, int  *corrected_bcid, int *badbcid, int *nhits) {
     
   for (unsigned ichip=0;ichip<_numChips;ichip++) {
     unsigned istep(_chipVec.at(ichip).getBufferDepth());
     if (chipid[ichip] > -1 ) {
-      if (chipid[ichip] < static_cast<int>(_numChips)) _chipVec.at(chipid[ichip]).acquireChipBufferData(bcid+ichip*istep, corrected_bcid+ichip*istep, badbcid+ichip*istep);
-      else std::cout << "Info: chipid > 15 encountered! " << "Chipid is: " << chipid[ichip] << std::endl;
+      if (chipid[ichip] < static_cast<int>(_numChips)) {
+	_chipVec.at(chipid[ichip]).acquireChipBufferData(
+							 (bcid+ichip*istep), (corrected_bcid+ichip*istep), (badbcid+ichip*istep), (nhits+ichip*istep)
+							 );
+      } else std::cout << "Info: chipid > 15 encountered! " << "Chipid is: " << chipid[ichip] << std::endl;
     }
   }
+
 }
 
 

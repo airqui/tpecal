@@ -66,7 +66,7 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
     //Set the ASU mappings for a given run
     std::vector<std::string> mapfilesStrvec;
     mapfilesStrvec.clear();
-    mapfilesStrvec.push_back("/home/irles/2016/testbench_nov2016/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+    mapfilesStrvec.push_back("../mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
     ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
 
     std::cout<<"  ----------------------------------------- " <<std::endl;
@@ -125,7 +125,7 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
   //Set the ASU mappings for a given run
   std::vector<std::string> mapfilesStrvec;
   mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/irles/2016/testbench_nov2016/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapfilesStrvec.push_back("../mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
   ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
   
   inputFileStr.str("");
@@ -166,7 +166,7 @@ void MonitorRun(string datadirStr, string datadirStr_output , TString type) {
   //Set the ASU mappings for a given run
   std::vector<std::string> mapfilesStrvec;
   mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/irles/2016/testbench_nov2016/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapfilesStrvec.push_back("../mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
   ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
   
   inputFileStr.str("");
@@ -229,8 +229,8 @@ int main(int argc, char **argv)
     }
 
   //Where are the data?
-  std::string datadirStr="/home/irles/2016/testbench_nov2016/rawdata/daq_tests/20161215_123714/" + string(argv[1]);//
-  std::string datadirStr_output="/home/irles/2016/testbench_nov2016/rawdata/daq_tests/20161215_123714/" + string(argv[2]);
+  std::string datadirStr="/home/irles/WorkArea/TestBench/2016/rawdata/daq_tests/20161215_123714/" + string(argv[1]);//
+  std::string datadirStr_output="/home/irles/WorkArea/TestBench/2016/rawdata/daq_tests/20161215_123714/" + string(argv[2]);
   std::cout << "Directory where the data is: "<<datadirStr<<std::endl;
 
   if ( !exists( datadirStr ) ) {
@@ -270,11 +270,13 @@ int main(int argc, char **argv)
     NormalRun(datadirStr, datadirStr_output) ;
   }
 
-  if(globalvariables::getAnalysisType() == "MonitorChannel" ) {
+  if(globalvariables::getAnalysisType() == "MonitorChannel" || globalvariables::getAnalysisType() == "MonitorChip"  ) {
     globalvariables::setPlaneEventsThreshold(step-3); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
-    MonitorRun(datadirStr, datadirStr_output,"channel") ;
+    if( globalvariables::getAnalysisType() == "MonitorChannel" ) MonitorRun(datadirStr, datadirStr_output,"channel") ;
+     if(globalvariables::getAnalysisType() == "MonitorChip" ) MonitorRun(datadirStr, datadirStr_output,"chip") ;
+
   }
 
 

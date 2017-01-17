@@ -37,6 +37,7 @@ private:
 
     TFile* f_file;
 
+    // CHANNEL MONITORING
     //A method for a simple channel by channel
     void simpleChannelAnalysis(ExperimentalSetup*);
     //The graphical representation
@@ -50,14 +51,13 @@ private:
     std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian; // median of triggerd buffers per chip and channel
     std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap; //ntriggers per chip and channel
     std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap; //npedestals per chip and channel
-   std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0; //ntriggers per chip and channel
     std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_buf0; //npedestals per chip and channel
 
     std::map<unsigned,std::vector<Double_t> > _PedWidthChipChannelVecMap; //pedestal width per chip and channel (one buffer)
     std::map<unsigned,std::vector<Double_t> > _SignalWidthChipChannelVecMap; //signal width per chip and channel (one buffer)
     std::map<unsigned,std::vector<Double_t> > _PedMeanChipChannelVecMap; //pedestal mean per chip and channel (one buffer)
     std::map<unsigned,std::vector<Double_t> > _SignalMeanChipChannelVecMap; //signal mean per chip and channel (one buffer)
-
 
    // vector with the total number of triggers for each chip
     std::vector<unsigned>  _TrigChipVec;
@@ -67,14 +67,25 @@ private:
     std::vector<unsigned>  _TrigChipVec_planeEvents;
     std::vector<unsigned>  _TrigChipVec_negativeData;
 
+    // CHIP MONITORING
+    //A method for a simple channel by channel
+    void simpleChipAnalysis(ExperimentalSetup*);
+    //The graphical representation
+    void simpleChipAnalysisGraphics(TString);
 
+    std::map<unsigned,std::vector<Int_t> > _NhitsChipMap; //nhits rates per chip, bufer >0
+    std::map<unsigned,std::vector<Int_t> > _NhitsChipMap_buf0; //nhits rates per chip, bufer== 0
+
+    std::map<unsigned,std::vector<Int_t> > _BcidChipMap; //bcid per chip, bufer >0
+    std::map<unsigned,std::vector<Int_t> > _BcidChipMap_buf0; //bcid per chip, bufer== 0
+
+
+
+    // AUXILIARY FUNCTIONS
     Double_t GetMean(std::vector<Double_t>);
     Double_t GetMedian(std::vector<Double_t>);
     Double_t GetMode(std::vector<Double_t>);
-
-
      double* vectortoarray(std::vector<double> thevec, double* theArray );
-  //  PedestalManager pedestalmanager_;
 
 };
 

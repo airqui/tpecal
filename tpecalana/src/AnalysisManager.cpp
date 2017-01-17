@@ -118,12 +118,12 @@ void AnalysisManager::pedestalAnalysis(ExperimentalSetup* aExpSetup, TString fil
 	  unsigned ped_val;
 	  unsigned ped_error;
 	  if( globalvariables::getGainAnalysis()==1) {
-	    ped_val=aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelMean(ichan, "High", 0);
-	    ped_error=aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelRMS(ichan, "High", 0);
+	    ped_val=aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelMeanVec(ichan, "High").at(1);
+	    ped_error=aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelRMSVec(ichan, "High").at(1);
 	  } else {
 	    if( globalvariables::getGainAnalysis()==0) {
-	      ped_val=aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelMean(ichan, "Low", 0);
-	      ped_error=aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelRMS(ichan, "Low", 0);
+	      ped_val=aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelMeanVec(ichan, "Low").at(1);
+	      ped_error=aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelRMSVec(ichan, "Low").at(1);
 	    } else std::cout<< "ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
 
 	    //Add for each run the value in that channel

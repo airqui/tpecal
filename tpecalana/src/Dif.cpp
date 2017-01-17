@@ -80,7 +80,7 @@ void Dif::dataAnalysis(TFile* aDifFile, int PlaneEventThreshold) {
 
 
   //initialize the variables since we
-  // were obtaining very crazy numbers at the end not initializing here.
+  // were obtaining very crazy numbers at the end if we don't initialize here.
   for(unsigned i=0; i<NASICS; i++) {                                                                                                                             
     for(unsigned j=0; j<MAXBUFDEPTH; j++ ) {                                                                                                                       
       for(unsigned k=0; k<MAXCHAN; k++) {                                                                                                                            
@@ -118,25 +118,15 @@ void Dif::dataAnalysis(TFile* aDifFile, int PlaneEventThreshold) {
     //std::cout << "ientr: " << ientr << std::endl;
     t1->GetEntry(ientr);
 
-    for(int ichip=0; ichip<16; ichip++){
-      for(int ibuf=0; ibuf<15; ibuf++) {
-	for(int ich=0; ich<64; ich++) {
-	  if(gain_hit_high[ichip][ibuf][ich]==1 && nhits[ichip][ibuf]==0)
-	    std::cout<<" ALERT : "<<ientr<< " chip="<<ichip<<" ibuf="<<ibuf<<" ich="<<ich<<
-	      " badbcid="<<badbcid[ichip][ibuf]<<" gain_hit_high="<<gain_hit_high[ichip][ibuf][ich]<<
-	      " valHigh="<<high_gain[ichip][ibuf][ich]<<" nhits="<<nhits[ichip][ibuf]<<
-	      std::endl;
-	}
-      }
-    }
-
         
     unsigned containerEntryofASU(0);
     unsigned ntot(0);
     for (unsigned iasu=0; iasu<_numASU; iasu++) {
       //Transfer the global buffer information to the ASU (which will then distribute the information to the Chips) 
 	  
-      _asuVec.at(iasu).transferChipBufferData(&chipid[containerEntryofASU], &bcid[containerEntryofASU][0], &corrected_bcid[containerEntryofASU][0], &badbcid[containerEntryofASU][0]);
+       _asuVec.at(iasu).transferChipBufferData(
+      		  &chipid[containerEntryofASU],
+      		  &bcid[containerEntryofASU][0], &corrected_bcid[containerEntryofASU][0], &badbcid[containerEntryofASU][0], &nhits[containerEntryofASU][0]);
       //
       _asuVec.at(iasu).transferChipChannelData(&chipid[containerEntryofASU],
 					       &nhits[containerEntryofASU][0], &badbcid[containerEntryofASU][0],
@@ -148,8 +138,6 @@ void Dif::dataAnalysis(TFile* aDifFile, int PlaneEventThreshold) {
       //Set pointer to next ASU connected to this DIF
       containerEntryofASU+=_asuVec.at(iasu).getNumberofASICs();
     }
-    //std::cout << "acqNumber: " << acqNumber << std::endl;
-    //std::cout << "Total number of triggers: " << ntot << std::endl;
     storeAcquisitionInfo(acqNumber, ntot);
   }
   aDifFile->Close();

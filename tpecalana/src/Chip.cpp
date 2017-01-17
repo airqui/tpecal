@@ -17,6 +17,7 @@ Chip::Chip(unsigned chipID){
   _bufferDepth = 0;
   _nChannels = 0;
   _chipBuffer.clear();
+
 }
 
 Chip::~Chip() {/*no op */}
@@ -88,9 +89,17 @@ void Chip::acquireChipChannelData(Int_t *aValNHitsArray, Int_t *aValBadBcidArray
 }
 
 
-void Chip::acquireChipBufferData(Int_t *bcid, Int_t *corrected_bcid, Int_t *badbcid) {
-  //Need to see how to digest this information
-  /*No op*/
+//method to read the buffer information (bcid, nhits, etc)
+void Chip::acquireChipBufferData(Int_t *bcidArray, Int_t *corrected_bcidArray, Int_t *badbcidArray, Int_t *nhitsArray) {
+
+	for (unsigned ibuf=0;ibuf<_bufferDepth;ibuf++) {
+	  Int_t bcid= *(bcidArray+ibuf);
+	  Int_t corrected_bcid= *(corrected_bcidArray+ibuf);
+	  Int_t badbcid= *(badbcidArray+ibuf);
+	  Int_t nhits = *(nhitsArray+ibuf);
+
+	  _chipBuffer.at(ibuf).setChipVals(bcid, corrected_bcid, badbcid, nhits);
+	}
 }
 
 

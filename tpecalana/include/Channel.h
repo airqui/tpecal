@@ -27,13 +27,6 @@ public:
     unsigned getNEntries();
     //Return the number of triggers
     std::vector<unsigned> getNTriggersVec(); //stores the triggers, pedestals, planeevents, bcid1events, bcid5events , bcid10events, negativedata events and the undefined events
-    unsigned getNTriggers();
-    unsigned getNPedestals();
-    unsigned getNTriggers_planeEvents();
-    unsigned getNTriggers_consBcid1();
-    unsigned getNTriggers_consBcid5();
-    unsigned getNTriggers_consBcid10();
-    unsigned getNTriggers_negativeData();
     //Return the number of undefined entries
     unsigned getNUndefined();
     //Return the mean of that channel

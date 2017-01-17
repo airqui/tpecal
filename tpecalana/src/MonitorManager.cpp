@@ -18,52 +18,42 @@ MonitorManager::MonitorManager() {
   // TODO Auto-generated constructor stub
   f_file=0;
 
-  _ntrigVecMapHigh.clear();
-  _bufferVecMapMedian.clear();
-  _TrigChipChannelVecMap.clear();
-  _PedChipChannelVecMap.clear();
-  _TrigChipChannelVecMap_buf0.clear();
-  _PedChipChannelVecMap_buf0.clear();
+	// CHANNEL
+	// ----------------------------------------
+_ntrigVecMapHigh.clear();
+_bufferVecMapMedian.clear();
 
-  _PedWidthChipChannelVecMap.clear();
-  _SignalWidthChipChannelVecMap.clear();
+_TrigChipChannelVecMap.clear();
+_PedChipChannelVecMap.clear();
+_TrigChipChannelVecMap_buf0.clear();
+_PedChipChannelVecMap_buf0.clear();
 
-  _PedMeanChipChannelVecMap.clear();
-  _SignalMeanChipChannelVecMap.clear();
+_PedWidthChipChannelVecMap.clear();
+_SignalWidthChipChannelVecMap.clear();
+_PedMeanChipChannelVecMap.clear();
+_SignalMeanChipChannelVecMap.clear();
 
-  _TrigChipVec.clear(); //vector of unsigned
+_TrigChipVec.clear(); //vector of unsigned
+_TrigChipVec_bcid1.clear(); //vector of unsigned
+_TrigChipVec_bcid5.clear(); //vector of unsigned
+_TrigChipVec_bcid10.clear(); //vector of unsigned
+_TrigChipVec_planeEvents.clear(); //vector of unsigned
+_TrigChipVec_negativeData.clear(); //vector of unsigned
 
-  _TrigChipVec_bcid1.clear(); //vector of unsigned
-  _TrigChipVec_bcid5.clear(); //vector of unsigned
-  _TrigChipVec_bcid10.clear(); //vector of unsigned
-  _TrigChipVec_planeEvents.clear(); //vector of unsigned
-  _TrigChipVec_negativeData.clear(); //vector of unsigned
+
+// CHIP
+	// ----------------------------------------
+_NhitsChipMap.clear();
+_NhitsChipMap_buf0.clear();
+
+_BcidChipMap.clear();
+_BcidChipMap_buf0.clear();
 
 }
 
 
 
 void MonitorManager::init(){
-
-  _ntrigVecMapHigh.clear();
-  _bufferVecMapMedian.clear();
-
-  _TrigChipChannelVecMap.clear();
-  _PedChipChannelVecMap.clear();
-  _TrigChipChannelVecMap_buf0.clear();
-  _PedChipChannelVecMap_buf0.clear();
-
-  _PedWidthChipChannelVecMap.clear();
-  _SignalWidthChipChannelVecMap.clear();
-  _PedMeanChipChannelVecMap.clear();
-  _SignalMeanChipChannelVecMap.clear();
-
-  _TrigChipVec.clear(); //vector of unsigned
-  _TrigChipVec_bcid1.clear(); //vector of unsigned
-  _TrigChipVec_bcid5.clear(); //vector of unsigned
-  _TrigChipVec_bcid10.clear(); //vector of unsigned
-  _TrigChipVec_planeEvents.clear(); //vector of unsigned
-  _TrigChipVec_negativeData.clear(); //vector of unsigned
 
 
   for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
@@ -85,17 +75,29 @@ void MonitorManager::init(){
 
   }
 
+  for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
+    //scurves maps (triggers for threshold run and maximum of triggers for all threshold runs, per channel and chip)
+	  _NhitsChipMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
+	  _NhitsChipMap_buf0.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
+
+	  _BcidChipMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
+	  _BcidChipMap_buf0.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
+  }
+
 }
 
 void MonitorManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString type){
   std::cout << "************** MonitorManager::AcquireRunInformation new file: " << std::endl;
   if(type == "channel" ) simpleChannelAnalysis(aExpSetup);
+  if(type == "chip" ) simpleChipAnalysis(aExpSetup);
+
 }
 
 void MonitorManager::displayResults(TString file_prefix, TString type){
 
   //Call the graphics part related to the simple graphics analysis (should be realised automatically if graphics is requires
   if(type == "channel" ) simpleChannelAnalysisGraphics(file_prefix);
+  if(type == "chip" ) simpleChipAnalysisGraphics(file_prefix);
 
 }
 
@@ -212,17 +214,17 @@ void MonitorManager::simpleChannelAnalysisGraphics(TString file_sufix) {
   c_chips->Divide(4,3);
 
   //maps
-  TH2F * bufferMedian = new TH2F("buffer_median","buffer_median",64,-0.5,63,16,-0.5,15.5);
+  TH2F * bufferMedian = new TH2F("buffer_median","buffer_median",64,-0.5,63.5,16,-0.5,15.5);
 
-  TH2F * TriggersPerChannel = new TH2F("triggers_per_channel","triggers_per_channel",64,-0.5,63,16,-0.5,15.5);
+  TH2F * TriggersPerChannel = new TH2F("triggers_per_channel","triggers_per_channel",64,-0.5,63.5,16,-0.5,15.5);
 
-  TH2F * HitsPedestalPerChannel = new TH2F("ratio_hitpedestal_per_channel","ratio_hitpedestal_per_channel",64,-0.5,63,16,-0.5,15.5);
-  TH2F * HitsPedestalPerChannel_buf0 = new TH2F("ratio_hitpedestal_per_channel_buf0","ratio_hitpedestal_per_channel_buf0",64,-0.5,63,16,-0.5,15.5);
+  TH2F * HitsPedestalPerChannel = new TH2F("ratio_hitpedestal_per_channel","ratio_hitpedestal_per_channel",64,-0.5,63.5,16,-0.5,15.5);
+  TH2F * HitsPedestalPerChannel_buf0 = new TH2F("ratio_hitpedestal_per_channel_buf0","ratio_hitpedestal_per_channel_buf0",64,-0.5,63.5,16,-0.5,15.5);
 
-  TH2F * PedWidthPerChannel = new TH2F("PedWidth_per_channel","PedWidth_per_channel",64,-0.5,63,16,-0.5,15.5);
-  TH2F * SignalWidthPerChannel = new TH2F("SignalWidth_per_channel","SignalWidth_per_channel",64,-0.5,63,16,-0.5,15.5);
-  TH2F * PedMeanPerChannel = new TH2F("PedMean_per_channel","PedMean_per_channel",64,-0.5,63,16,-0.5,15.5);
-  TH2F * SignalMeanPerChannel = new TH2F("SignalMean_per_channel","SignalMean_per_channel",64,-0.5,63,16,-0.5,15.5);
+  TH2F * PedWidthPerChannel = new TH2F("PedWidth_per_channel","PedWidth_per_channel",64,-0.5,63.5,16,-0.5,15.5);
+  TH2F * SignalWidthPerChannel = new TH2F("SignalWidth_per_channel","SignalWidth_per_channel",64,-0.5,63.5,16,-0.5,15.5);
+  TH2F * PedMeanPerChannel = new TH2F("PedMean_per_channel","PedMean_per_channel",64,-0.5,63.5,16,-0.5,15.5);
+  TH2F * SignalMeanPerChannel = new TH2F("SignalMean_per_channel","SignalMean_per_channel",64,-0.5,63.5,16,-0.5,15.5);
 
   // histogram of total number of triggers
   TH1F * Triggers = new TH1F("Triggers","Triggers",16,-0.5,15.5);
@@ -393,6 +395,155 @@ void MonitorManager::simpleChannelAnalysisGraphics(TString file_sufix) {
 }
 
 
+/// CHIP ANALYSIS
+// ---------------------------------------------------------------
+
+void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
+
+  //Loop over all enabled chips to fill the nhit rate for buffer 0 and buffer >0
+  for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _NhitsChipMap_buf0.begin();mapiter!=_NhitsChipMap_buf0.end();mapiter++) {
+    std::cout << "MonitorManager::simpleChipAnalysis ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
+
+    unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
+    unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
+
+    std::vector<Int_t> nhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNhitsRate();
+    for (unsigned ihits=0; ihits < nhitsvec.size(); ihits++) {
+    	if((*mapiter).second.size() < ihits+1)  (*mapiter).second.push_back(0);
+    	(*mapiter).second.at(ihits)=nhitsvec.at(ihits);
+    }
+
+    std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _NhitsChipMap.find((*mapiter).first);
+
+    //Loop over all buffers >0
+    std::vector<Int_t> nhitstotal;
+    for (unsigned ihits=0; ihits < numChans; ihits++) nhitstotal.push_back(0);
+
+	for (unsigned ibuf=1; ibuf < bufdepth; ibuf++) {
+		std::vector<Int_t> nhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*helpMapIter).first).getChipBuffer(ibuf).getNhitsRate();
+	    for (unsigned ihits=0; ihits < nhitsvec.size(); ihits++) nhitstotal.at(ihits)+=nhitsvec.at(ihits);
+	}
+
+    for (unsigned ihits=0; ihits < nhitstotal.size(); ihits++) {
+    	if((*helpMapIter).second.size() < ihits+1)  (*helpMapIter).second.push_back(0);
+    	(*helpMapIter).second.at(ihits)=nhitstotal.at(ihits);
+    }
+  }
+
+
+  //Loop over all enabled chips to fill the bcid mean and rms calculation rate for buffer 0 and buffer >0
+  for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _BcidChipMap_buf0.begin();mapiter!=_BcidChipMap_buf0.end();mapiter++) {
+    std::cout << "MonitorManager::simpleChipAnalysis ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
+
+    std::vector<Int_t> Bcidvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getBcidVec();
+    for(unsigned ibcid=0; ibcid<Bcidvec.size(); ibcid++)
+    	(*mapiter).second.push_back(Bcidvec.at(ibcid));
+
+    unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
+
+    std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _BcidChipMap.find((*mapiter).first);
+
+    for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
+    	std::vector<Int_t> Bcidvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getBcidVec();
+    	for(unsigned ibcid=0; ibcid<Bcidvec2.size(); ibcid++)
+    		(*helpMapIter).second.push_back(Bcidvec.at(ibcid));
+    }
+  }
+
+}
+
+//
+void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
+
+
+  //Declare and open a Canvas
+  std::stringstream canvasNameStr;
+  canvasNameStr << "SimpleChipMonitoring";//the iterator gives the chip ID
+  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1400,800);
+  //Divide the canvas
+  c_chips->Divide(2,2);
+
+  //maps
+  TH2F * NHitsRate_buff0 = new TH2F("NHitsRate_buff0","NHitsRate_buff0",10,-0.5,9.5,16,-0.5,15.5);
+  TH2F * NHitsRate = new TH2F("NHitsRate","NHitsRate",10,-0.5,9.5,16,-0.5,15.5);
+
+  TH2F * BCID_buf0 = new TH2F("BCID_buf0","BCID_buf0",500,0,5000,16,-0.5,15.5);
+  TH2F * BCID = new TH2F("BCID","BCID",500,0,5000,16,-0.5,15.5);
+
+
+  //Loop over all enabled chips
+  for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
+
+	std::cout << "MonitorManager::simpleChipAnalysisGraphics------------ New chip: " << ichip << " ---------------- " << std::endl;
+
+    // Fill chip histograms
+	for(unsigned ichn=0; ichn<_NhitsChipMap_buf0.at(ichip).size(); ichn++) {
+		NHitsRate_buff0->Fill(ichn, ichip, _NhitsChipMap_buf0.at(ichip).at(ichn));
+		NHitsRate->Fill(ichn, ichip, _NhitsChipMap.at(ichip).at(ichn));
+	}
+
+	for(unsigned ichn=0; ichn<_BcidChipMap_buf0.at(ichip).size(); ichn++)
+		BCID_buf0->Fill(_BcidChipMap_buf0.at(ichip).at(ichn),ichip);
+
+	for(unsigned ichn=0; ichn<_BcidChipMap.at(ichip).size(); ichn++)
+		BCID->Fill(_BcidChipMap.at(ichip).at(ichn),ichip);
+  }
+
+
+  c_chips->cd(1);
+  NHitsRate_buff0->SetTitle("NHits rates, buffer==0");
+  NHitsRate_buff0->GetXaxis()->SetTitle("NHits");
+  NHitsRate_buff0->GetYaxis()->SetTitle("chip");
+  NHitsRate_buff0->Draw("colz");
+
+  c_chips->cd(2);
+  NHitsRate->SetTitle("NHits rates, buffer>0");
+  NHitsRate->GetXaxis()->SetTitle("NHits");
+  NHitsRate->GetYaxis()->SetTitle("chip");
+  NHitsRate->Draw("colz");
+
+  c_chips->cd(3);
+  BCID_buf0->SetTitle("BCID, buffer==0");
+  BCID_buf0->GetXaxis()->SetTitle("BCID");
+  BCID_buf0->GetYaxis()->SetTitle("chip");
+  BCID_buf0->Draw("colz");
+
+  c_chips->cd(4);
+  BCID->SetTitle("BCID, buffer>0");
+  BCID->GetXaxis()->SetTitle("BCID");
+  BCID->GetYaxis()->SetTitle("chip");
+  BCID->Draw("colz");
+
+  c_chips->Update();
+
+//  TString gain = globalvariables::getGainTStringAnalysis();
+//  TString planevent = globalvariables::getPlaneEventsThresholdTStringAnalysis();
+//
+//  TString filerecreate = "RECREATE";
+//  TFile *f_scurve = TFile::Open(file_sufix+gain+planevent+"_monitor.root",filerecreate);
+//  TDirectory *dir = f_scurve->GetDirectory("histograms");
+//  if (!dir) dir = f_scurve->mkdir("histograms");
+//
+//  f_scurve->cd();
+//  c_chips->Write();
+//  dir->cd();
+//  bufferMedian->Write();
+//  Triggers->Write();
+//  TriggersPerChannel->Write();
+//  Triggers_bcid1->Write();
+//  Triggers_bcid5->Write();
+//  Triggers_bcid10->Write();
+//  Triggers_planeEvents->Write();
+//  Triggers_negativeData->Write();
+//
+//
+//  f_scurve->Close();
+
+
+}
+
+// -----------------------------------------------------------------------
+/// AUXILIARY FUNCTIONS
 double* MonitorManager::vectortoarray(std::vector<double> thevec, double* theArray ) {
   for (unsigned i=0; i<thevec.size(); i++) theArray[i] = thevec[i];
   return &theArray[0];
