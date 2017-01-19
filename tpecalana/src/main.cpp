@@ -38,6 +38,15 @@ using namespace boost::filesystem;
 void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_output ) {
 
   std::string path=datadirStr+"/0/";
+  if ( !exists( path ) ) {
+    path=datadirStr;
+  } else {
+    if( !exists( path ) ) {
+      std::cout << " main:ScanAnalysis:-> I don't find the folder where the root files are. STOP THE EXECUTABLE  "<<std::endl;
+      return;
+    }
+  }  
+ 
   boost::filesystem::path apk_path(path);
   boost::filesystem::recursive_directory_iterator end;
       
@@ -59,46 +68,46 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
   RunManager runmanager;    
   ScanManager scanManager;    scanManager.init();
 
- 
+  //Set the ASU mappings for a given run
+  std::vector<std::string> mapfilesStrvec;
+  mapfilesStrvec.clear();
+  mapfilesStrvec.push_back("../mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
 
   for (unsigned irun=0; irun < globalvariables::getScanVectorDoubles().size();irun++) {
+
     std::stringstream inputFileStr;
-    //Set the ASU mappings for a given run
-    std::vector<std::string> mapfilesStrvec;
-    mapfilesStrvec.clear();
-    mapfilesStrvec.push_back("../mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
-    ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
 
     std::cout<<"  ----------------------------------------- " <<std::endl;
     std::cout<<" New Trigger: "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
+    ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
 
     TString scanstring;
-    TString scanstring2;
-    if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
-      scanstring="scurve_trig";
-      scanstring2="trigger";
-    }
+    if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") 
+      scanstring="scurve_trig";       
 
-    for(int ifile =0; ifile<64; ifile+=step) {
-      std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<" " << step << " " << ifile<< std::endl;
+    if(step> 0)  {
+      for(int ifile =0; ifile<64 && step>0; ifile+=step) {
+	std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<" " << step << " " << ifile<< std::endl;
+	inputFileStr.str("");
+	inputFileStr << datadirStr << "/"<<ifile<<"/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_by_dif0.raw.root";
+	runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
+      }
+    } else {
       inputFileStr.str("");
-      inputFileStr << datadirStr << "/"<<ifile<<"/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_by_dif0.raw.root";
+      inputFileStr << datadirStr << "/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_inj_by_dif0.raw.root";
       runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
     }
 
     ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
 
     TString output_path ;
-    output_path =  TString(datadirStr_output) + "/"+ scanstring2 + TString::Format("%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) ;
-
- 	
-    // if(globalvariables::getAnalysisType() == "scurves" ) 
-    scanManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
+    output_path =  TString(datadirStr_output) + "/"+ scanstring + TString::Format("%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) ;
 
     ////reset experimental setup and run manager
+    scanManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
     ExperimentalSetup::getInstance()->reset();
     runmanager.reset();
-	
+
   }
 
   TString scanfile;
@@ -192,22 +201,22 @@ void MonitorRun(string datadirStr, string datadirStr_output , TString type) {
 
 
 
-int main(int argc, char **argv) 
+int main(int argc, char* argv[])
 {
 
-
-  TApplication fooApp("fooApp",&argc,argv);
-
+  //int dummyargc;
+  //char** dummyargv;
+  // TApplication fooApp("fooApp",&dummyargc,dummyargv);
+  std::cout << " ----------------------------------------------- " << std::endl;
+  std::cout << " *********************************************** " << std::endl;
+  std::cout << " Technological Prototype Analysis Software " << std::endl;
+  std::cout << "  " << std::endl;
+  std::cout << " R. Poeschl & A. Irles " << std::endl;
+  std::cout << " December 2016 " << std::endl;
+  std::cout << "  " << std::endl;
 
   if(argc < 4)
     {
-      std::cout << " ----------------------------------------------- " << std::endl;
-      std::cout << " *********************************************** " << std::endl;
-      std::cout << " Technological Prototype Analysis Software " << std::endl;
-      std::cout << "  " << std::endl;
-      std::cout << " R. Poeschl & A. Irles " << std::endl;
-      std::cout << " December 2016 " << std::endl;
-      std::cout << "  " << std::endl;
       std::cout << " To run it: " << std::endl;
       std::cout << "  " << std::endl;
       std::cout << "./tpecalana for scan analysis (threshold scan, holdscan, etc) " << std::endl;
@@ -225,13 +234,21 @@ int main(int argc, char **argv)
       std::cout << "    analysis_type == Pedestal, PedestalSignal, MonitorChannel, MonitorChip" << std::endl;
       std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
       std::cout << "    value         == free parameter...  " << std::endl;
-      return 1;
+      return 0;
     }
 
+  TApplication fooApp("fooApp",&argc,argv);
+
   //Where are the data?
-  std::string datadirStr="/home/irles/WorkArea/TestBench/2016/rawdata/daq_tests/20161215_123714/" + string(argv[1]);//
-  std::string datadirStr_output="/home/irles/WorkArea/TestBench/2016/rawdata/daq_tests/20161215_123714/" + string(argv[2]);
-  std::cout << "Directory where the data is: "<<datadirStr<<std::endl;
+  std::string datadirStr= "/home/" + string(argv[1]);//
+  std::string datadirStr_output= "/home/" + string(argv[2]);
+
+  std::cout<<"Number of arguments: "<<argc<<std::endl;
+  for(int i=1; i<argc; i++) 
+    std::cout<<  "    argument "<<i<<"="<<argv[i]<<std::endl;
+  
+  std::cout << "Directory/File where the data is: "<<datadirStr<<std::endl;
+  std::cout << "Directory/File where the output goes: "<<datadirStr_output<<std::endl;
 
   if ( !exists( datadirStr ) ) {
     std::cout << " Data directory doesn't exist !!! STOP THE EXECUTABLE  "<<std::endl;
@@ -239,9 +256,9 @@ int main(int argc, char **argv)
   }   
   if ( !exists( datadirStr_output ) ) {
     std::cout << " OUTPUT directory doesn't exist !!! are you sure that you want to continue? "<<std::endl;
-    // TString cont ="n";
-    //  std::cin>> cont;
-    //  if(cont != "y") return 0;
+    //TString cont ="n";
+    //std::cin>> cont;
+    //if(cont != "y") return 0;
    }
 
  
@@ -281,6 +298,6 @@ int main(int argc, char **argv)
 
 
   fooApp.Run();
-  return 0;
+  //  return 0;
 
 }
