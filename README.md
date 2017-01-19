@@ -14,7 +14,7 @@ LAL, France, 2016
 -------------------------------
 Installation requirements:
 root (5.34.X),
-libboost-devel,
+libboost-all-devel, (or at least the filesystem libraries)
 cmake (at least 2.8)
 
 ------------------------------
