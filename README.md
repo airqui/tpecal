@@ -48,7 +48,7 @@ in the bin folder:
 
     input_folder  = full path run folder containing the subruns folder (normally groupped in groups of 8 channels)
     output_folder = relative path to the ouptut folder, which should be in input_folder/output_folder.     
-    analysis_type = scurves, holdscan    
+    analysis_type = scurves, PlaneEventsScan, holdscan (to be done)    
     enabled_chips = Number of enabled chips per dif (default 16)     
     step          = in case of scans, the number of channels in each subrun (default 8)     
     buffer        = buffer to analyze (for scans) 0-14. If 15, all are analyzed together. (default 0)
@@ -59,6 +59,6 @@ in the bin folder:
 
     input_file    = input root file 
     output_folder = output folder (full path) 
-    analysis_type = Pedestal, PedestalSignal, MonitorChannel, MonitorChip
+    analysis_type = Pedestal, PedestalSignal (work in progress), MonitorChannel, MonitorChip
     enabled_chips = Number of enabled chips per dif (default 16) 
     
