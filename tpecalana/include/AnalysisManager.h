@@ -41,14 +41,15 @@ public:
     //A map of buffer and vector that holds the graphs of the pedestal values for each channel
     typedef std::map<unsigned, std::vector<TGraphErrors*> >  TGraphPedestalVec_t;
 
-    void acquireRunInformation(ExperimentalSetup*, TString, bool, bool, TString);
+    void acquireRunInformation(ExperimentalSetup*, TString, TString);
     void pedestalAnalysis(ExperimentalSetup*, TString);
-    void signalAnalysis(ExperimentalSetup*, TString, TString);
+    void pedestalFileExtractor(TString);
+    void signalAnalysis(ExperimentalSetup*, TString);
 
-    void displayResults(TString, bool, bool);
+    void displayResults(TString);
     // basic analysis graphics: read the pedestal/signal info and make some fits for each channel/buffer
     void pedestalAnalysisGraphicsBasic(TString);
-    void signalAnalysisGraphicsBasic();
+    void signalAnalysisGraphicsBasic(TString);
 
     // more elaborated analysis graphics for scan runs (threshold scans, etc),
     // toy code only written for pedestal scans

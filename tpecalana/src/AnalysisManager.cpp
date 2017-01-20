@@ -43,18 +43,24 @@ void AnalysisManager::init(){
   }
 }
 
-void AnalysisManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString file_sufix, bool pedestal_analysis=true, bool signal_analysis=true, TString pedestal_file_name=""){
+void AnalysisManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString file_sufix, TString pedestal_file_name=""){
   std::cout << "************** AcquireRunInformation new file: " << _nRuns << "***********************" << std::endl;
   std::cout<<" ****Init the Analysis Manager for ADC analysis, with getAnalysisType()="<<globalvariables::getAnalysisType()<<" ****"<<std::endl;
 
-  if(pedestal_analysis == true) pedestalAnalysis(aExpSetup, file_sufix);
-  if(signal_analysis   == true)   signalAnalysis(aExpSetup, file_sufix, pedestal_file_name);
+  if(globalvariables::getAnalysisType() == "Pedestal" ) pedestalAnalysis(aExpSetup, file_sufix);
+  if(globalvariables::getAnalysisType() == "PedestalMIP" ) signalAnalysis(aExpSetup, file_sufix);
+  if(globalvariables::getAnalysisType() == "MIP" ) {
+    pedestalFileExtractor(file_sufix);
+    signalAnalysis(aExpSetup, file_sufix);
+  }
+
   _nRuns++;
 }
 
-void AnalysisManager::displayResults(TString file_sufix, bool pedestal_analysis=true, bool signal_analysis=true){
-  if(pedestal_analysis == true) pedestalAnalysisGraphicsBasic(file_sufix);
-  if(signal_analysis   == true)   signalAnalysisGraphicsBasic();
+void AnalysisManager::displayResults(TString file_sufix){
+
+  if(globalvariables::getAnalysisType() == "Pedestal" ) pedestalAnalysisGraphicsBasic(file_sufix);
+  if(globalvariables::getAnalysisType() == "PedestalMIP" ||  globalvariables::getAnalysisType() == "MIP" ) signalAnalysisGraphicsBasic( file_sufix );
 
 }
 
@@ -64,8 +70,9 @@ void AnalysisManager::displayResults(TString file_sufix, bool pedestal_analysis=
 void AnalysisManager::pedestalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix) {
 
   TString gain = globalvariables::getGainTStringAnalysis();
-  TFile *f_pedestal_scan = TFile::Open(file_sufix+gain+".root", "RECREATE");
-  TDirectory *cdtof = f_pedestal_scan->mkdir("pedestal_histos");
+  TFile *f_pedestal_scan = TFile::Open(file_sufix+gain+"_Pedestal.root", "RECREATE");
+  TDirectory *cdtof = f_pedestal_scan->GetDirectory("pedestal_histos");
+  if (!cdtof) cdtof = f_pedestal_scan->mkdir("pedestal_histos");
 
   //      Loop over all enabled chips
   for (bufferchannelInfoComplDouble_t::iterator mapiter_chip = _pedestalVecMap.begin(); mapiter_chip!=_pedestalVecMap.end();mapiter_chip++) {
@@ -141,24 +148,58 @@ void AnalysisManager::pedestalAnalysis(ExperimentalSetup* aExpSetup, TString fil
   f_pedestal_scan->Close();
 }
 
-// signal analysis, read the info and do a LandauGauss fit to the signal histogram per channel, buffer, scan value and chip.
 
-void AnalysisManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix, TString pedestal_file_name) {
+
+void AnalysisManager::pedestalFileExtractor(TString file_sufix) {
 
   TString gain = globalvariables::getGainTStringAnalysis();
-  TFile *f_signal_scan = TFile::Open(file_sufix+gain+".root", "UPDATE");
-  TDirectory *cdtof = f_signal_scan->mkdir("signal_histos");
+
+  TFile *f_pedestal = new TFile(file_sufix+gain+"_Pedestal.root");
+  std::cout<< "Opening Pedestal File: "<<file_sufix<<gain<<"_Pedestal.root"<<std::endl;
+
+  for (bufferchannelInfoComplDouble_t::iterator mapiter_chip = _pedestalVecMap.begin(); mapiter_chip!=_pedestalVecMap.end();mapiter_chip++) {
+
+    TH2F *pedestal_map = (TH2F*)f_pedestal->Get(TString::Format("pedestal_results/Pedestals_for_Chip%i",(*mapiter_chip).first));
+    TH2F *pedestalUncert_map = (TH2F*)f_pedestal->Get(TString::Format("pedestal_results/PedestalsUncert_for_Chip%i",(*mapiter_chip).first));
+
+    for (unsigned ibuf=0;ibuf<15;ibuf++)  ((*mapiter_chip).second).insert(std::make_pair(ibuf, std::vector<std::vector<std::vector<Double_t> > >  () ) );
+
+    //    loop over each buffer column using a channelInfoComplDouble_t::iterator
+    for (channelInfoComplDouble_t::iterator mapiter = (*mapiter_chip).second.begin();mapiter!=(*mapiter_chip).second.end();mapiter++) {
+      std::cout << "New buffer, HIGH GAIN: " << (*mapiter).first << "" << std::endl;
+      
+      for (unsigned ichan=0; ichan < 64; ichan++) {
+	//Build up the vector for the individual channels (needs to be done only once)
+	if((*mapiter).second.size() < ichan+1) (*mapiter).second.push_back (std::vector<std::vector<Double_t> > () );
+	
+	std::vector<Double_t> ped_double;
+	ped_double.push_back(pedestal_map->GetBinContent((*mapiter).first+1,ichan+1));
+	ped_double.push_back(pedestalUncert_map->GetBinContent((*mapiter).first+1,ichan+1));
+	std::cout<<(*mapiter).first+1 <<" "<< ichan+1<<" "<<pedestal_map->GetBinContent((*mapiter).first+1,ichan+1)<<std::endl;
+	(*mapiter).second.at(ichan).push_back(ped_double);
+      }
+    }
+
+  }
+
+
+}
+
+// signal analysis, read the info and do a LandauGauss fit to the signal histogram per channel, buffer, scan value and chip.
+
+void AnalysisManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_sufix) {
+
+  TString gain = globalvariables::getGainTStringAnalysis();
+
+  TFile *f_signal_scan = TFile::Open(file_sufix+gain+"_MIP.root", "UPDATE");
+  TDirectory *cdtof = f_signal_scan->GetDirectory("signal_histos");
+  if (!cdtof) cdtof = f_signal_scan->mkdir("signal_histos");
+
 
 
   //      Loop over all enabled chips
   for (bufferchannelInfoComplDouble_t::iterator mapiter_chip = _signalVecMap.begin(); mapiter_chip!=_signalVecMap.end();mapiter_chip++) {
     std::cout << "*************New chip, HIGH GAIN:" << (*mapiter_chip).first << "********************" << std::endl;
-    /*
-      PEDESTAL EXTRACTOR PART
-      if(pedestal_file_name != "") --> 
-      extract the pedestals from a th2 object in root file, and save them in a 
-      channelInfoComplDouble_t object.
-    */
 
     // fill the iterator object for each chip with the right object
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getBufferDepth());
@@ -189,8 +230,7 @@ void AnalysisManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_
 	  TitleNameStr << "Chip"<<(*mapiter_chip).first<<"_Chn"<<ichan<<"_buf"<<(*mapiter).first<<gain;//the iterator gives the chip ID
 
 	  std::vector<double> ped;
-	  if(pedestal_file_name == "") ped = _pedestalVecMap.at((*mapiter_chip).first).at((*mapiter).first).at(ichan).at((*mapiter).second.at(ichan).size());
-	  // else use the values extracted from the Pedestal Extractor
+	  ped = _pedestalVecMap.at((*mapiter_chip).first).at((*mapiter).first).at(ichan).at((*mapiter).second.at(ichan).size());
 
 	  std::vector<int> sig = aExpSetup->getDif(0).getASU(0).getChip((*mapiter_chip).first).getChipBuffer((*mapiter).first).getChannelChargeHisto(ichan, globalvariables::getGainAnalysis());
 	  TH1F *sighisto = new TH1F(TitleNameStr.str().c_str(), TitleNameStr.str().c_str(), 4096,0.5,4096.5);
@@ -214,7 +254,7 @@ void AnalysisManager::signalAnalysis(ExperimentalSetup* aExpSetup, TString file_
 }
 
 
-void AnalysisManager::signalAnalysisGraphicsBasic() {
+void AnalysisManager::signalAnalysisGraphicsBasic(TString file_sufix) {
   //
   // basic functionality for graphic analysis of the signal data
   // reads the different map objects and creates few th2f, for every chip, with MIP Value and error
@@ -230,8 +270,9 @@ void AnalysisManager::pedestalAnalysisGraphicsBasic(TString file_sufix) {
 
   TString gain = globalvariables::getGainTStringAnalysis();
 
-  TFile *f_pedestal_scan = TFile::Open(file_sufix+gain+".root", "UPDATE");
-  TDirectory *cdtof = f_pedestal_scan->mkdir("pedestal_results");
+  TFile *f_pedestal_scan = TFile::Open(file_sufix+gain+"_Pedestal.root", "UPDATE");
+  TDirectory *cdtof = f_pedestal_scan->GetDirectory("pedestal_results");
+  if (!cdtof) cdtof = f_pedestal_scan->mkdir("pedestal_results");
 
   //Loop over all enabled chips to create the graphs and fill them
 
@@ -259,15 +300,15 @@ void AnalysisManager::pedestalAnalysisGraphicsBasic(TString file_sufix) {
       unsigned ichan(0);
       std::vector<unsigned> chanlistVec;
       chanlistVec.clear();
-      std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << endl;
+      std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: SCA: " << (*mapiter).first << endl;
       for (std::vector<std::vector<std::vector<Double_t> > >::iterator chanVeciter=(*mapiter).second.begin(); chanVeciter!=(*mapiter).second.end(); chanVeciter++) {
-	std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << std::endl;
+	std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: SCA: " << (*mapiter).first << " Nchan: " << ichan << std::endl;
 	//Loop over the entries with pedestal in the given runs
 	//in principle we assumme that all runs are of the same type (not scan runs)
 	for (std::vector<std::vector<Double_t> >::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
 	  //Fetch the value for that run
 	  if((*runIter).size()>1) {
-	    std::cout << "AnalysisManager::pedestalAnalysisGraphicsBasic: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << " pedestal: " << (*runIter).at(0) << "(" <<  (*runIter).at(1) <<")"<<std::endl;
+	    std::cout << "AnalysisManager::pedestalAnalysisGraphicsBasic: SCA: " << (*mapiter).first << " Nchan: " << ichan << " pedestal: " << (*runIter).at(0) << "(" <<  (*runIter).at(1) <<")"<<std::endl;
 	    double runval(static_cast<double>((*runIter).at(0)));
 	    double erunval(static_cast<double>((*runIter).at(1)));
 	    
@@ -280,20 +321,22 @@ void AnalysisManager::pedestalAnalysisGraphicsBasic(TString file_sufix) {
     }
     // -------------------------------------------------------
 
+    f_pedestal_scan->cd();
+    cdtof->cd();
     //  unsigned ichn= (*chanVeciter).first;
     c_chip->cd(1);
     pedestal_map->SetTitle(canvasNameStr);
-    pedestal_map->GetXaxis()->SetTitle("buffer");
+    pedestal_map->GetXaxis()->SetTitle("SCA");
     pedestal_map->GetYaxis()->SetTitle("channel");
     pedestal_map->Draw("colz");
     c_chip->cd(2);
     pedestalUnc_map->SetTitle(errorNameStr);
-    pedestalUnc_map->GetXaxis()->SetTitle("buffer");
+    pedestalUnc_map->GetXaxis()->SetTitle("SCA");
     pedestalUnc_map->GetYaxis()->SetTitle("channel");
     pedestalUnc_map->Draw("colz");
+    //  c_chip->Update();
 
-    f_pedestal_scan->cd();
-    cdtof->cd();
+
     // once than the plotting for one chip is finished, save the canvas
     c_chip->Write();
     pedestal_map->Write();
@@ -407,9 +450,9 @@ void AnalysisManager::pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_
     unsigned ichan(0);
     std::vector<unsigned> chanlistVec;
     chanlistVec.clear();
-    std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << endl;
+    std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: SCA: " << (*mapiter).first << endl;
     for (std::vector<std::vector<std::vector<Double_t> > >::iterator chanVeciter=(*mapiter).second.begin(); chanVeciter!=(*mapiter).second.end(); chanVeciter++) {
-      std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << std::endl;
+      std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: SCA: " << (*mapiter).first << " Nchan: " << ichan << std::endl;
       //At least as a sanity check we verify that the size of the vector for wach channel corresponds to the size of the
       //vector holding the thresholds as defined above
       if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
@@ -428,7 +471,7 @@ void AnalysisManager::pedestalAnalysisGraphicsFill(bufferchannelInfoComplDouble_
       for (std::vector<std::vector<Double_t> >::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
     	//Fetch the value for that run
     	if((*runIter).size()>1) {
-	  std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: BufferNum: " << (*mapiter).first << " Nchan: " << ichan << " Run: " << irun << " pedestal: " << (*runIter).at(0) << "(" <<  (*runIter).at(1) <<")"<<std::endl;
+	  std::cout << "AnalysisManager::pedestalAnalysisGraphicsPainter: SCA: " << (*mapiter).first << " Nchan: " << ichan << " Run: " << irun << " pedestal: " << (*runIter).at(0) << "(" <<  (*runIter).at(1) <<")"<<std::endl;
 	  double runval(static_cast<double>((*runIter).at(0)));
 	  double erunval(static_cast<double>((*runIter).at(1)));
 	  //Fill the array with the relative counts for a given channel in a given run

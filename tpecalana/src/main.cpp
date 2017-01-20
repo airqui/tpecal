@@ -145,19 +145,12 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
   ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
   
   TString output_path ;
-  output_path =  TString(datadirStr_output) + "/" ;
+  output_path =  TString(datadirStr_output) ;
 
-  if(globalvariables::getAnalysisType() == "Pedestal" ) {
-    analysisManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, false, "");
-    analysisManager.displayResults(output_path, true,false);
-  }
-  
-  if(globalvariables::getAnalysisType() == "PedestalSignal" ) {
-    analysisManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path , true, true, "");
-    analysisManager.displayResults(output_path, true,true);
-  }
- 
-  
+  analysisManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path, output_path );
+  analysisManager.displayResults(output_path);
+
+
   ////reset experimental setup and run manager
   ExperimentalSetup::getInstance()->reset();
   runmanager.reset();
@@ -201,12 +194,9 @@ void MonitorRun(string datadirStr, string datadirStr_output , TString type) {
 
 
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[6])
 {
 
-  //int dummyargc;
-  //char** dummyargv;
-  // TApplication fooApp("fooApp",&dummyargc,dummyargv);
   std::cout << " ----------------------------------------------- " << std::endl;
   std::cout << " *********************************************** " << std::endl;
   std::cout << " Technological Prototype Analysis Software " << std::endl;
@@ -215,45 +205,49 @@ int main(int argc, char* argv[])
   std::cout << " December 2016 " << std::endl;
   std::cout << "  " << std::endl;
 
-  if(argc < 4)
-    {
-      std::cout << " To run it: " << std::endl;
-      std::cout << "  " << std::endl;
-      std::cout << "./tpecalana for scan analysis (threshold scan, holdscan, etc) " << std::endl;
-      std::cout << "    input_folder  == full path last subrun folder, containing converted root files. For No scan runs, this is the " << std::endl;
-      std::cout << "    output_folder == relative path to the ouptut folder, which should be in input_folder/output_folder. " << std::endl;
-      std::cout << "    analysis_type == scurves, holdscan" << std::endl;
-      std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
-      std::cout << "    step          == in case of scans, the number of channels in each subrun (default 8) " << std::endl;
-      std::cout << "    buffer        == buffer to analyze (for scans) 0-14. If 15, all are analyzed together. (default 0)" << std::endl;
-      std::cout << "  " << std::endl;
-      std::cout << "  " << std::endl;
-      std::cout << "./tpecalana for normal runs" << std::endl;
-      std::cout << "    input_file    == input root file " << std::endl;
-      std::cout << "    output_folder == output folder (full path) " << std::endl;
-      std::cout << "    analysis_type == Pedestal, PedestalSignal, MonitorChannel, MonitorChip" << std::endl;
-      std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
-      std::cout << "    value         == free parameter...  " << std::endl;
-      return 0;
-    }
-
-  TApplication fooApp("fooApp",&argc,argv);
-
-  //Where are the data?
-  std::string datadirStr= "/home/" + string(argv[1]);//
-  std::string datadirStr_output= "/home/" + string(argv[2]);
-
+  std::cout << " To run it: " << std::endl;
+  std::cout << "  " << std::endl;
+  std::cout << "./tpecalana for scan analysis (threshold scan, holdscan, etc) " << std::endl;
+  std::cout << "    input_folder  == full path last subrun folder, containing converted root files. For No scan runs, this is the " << std::endl;
+  std::cout << "    output_folder == relative path to the ouptut folder, which should be in input_folder/output_folder. " << std::endl;
+  std::cout << "    analysis_type == scurves, holdscan" << std::endl;
+  std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
+  std::cout << "    step          == in case of scans, the number of channels in each subrun (default 8) " << std::endl;
+  std::cout << "    buffer        == buffer to analyze (for scans) 0-14. If 15, all are analyzed together. (default 0)" << std::endl;
+  std::cout << "  " << std::endl;
+  std::cout << "  " << std::endl;
+  std::cout << "./tpecalana for normal runs" << std::endl;
+  std::cout << "    input_file    == input root file, i.e. /home/data/Run1.raw.root " << std::endl;
+  std::cout << "    output_file_prefix_name ==  full path plus first part of the name of the file, i.e /home/data/outpu/Run1 " << std::endl;
+  std::cout << "    analysis_type == Pedestal, PedestalMIP, MIP, MonitorChannel, MonitorChip" << std::endl;
+  std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
+  
+  std::cout << " " << std::endl;
+  std::cout << "========    Current run: " << std::endl;
   std::cout<<"Number of arguments: "<<argc<<std::endl;
   for(int i=1; i<argc; i++) 
     std::cout<<  "    argument "<<i<<"="<<argv[i]<<std::endl;
+
+  std::cout << " " << std::endl;
+  if(argc < 4)    {
+    std::cout << " Not enough arguments provided"<<std::endl;
+    return 0;
+  }
+
+  // -------------------------------------------------------------
+  // SET THE ARGUMENTS FOR THE ANALYSIS
+  //Where are the data?
+  std::string datadirStr=  string(argv[1]);//
+  std::string datadirStr_output=  string(argv[2]);
   
-  std::cout << "Directory/File where the data is: "<<datadirStr<<std::endl;
+  std::cout << "Directory/File where the data is: "<<datadirStr<<" "<< argv[1]<<std::endl;
   std::cout << "Directory/File where the output goes: "<<datadirStr_output<<std::endl;
 
   if ( !exists( datadirStr ) ) {
     std::cout << " Data directory doesn't exist !!! STOP THE EXECUTABLE  "<<std::endl;
     return 0;
   }   
+
   if ( !exists( datadirStr_output ) ) {
     std::cout << " OUTPUT directory doesn't exist !!! are you sure that you want to continue? "<<std::endl;
     //TString cont ="n";
@@ -261,7 +255,6 @@ int main(int argc, char* argv[])
     //if(cont != "y") return 0;
    }
 
- 
   globalvariables::setAnalysisType(TString(argv[3]));
 
   if(argc > 4) globalvariables::setEnabledChipsNumber(atoi(argv[4])); //
@@ -271,7 +264,12 @@ int main(int argc, char* argv[])
   if(argc > 5) step = atoi(argv[5]);
   int buffer = 0;
   if(argc > 6) buffer = atoi(argv[6]);
+  // -------------------------------------------------------------
 
+
+  // -------------------------------------------------------------
+  // START THE ANALYSIS
+  TApplication fooApp("fooApp",&argc,argv);
 
   if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan" || globalvariables::getAnalysisType() == "PlaneEventsScan" ) {
     globalvariables::setGainAnalysis(1); //high =1, low =0
@@ -280,7 +278,7 @@ int main(int argc, char* argv[])
     ScanAnalysis(step, buffer, datadirStr, datadirStr_output) ;
   }
 
-  if(globalvariables::getAnalysisType() == "Pedestal" || globalvariables::getAnalysisType() == "PedestalSignal") {
+  if(globalvariables::getAnalysisType() == "Pedestal" || globalvariables::getAnalysisType() == "PedestalMIP" || globalvariables::getAnalysisType() == "MIP" ) {
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setPlaneEventsThreshold(32); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(true);
@@ -288,7 +286,7 @@ int main(int argc, char* argv[])
   }
 
   if(globalvariables::getAnalysisType() == "MonitorChannel" || globalvariables::getAnalysisType() == "MonitorChip"  ) {
-    globalvariables::setPlaneEventsThreshold(step-3); 
+    globalvariables::setPlaneEventsThreshold(step); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     if( globalvariables::getAnalysisType() == "MonitorChannel" ) MonitorRun(datadirStr, datadirStr_output,"channel") ;
@@ -296,8 +294,6 @@ int main(int argc, char* argv[])
 
   }
 
-
   fooApp.Run();
-  //  return 0;
 
 }
