@@ -23,13 +23,13 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} /usr/X11R6)
 
 if (CMAKE_SYSTEM_NAME MATCHES Darwin)
   EXECUTE_PROCESS(COMMAND sw_vers "-productVersion"
-                  COMMAND cut -d . -f 1-2
-                  OUTPUT_VARIABLE MACOSX_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+    COMMAND cut -d . -f 1-2
+    OUTPUT_VARIABLE MACOSX_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
   MESSAGE(STATUS "Found a Mac OS X System ${MACOSX_VERSION}")
   EXECUTE_PROCESS(COMMAND sw_vers "-productVersion"
-                  COMMAND cut -d . -f 2
-                  OUTPUT_VARIABLE MACOSX_MINOR OUTPUT_STRIP_TRAILING_WHITESPACE)
-
+    COMMAND cut -d . -f 2
+    OUTPUT_VARIABLE MACOSX_MINOR OUTPUT_STRIP_TRAILING_WHITESPACE)
+  
   if(MACOSX_VERSION VERSION_GREATER 10.7 AND ${CMAKE_CXX_COMPILER_ID} STREQUAL Clang)
     set(libcxx ON CACHE BOOL "Build using libc++11" FORCE)
   endif()
@@ -147,7 +147,7 @@ if (CMAKE_SYSTEM_NAME MATCHES Darwin)
 
 else (CMAKE_SYSTEM_NAME MATCHES Darwin)
   MESSAGE(STATUS "System different from Apple, maybe ordinary Linux, set GNU compiler flags for Linux")
-  set( CMAKE_CXX_FLAGS "-std=c++0x -Wall -g" )
+  set( CMAKE_CXX_FLAGS "-Wall -g -std=c++11 -O2 -DNDEBUG" )
 endif (CMAKE_SYSTEM_NAME MATCHES Darwin)
 
 #Check the compiler and set the compile and link flags
