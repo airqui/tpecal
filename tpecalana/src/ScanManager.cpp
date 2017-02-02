@@ -164,7 +164,6 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
 	}
       }
       
-
       //Add for each run the value in that channel
       //fills the triggers into a vector that is a part of a map of chips and channels
       (*mapiter).second.at(ichan).push_back(ntrigmtmp);
@@ -207,8 +206,9 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
   std::stringstream canvasNameStr;
   canvasNameStr << "Chip" << (*aMapIter).first << "_buffer" << buffer;//the iterator gives the chip ID
   TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1000,800);
+  c_chips->Divide(2,2);
   //Divide the canvas
-  //Helper variable to allow to switch to another pad in the canvas
+  //Helper variabled to allow to switch to another pad in the canvas
   unsigned ipad(0);
   //A vector of graphs
   std::vector<TGraphErrors*> graphScurve;//vector of graphs... extract the proper graph
