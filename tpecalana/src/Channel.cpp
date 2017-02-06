@@ -70,10 +70,9 @@ void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t val, Int_t gainH
   if( val>0 ) _numEntr++;
 
   // Make filtering for pedestal and trigger counts
-  // All selection stuff is hardcoded here... 
-  //  if (gainHit> -0.5 && ( badbcid == 0 || (badbcid >5 && badbcid<11) )   &&  val>10 && nhits <= thresh ) {
+  // All selection stuff is hardcoded here...  BAD!!
 
-  if (gainHit> -0.5  &&  val>10 && badbcid == 0 ) {
+  if (gainHit >-0.5  &&  val>10 && badbcid <30 && nhits < thresh ) {
     calculateSums(val,gainHit);
     if (gainHit == 0 )   _nPedestals++;
     if (gainHit == 1 )    _nTriggers++;
@@ -83,10 +82,10 @@ void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t val, Int_t gainH
   if( badbcid> 0 && gainHit == 1 &&  val>10 ) {
     if (  badbcid == 1   && nhits <= thresh ) _nTriggers_consBcid1++;
     else if (  (badbcid >1 && badbcid < 6)  && nhits <= thresh  ) _nTriggers_consBcid5++;
-    else if( (badbcid >5 && badbcid < 11)  && nhits <= thresh   ) _nTriggers_consBcid10++;
+    else if( (badbcid >5 && badbcid < 16)  && nhits <= thresh   ) _nTriggers_consBcid10++;
   }
 
-  // Clasify and count the events not included in the filtering, with consequtive bcid
+  // Clasify and count the events not included in the filtering, with consecutive bcid
   if ( (badbcid==0 || (badbcid>10 && badbcid <30) ) && gainHit == 1 &&  val>10 && nhits > thresh ) _nTriggers_planeEvents++;
 
   

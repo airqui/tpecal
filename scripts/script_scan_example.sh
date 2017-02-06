@@ -1,11 +1,13 @@
 #!/bin/bash                                                                                                                                                                    
-FOLDER_INPUT="/home/irles/WorkArea/TestBench/2016/rawdata/daq_tests/20161215_123714/scurves_by8_masknoisy/"
-FOLDER_OUTPUT="/home/irles/WorkArea/TestBench/2017/results/20161215_123714/by8_masknoisy/"
+FOLDER_INPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by1/"
+FOLDER_OUTPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by1/results/"
 #mkdir $FOLDER_OUTPUT
 #./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT PlaneEventsScan 16 8
 
-xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT PlaneEventsScan 16 8" &
-xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 16 8 0" &
-xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 16 8 1" &
-xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 16 8 2" 
+#xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT PlaneEventsScan 16 0" &
+xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 0" &
+xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 1" &
+xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15" 
+
+#xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 16 0 2" 
 

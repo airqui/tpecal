@@ -66,12 +66,13 @@ bool ChipBuffer::setChannelVals(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t
 
 void ChipBuffer::setChipVals(Int_t bcid, Int_t corrected_bcid, Int_t badbcid, Int_t nhits) {
   //pass the measured value to the corresponding channel
-	if(badbcid==0 && nhits>0) {
-	  if(_nhitsVec.size() < (nhits+1) ) for (int ichan=0; ichan < (nhits + 1); ichan++)_nhitsVec.push_back(0);
-		_nhitsVec.at(nhits)++;
-	    _chipBcidVec.push_back(corrected_bcid);
-	}
-
+  if(badbcid==0 && nhits>0) {
+    if(_nhitsVec.size() < (nhits+1) ) for (int ichan=0; ichan < (nhits + 1); ichan++)_nhitsVec.push_back(0);
+    
+    _nhitsVec.at(nhits)++;
+    _chipBcidVec.push_back(corrected_bcid);
+  }
+  
 }
 
 std::vector<Int_t> ChipBuffer::getBcidVec() {

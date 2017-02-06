@@ -911,7 +911,7 @@ void RAW2ROOT::readEvent(std::vector < unsigned short int > & eventData , int Pl
 	      }
 	    }
 	    //irles 
-	    if( ( corrected_bcid[k][ibc] - corrected_bcid[k][ibc-1]) > 0  &&  (corrected_bcid[k][ibc] - corrected_bcid[k][ibc-1]) < 10 ) {
+	    if( ( corrected_bcid[k][ibc] - corrected_bcid[k][ibc-1]) > 0  &&  (corrected_bcid[k][ibc] - corrected_bcid[k][ibc-1]) < 16 ) {
 	      //if (corrected_bcid[k][ibc] > corrected_bcid[k][ibc-1] + MinBcidIncrement) {
 	      badbcid[k][ibc]=corrected_bcid[k][ibc] - corrected_bcid[k][ibc-1];
 	      h_TagHist[k]->Fill(ibc);
@@ -985,7 +985,7 @@ void RAW2ROOT::ReadFile(TString inputFileName, bool overwrite, int PlaneEventThr
 
   //int rawDataSize=0;
   //int nColumns = 0;
-  bool outlog = false;
+  bool outlog = true;
   bool altTag = false;
   int countchipdata=0;
   int countchip=0;
@@ -1025,11 +1025,10 @@ void RAW2ROOT::ReadFile(TString inputFileName, bool overwrite, int PlaneEventThr
         altTag = false;
       }
       
-      
       if(lastTwo[1] == 0x2020 && lastTwo[0] == 0x2020 && dataResult == 0xFFFF){// SPILL END
-        //cout<<"SPILL END= "<<packetData.size()<<endl;
         if(recordEvent){
 	  if (countchip>0){
+	    if (outlog) cout<<"ReadEvent, packet data size= "<<packetData.size()<<" for "<<countchip<<" chips"<<endl;
 	    readEvent(packetData, PlaneEventThreshold, MinBcidIncrement);
 	    event++;
 	    tree->Fill();}
@@ -1038,7 +1037,7 @@ void RAW2ROOT::ReadFile(TString inputFileName, bool overwrite, int PlaneEventThr
 	   lastTwo[0]=lastTwo[1]=dataResult=0;
 	   altTag = false;*/
       }
-
+      
       if(lastTwo[1] == 0x5053 && lastTwo[0] == 0x4C49 && dataResult == 0x2020){ //New SPILL: extract SPILL number 
         if(altTag){ 
 	  //if (outlog) cout <<){

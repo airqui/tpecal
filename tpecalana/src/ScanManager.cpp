@@ -135,7 +135,7 @@ void ScanManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
 
     if(ntrigm>0) 
       std::cout << "ScanManager::planeEventsAnalysis - chip " << (*mapiter).first << 
-	" TriggersBad/TriggersOkay: " << double(ntrigm_total)/double(ntrigm) <<" TriggersBad= "<<ntrigm_total<<" TriggersOK="<<ntrigm<< std::endl;  
+	" TriggersBad/AllTriggers: " << double(ntrigm_total)/double(ntrigm) <<" TriggersBad= "<<ntrigm_total<<" All Triggers="<<ntrigm<< std::endl;  
   }
 }
 
@@ -155,12 +155,19 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
       unsigned ntrigmtmp(0);
 
       int bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
-      std::vector<unsigned> trigmtmpvec;
       for(int ibuf=0; ibuf<bufdepth; ibuf++){
-	if(ibuf==buffer || buffer > 14 ) {
-	  trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
-	  ntrigmtmp+=trigmtmpvec.at(0);
-	  trigmtmpvec.clear();
+	if(buffer == 16 ) {
+	  if(ibuf>0) {
+	    std::vector<unsigned> trigmtmpvec;
+	    trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
+	    ntrigmtmp+=trigmtmpvec.at(0);
+	  }
+	} else {
+	  if(ibuf==buffer || buffer == 15 ) {
+	    std::vector<unsigned> trigmtmpvec;
+	    trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
+	    ntrigmtmp+=trigmtmpvec.at(0);
+	  }
 	}
       }
       
@@ -206,33 +213,35 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
   std::stringstream canvasNameStr;
   canvasNameStr << "Chip" << (*aMapIter).first << "_buffer" << buffer;//the iterator gives the chip ID
   TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1000,800);
-  c_chips->Divide(2,2);
-  //Divide the canvas
+  c_chips->Divide(4,2);
+
   //Helper variabled to allow to switch to another pad in the canvas
   unsigned ipad(0);
   //A vector of graphs
   std::vector<TGraphErrors*> graphScurve;//vector of graphs... extract the proper graph
-    
-  TH2F * fitParScurve_1 = new TH2F(TString::Format("Chip%i_fitParScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_1",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
-  TH2F * fitParScurve_2 = new TH2F(TString::Format("Chip%i_fitParScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_2",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
-  TH2F * fitParScurve_3 = new TH2F(TString::Format("Chip%i_fitParScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_3",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
-  TH2F * fitParScurve_4 = new TH2F(TString::Format("Chip%i_fitParScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_4",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
  
-  TH2F * fitParErrScurve_1 = new TH2F(TString::Format("Chip%i_fitParErrScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_1",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
-  TH2F * fitParErrScurve_2 = new TH2F(TString::Format("Chip%i_fitParErrScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_2",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
-  TH2F * fitParErrScurve_3 = new TH2F(TString::Format("Chip%i_fitParErrScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_3",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
-  TH2F * fitParErrScurve_4 = new TH2F(TString::Format("Chip%i_fitParErrScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_4",int((*aMapIter).first)),15,-0.5,14.5,64,-0.5,63.4);
-
-
-  TH1F * hist_fitParScurve_1 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_1",int((*aMapIter).first)),100,0,2);
-  TH1F * hist_fitParScurve_2 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_2",int((*aMapIter).first)),200,150,250);
-  TH1F * hist_fitParScurve_3 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_3",int((*aMapIter).first)),100,0,20);
-  TH1F * hist_fitParScurve_4 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParScurve_4",int((*aMapIter).first)),100,-2,2);
+  //-----
+  TGraph * g_fitParScurve_1 = new TGraph(64);
+  TGraph * g_fitParScurve_2 = new TGraph(64);
+  TGraph * g_fitParScurve_3 = new TGraph(64);
  
-  TH1F * hist_fitParErrScurve_1 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_1",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_1",int((*aMapIter).first)),100,0,0.5);
-  TH1F * hist_fitParErrScurve_2 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_2",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_2",int((*aMapIter).first)),100,0,5);
-  TH1F * hist_fitParErrScurve_3 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_3",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_3",int((*aMapIter).first)),100,0,5);
-  TH1F * hist_fitParErrScurve_4 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_4",int((*aMapIter).first)),TString::Format("Chip%i_fitParErrScurve_4",int((*aMapIter).first)),200,0,1);
+  TGraph * g_fitParErrScurve_1 = new TGraph(64);
+  TGraph * g_fitParErrScurve_2 = new TGraph(64);
+  TGraph * g_fitParErrScurve_3 = new TGraph(64);
+
+  TGraph * g_fitChisq = new TGraph(64);
+  //-----
+
+  TH1F * hist_fitParScurve_1 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_1",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitParScurve_1",int((*aMapIter).first)),200,0.05,2.05);
+  TH1F * hist_fitParScurve_2 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_2",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitParScurve_2",int((*aMapIter).first)),200,100.5,300.5);
+  TH1F * hist_fitParScurve_3 = new TH1F(TString::Format("hist_Chip%i_fitParScurve_3",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitParScurve_3",int((*aMapIter).first)),100,0.5,100.5);
+ 
+  TH1F * hist_fitParErrScurve_1 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_1",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitParErrScurve_1",int((*aMapIter).first)),100,0,0.5);
+  TH1F * hist_fitParErrScurve_2 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_2",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitParErrScurve_2",int((*aMapIter).first)),100,0,5);
+  TH1F * hist_fitParErrScurve_3 = new TH1F(TString::Format("hist_Chip%i_fitParErrScurve_3",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitParErrScurve_3",int((*aMapIter).first)),100,0,5);
+
+  TH1F * hist_fitChisq = new TH1F(TString::Format("hist_Chip%i_fitChisq_NDF",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitChisq_NDF",int((*aMapIter).first)),1000,0,1000);
+
 
   //An iterator used to fetch the maximum number of counts
   std::map<unsigned, std::vector<unsigned> >::iterator helpMapIter = _maxHithelpVec.find((*aMapIter).first);
@@ -244,7 +253,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
     
   for (std::vector<std::vector<unsigned> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
     std::cout << "ScanManager::sCurveAnalysisGraphicsPainter: Nchan: " << ichan << std::endl;
-    //At least as a sanity check we verify that the size of the vector for wach channel corresponds to the size of the
+    //At least as a sanity check we verify that the size of the vector for each channel corresponds to the size of the
     //vector holding the thresholds as defined above
     if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
       std::cout << "ScanManager::sCurveAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for channel" << ichan << std::endl;
@@ -268,7 +277,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
       //Fetch the value for that run
       double runval(static_cast<double>((*runIter)));
       //Fill the array with the relative counts for a given channel in a given run
-      if(ref > 2) {
+      if(ref > 0) {
 	valarray[irun] = runval/ref;
 	evalarray[irun] = sqrt(runval)/ref;
       }   else {
@@ -296,48 +305,71 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
       c_chips->cd(ipad+1);
       ipad++;
       graphScurve.back()->SetName(TString::Format("Chip%i_chn%i",int((*aMapIter).first),int(ichan)));
+      graphScurve.back()->SetTitle(TString::Format("Chip%i_chn%i-%i",int((*aMapIter).first),int(ichan),int(ichan)+7));
       graphScurve.back()->Write();
       graphScurve.back()->GetXaxis()->SetTitle("Threshold");
       graphScurve.back()->GetYaxis()->SetTitle("Nhit/Nref");
-      if(ref>10) graphScurve.back()->Draw("APSL");
+      if(ref>0) graphScurve.back()->Draw("APSL");
     } else {
       graphScurve.back()->SetName(TString::Format("Chip%i_chn%i",int((*aMapIter).first),int(ichan)));
       graphScurve.back()->Write();
-      if(ref > 10) graphScurve.back()->Draw("PSL");
+      if(ref > 0) graphScurve.back()->Draw("PSL");
     }
     FitGraphs fit;
-    TF1 * f = fit.FitScurve(graphScurve.back());
-    fitParScurve_1->Fill(buffer,ichan,f->GetParameter(0));
-    fitParScurve_2->Fill(buffer,ichan,f->GetParameter(1));
-    fitParScurve_3->Fill(buffer,ichan,f->GetParameter(2));
-    fitParScurve_4->Fill(buffer,ichan,f->GetParameter(3));
+    TF1 * f = fit.FitScurveGauss(graphScurve.back());
+    Int_t pointID = g_fitParScurve_1->GetN();
+    g_fitParScurve_1->SetPoint(pointID,ichan , f->GetParameter(0) );
+    g_fitParScurve_2->SetPoint(pointID,ichan , f->GetParameter(1) );
+    g_fitParScurve_3->SetPoint(pointID,ichan , f->GetParameter(2) );
 
-    fitParErrScurve_1->Fill(buffer,ichan,f->GetParError(0));
-    fitParErrScurve_2->Fill(buffer,ichan,f->GetParError(1));
-    fitParErrScurve_3->Fill(buffer,ichan,f->GetParError(2));
-    fitParErrScurve_4->Fill(buffer,ichan,f->GetParError(3));
+    g_fitParErrScurve_1->SetPoint(pointID,ichan , f->GetParError(0) );
+    g_fitParErrScurve_2->SetPoint(pointID,ichan , f->GetParError(1) );
+    g_fitParErrScurve_3->SetPoint(pointID,ichan , f->GetParError(2) );
+
+    pointID = g_fitChisq->GetN();
+    if(f->GetNDF()!=0) g_fitChisq->SetPoint(pointID,ichan , f->GetChisquare()/f->GetNDF());
 
     hist_fitParScurve_1->Fill(f->GetParameter(0));
     hist_fitParScurve_2->Fill(f->GetParameter(1));
     hist_fitParScurve_3->Fill(f->GetParameter(2));
-    hist_fitParScurve_4->Fill(f->GetParameter(3));
 
     hist_fitParErrScurve_1->Fill(f->GetParError(0));
     hist_fitParErrScurve_2->Fill(f->GetParError(1));
     hist_fitParErrScurve_3->Fill(f->GetParError(2));
-    hist_fitParErrScurve_4->Fill(f->GetParError(3));
+   
+    hist_fitChisq->Fill(f->GetChisquare()/f->GetNDF());
 
-    /*
-    //For debugging purposes we maintain the possibility to display the values in a simple loop
-    //Helper variable to count runs
-    unsigned irun(0);
-    for (std::vector<unsigned>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
-    std::cout << "ScanManager::sCurveAnalysisGraphicsPainter: Run " << irun << ": " << (*runIter) << std::endl;
-    irun++;
-    }
-    */
     ichan++;
   }
+
+
+  c_chips->cd(5);
+  g_fitParScurve_1->SetTitle(TString::Format("Chip%i_GaussScurve_norm",int((*aMapIter).first)));
+  g_fitParScurve_1->SetName(TString::Format("Chip%i_GaussScurve_norm",int((*aMapIter).first)));
+  g_fitParScurve_1->GetYaxis()->SetTitle("");
+  g_fitParScurve_1->GetXaxis()->SetTitle("channel");
+  g_fitParScurve_1->Draw("AL");
+
+  c_chips->cd(6);
+  g_fitParScurve_2->SetTitle(TString::Format("Chip%i_GaussScurve_mean",int((*aMapIter).first)));
+  g_fitParScurve_2->SetName(TString::Format("Chip%i_GaussScurve_mean",int((*aMapIter).first)));
+  g_fitParScurve_2->GetYaxis()->SetTitle("");
+  g_fitParScurve_2->GetXaxis()->SetTitle("channel");
+  g_fitParScurve_2->Draw("AL");
+
+  c_chips->cd(7);
+  g_fitParScurve_3->SetTitle(TString::Format("Chip%i_GaussScurve_sigma",int((*aMapIter).first)));
+  g_fitParScurve_3->SetName(TString::Format("Chip%i_GaussScurve_sigma",int((*aMapIter).first)));  
+  g_fitParScurve_3->GetYaxis()->SetTitle("channel");
+  g_fitParScurve_3->GetXaxis()->SetTitle("channel");
+  g_fitParScurve_3->Draw("AL");
+
+  c_chips->cd(8);
+  g_fitChisq->SetTitle(TString::Format("Chip%i_GaussScurve_chisq",int((*aMapIter).first)));
+  g_fitChisq->SetName(TString::Format("Chip%i_GaussScurve_chisq",int((*aMapIter).first)));
+  g_fitChisq->GetXaxis()->SetTitle("channel");
+  g_fitChisq->Draw("AL");
+
 
   //Loop over all chips and display the maximum number of hits in a given channel
     
@@ -351,25 +383,22 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
  
   f_scurve->cd();
   c_chips->Write();
-  fitParScurve_1->Write();
-  fitParScurve_2->Write();
-  fitParScurve_3->Write();
-  fitParScurve_4->Write();
-  
-  fitParErrScurve_1->Write();
-  fitParErrScurve_2->Write();
-  fitParErrScurve_3->Write();
-  fitParErrScurve_4->Write();
+  g_fitParScurve_1->Write();
+  g_fitParScurve_2->Write();
+  g_fitParScurve_3->Write();
+  g_fitParErrScurve_1->Write();
+  g_fitParErrScurve_2->Write();
+  g_fitParErrScurve_3->Write();
+  g_fitChisq->Write();
 
   hist_fitParScurve_1->Write();
   hist_fitParScurve_2->Write();
   hist_fitParScurve_3->Write();
-  hist_fitParScurve_4->Write();
-  
   hist_fitParErrScurve_1->Write();
   hist_fitParErrScurve_2->Write();
   hist_fitParErrScurve_3->Write();
-  hist_fitParErrScurve_4->Write();
+  hist_fitChisq->Write();
+
   f_scurve->Close();     
 }
 
@@ -456,11 +485,11 @@ void ScanManager::planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::iter
   TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
   leg->AddEntry(TString::Format("Chip%i_SetError0",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]==1","lp");
   leg->AddEntry(TString::Format("Chip%i_SetError1",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=5 (>1)","lp");
-  leg->AddEntry(TString::Format("Chip%i_SetError2",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=10 (>5)","lp");
+  leg->AddEntry(TString::Format("Chip%i_SetError2",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=15 (>5)","lp");
   leg->AddEntry(TString::Format("Chip%i_SetError3",int((*aMapIter).first)),TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"lp");
   leg->AddEntry(TString::Format("Chip%i_SetError4",int((*aMapIter).first)),"Negative Data","lp");
   leg->AddEntry(TString::Format("Chip%i_SetError5",int((*aMapIter).first)),"Total Bad Events","lp");
-  leg->AddEntry(TString::Format("Chip%i_SetError6",int((*aMapIter).first)),"Ok","lp");
+  leg->AddEntry(TString::Format("Chip%i_SetError6",int((*aMapIter).first)),"All","lp");
   leg->Draw();
 
   //c_chips->Update();
@@ -508,7 +537,7 @@ void ScanManager::planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::iter
     graphPlaneEvents_norm.back()->SetTitle(TString::Format("Chip%i, buffer>0",int((*helpMapIter).first)));
     graphPlaneEvents_norm.back()->Write();
     graphPlaneEvents_norm.back()->GetXaxis()->SetTitle("Threshold");
-    graphPlaneEvents_norm.back()->GetYaxis()->SetTitle("N_Badhit/N_Ok");
+    graphPlaneEvents_norm.back()->GetYaxis()->SetTitle("N_Badhit/N_All");
     if(ierror==0) graphPlaneEvents_norm.back()->Draw("APL");
     else graphPlaneEvents_norm.back()->Draw("PL");
     ierror++;
@@ -523,7 +552,7 @@ void ScanManager::planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::iter
   leg2->AddEntry(TString::Format("Chip%i_SetError3",int((*helpMapIter).first)),TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"lp");
   leg2->AddEntry(TString::Format("Chip%i_SetError4",int((*helpMapIter).first)),"Negative Data","lp");
   leg2->AddEntry(TString::Format("Chip%i_SetError5",int((*helpMapIter).first)),"Total Bad Events","lp");
-  leg2->AddEntry(TString::Format("Chip%i_SetError6",int((*helpMapIter).first)),"Ok","lp");
+  leg2->AddEntry(TString::Format("Chip%i_SetError6",int((*helpMapIter).first)),"All","lp");
   leg2->Draw();
 
   c_chips->Update();

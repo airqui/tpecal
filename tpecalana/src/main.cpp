@@ -37,7 +37,9 @@ using namespace boost::filesystem;
 
 void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_output ) {
 
-  std::string path=datadirStr+"/0/";
+  std::string path=datadirStr+"/";
+  if(buffer >0 ) path+="0/";
+
   if ( !exists( path ) ) {
     path=datadirStr;
   } else {
@@ -58,7 +60,8 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
       string scanvalue;
       if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
 	scanvalue =mystring.substr(mystring.find("trig")+4, 3);
-	globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	if( atof(scanvalue.c_str()) > 0 && (atoi(scanvalue.c_str()) % 20) ==0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	//	if( atof(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
 	std::cout<<atof(scanvalue.c_str())<<std::endl;
       }
     }
@@ -74,17 +77,16 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
   mapfilesStrvec.push_back("../mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
 
   for (unsigned irun=0; irun < globalvariables::getScanVectorDoubles().size();irun++) {
-
     std::stringstream inputFileStr;
-
+      
     std::cout<<"  ----------------------------------------- " <<std::endl;
     std::cout<<" New Trigger: "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
     ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
-
+      
     TString scanstring;
     if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") 
       scanstring="scurve_trig";       
-
+      
     if(step> 0)  {
       for(int ifile =0; ifile<64 && step>0; ifile+=step) {
 	std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<" " << step << " " << ifile<< std::endl;
@@ -94,21 +96,20 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
       }
     } else {
       inputFileStr.str("");
-      inputFileStr << datadirStr << "/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_inj_by_dif0.raw.root";
+      inputFileStr << datadirStr << "/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_by_dif0.raw.root";
       runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
     }
-
+      
     ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
-
+      
     TString output_path ;
     output_path =  TString(datadirStr_output) + "/"+ scanstring + TString::Format("%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) ;
-
+      
     ////reset experimental setup and run manager
     scanManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
     ExperimentalSetup::getInstance()->reset();
     runmanager.reset();
-
-  }
+  }   
 
   TString scanfile;
   if(globalvariables::getAnalysisType() == "scurves" )  
@@ -253,7 +254,7 @@ int main(int argc, char* argv[6])
     //TString cont ="n";
     //std::cin>> cont;
     //if(cont != "y") return 0;
-   }
+  }
 
   globalvariables::setAnalysisType(TString(argv[3]));
 
@@ -290,7 +291,7 @@ int main(int argc, char* argv[6])
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     if( globalvariables::getAnalysisType() == "MonitorChannel" ) MonitorRun(datadirStr, datadirStr_output,"channel") ;
-     if(globalvariables::getAnalysisType() == "MonitorChip" ) MonitorRun(datadirStr, datadirStr_output,"chip") ;
+    if(globalvariables::getAnalysisType() == "MonitorChip" ) MonitorRun(datadirStr, datadirStr_output,"chip") ;
 
   }
 

@@ -463,7 +463,7 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
     for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
     	std::vector<Int_t> Bcidvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getBcidVec();
     	for(unsigned ibcid=0; ibcid<Bcidvec2.size(); ibcid++)
-    		(*helpMapIter).second.push_back(Bcidvec.at(ibcid));
+    		(*helpMapIter).second.push_back(Bcidvec2.at(ibcid));
     }
   }
 
@@ -484,8 +484,8 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
   TH2F * NHitsRate_buf0 = new TH2F("NHitsRate_buf0","NHitsRate_buf0",10,-0.5,9.5,16,-0.5,15.5);
   TH2F * NHitsRate = new TH2F("NHitsRate","NHitsRate",10,-0.5,9.5,16,-0.5,15.5);
 
-  TH2F * BCID_buf0 = new TH2F("BCID_buf0","BCID_buf0",500,0,5000,16,-0.5,15.5);
-  TH2F * BCID = new TH2F("BCID","BCID",500,0,5000,16,-0.5,15.5);
+  TH2F * BCID_buf0 = new TH2F("BCID_buf0","BCID_buf0",1600,-0.5,1599.5,16,-0.5,15.5);
+  TH2F * BCID = new TH2F("BCID","BCID",1600,-0.5,1599.5,16,-0.5,15.5);
 
 
   //Loop over all enabled chips

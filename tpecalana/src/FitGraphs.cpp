@@ -17,6 +17,40 @@ FitGraphs::~FitGraphs(){/* no op*/}
 //  return par[0]*TMath::Erf( (x[0]-par[1])/par[2] ) ; //<===========
 //}
 
+TF1 *FitGraphs::FitScurveGauss(TGraphErrors *gr)
+{
+   
+  double par1=0, par2=0, par3=0;
+  //par1 = gr->GetHistogram()->GetMaximum(); 
+  double xmin = TMath::MinElement(gr->GetN(),gr->GetX()); 
+  double xmax = TMath::MaxElement(gr->GetN(),gr->GetX()); 
+
+  TF1 *fit1 = new TF1("fit1","gaus",xmin,xmax); 
+  // fit1->SetParameter(0,par1/2);
+  fit1->SetParameter(1,par2);
+  fit1->SetParameter(2,par3);
+
+  TGraphErrors *gr1 =  (TGraphErrors*)gr->Clone();	
+
+  if(fit1 !=0 ) {
+    gr1->Fit("fit1");
+
+    par1=fit1->GetParameter(0); 
+    par2=fit1->GetParameter(1); 
+    par3=fit1->GetParameter(2); 
+    TF1 *fit2 = new TF1("fit2","gaus",par2-2*par3,par2+2*par3); 
+
+    if(fit2 != 0) {
+      fit2->SetParameter(0,par1); 
+      fit2->SetParameter(1,par2); 
+      fit2->SetParameter(2,par3); 
+      gr->Fit("fit2","EMR");
+    }
+    return fit2;
+  }
+  return 0;
+}
+
 TF1 *FitGraphs::FitScurve(TGraphErrors *gr)
 {
    

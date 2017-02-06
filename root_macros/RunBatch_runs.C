@@ -3,9 +3,9 @@
 void RunBatch_runs(TString path, bool overwrite){
   // compile/load Raw2root class before  ( .x RAW2ROOT.C+ in root shell)
   // .x RunBatch.C("/home/calice/data/SCurveAll_FEV10/",true)
-  const int Start = 175;
-  const int Step = 3;
-  const int Stop = 214;
+  const int Start = 150;
+  const int Step = 5;
+  const int Stop = 250;
 
   const int PlanEventTh = 32;
   const int MinBcidInc = 10;
@@ -15,7 +15,7 @@ void RunBatch_runs(TString path, bool overwrite){
   TString filename;
   RAW2ROOT *ss;
   
-  for(int j = 0; j <64;j+=8){
+  for(int j = 0; j <64;j+=1){
     
     for(int i = 0;Start+Step*i<Stop+1;i++){
       filename = path;
