@@ -21,11 +21,18 @@ TF1 *FitGraphs::FitScurveGauss(TGraphErrors *gr)
 {
    
   double par1=0, par2=0, par3=0;
-  //par1 = gr->GetHistogram()->GetMaximum(); 
-  double xmin = TMath::MinElement(gr->GetN(),gr->GetX()); 
-  double xmax = TMath::MaxElement(gr->GetN(),gr->GetX()); 
+  int imax = TMath::LocMax(gr->GetN(),gr->GetY()); 
+  Double_t xmax,ymax;
+  gr->GetPoint(imax, xmax, ymax);
 
-  TF1 *fit1 = new TF1("fit1","gaus",xmin,xmax); 
+  int ilowedge = TMath::LocMin(gr->GetN(),gr->GetX()); 
+  int ihighedge = TMath::LocMax(gr->GetN(),gr->GetX()); 
+  Double_t xledge, yledge;
+  Double_t xhedge, yhedge;
+  gr->GetPoint(ilowedge, xledge, yledge);
+  gr->GetPoint(ihighedge, xhedge, yhedge);
+
+  TF1 *fit1 = new TF1("fit1","gaus",xmax-25,xmax+25); 
   // fit1->SetParameter(0,par1/2);
   fit1->SetParameter(1,par2);
   fit1->SetParameter(2,par3);
@@ -33,20 +40,30 @@ TF1 *FitGraphs::FitScurveGauss(TGraphErrors *gr)
   TGraphErrors *gr1 =  (TGraphErrors*)gr->Clone();	
 
   if(fit1 !=0 ) {
-    gr1->Fit("fit1");
+    gr1->Fit("fit1","R");
 
     par1=fit1->GetParameter(0); 
     par2=fit1->GetParameter(1); 
     par3=fit1->GetParameter(2); 
-    TF1 *fit2 = new TF1("fit2","gaus",par2-2*par3,par2+2*par3); 
-
+    TF1 *fit2 = new TF1("fit2","gaus",par2-3*par3,par2+3*par3);
     if(fit2 != 0) {
       fit2->SetParameter(0,par1); 
       fit2->SetParameter(1,par2); 
       fit2->SetParameter(2,par3); 
-      gr->Fit("fit2","EMR");
+      gr1->Fit("fit2","EMR");
     }
-    return fit2;
+
+    par1=fit2->GetParameter(0); 
+    par2=fit2->GetParameter(1); 
+    par3=fit2->GetParameter(2); 
+    TF1 *fit3 = new TF1("fit3","gaus", TMath::Max(xledge,par2-par3),TMath::Min(xhedge,par2+par3) ); 
+    if(fit3 != 0) {
+      fit3->SetParameter(0,par1); 
+      fit3->SetParameter(1,par2); 
+      fit3->SetParameter(2,par3); 
+      gr->Fit("fit3","EMR");
+    }
+    return fit3;
   }
   return 0;
 }

@@ -33,7 +33,7 @@ public:
     //The method to extract the information from the data container (global buffer information)
     void transferChipBufferData(Int_t*, Int_t*, Int_t*, Int_t*, Int_t*);
     //The method to extract the information from the data container (individual channels)
-    void transferChipChannelData(Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*);
+    void transferChipChannelData(Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*);
     //Return the number of ASICs
     unsigned getNumberofASICs();
     //Return a given Chip

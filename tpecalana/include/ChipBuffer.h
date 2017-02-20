@@ -22,7 +22,7 @@ public:
     ~ChipBuffer();
     void init(unsigned);
     //A method to acquire the values of the individual channels
-    bool setChannelVals(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t);
+    bool setChannelVals(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t);
     //Set the number oc channels, a fall back solution in case a proper mapping file is missing
     void setNumberOfASICChannels(unsigned);
     //Number of channels served by an individual buffer

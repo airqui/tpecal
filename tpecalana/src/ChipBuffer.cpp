@@ -37,7 +37,7 @@ void ChipBuffer::init(unsigned numchans){
 }
 
 
-bool ChipBuffer::setChannelVals(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t valLow, Int_t gainHitHigh, Int_t gainHitLow) {
+bool ChipBuffer::setChannelVals(Int_t nhits, Int_t badbcid,  Int_t correctedbcid, Int_t valHigh, Int_t valLow, Int_t gainHitHigh, Int_t gainHitLow) {
 
   //pass the measured value to the corresponding channel  
 
@@ -47,7 +47,7 @@ bool ChipBuffer::setChannelVals(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t
     if(gainHitHigh==1 && valHigh>0)  _channelHighHistoVec.at(_channelCount).push_back(valHigh);
     if(gainHitLow==1 && valLow>0)  _channelLowHistoVec.at(_channelCount).push_back(valLow);
   }
-  _channelVec.at(_channelCount).acquireData(nhits, badbcid, valHigh, valLow, gainHitHigh, gainHitLow);
+  _channelVec.at(_channelCount).acquireData(nhits, badbcid, correctedbcid, valHigh, valLow, gainHitHigh, gainHitLow);
 
   if(nhits==0 && gainHitHigh==1) std::cout<<"ALERT ChipBuffer "<<nhits<<" "<< valHigh <<" "<<gainHitHigh<<std::endl;
 
@@ -66,7 +66,7 @@ bool ChipBuffer::setChannelVals(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t
 
 void ChipBuffer::setChipVals(Int_t bcid, Int_t corrected_bcid, Int_t badbcid, Int_t nhits) {
   //pass the measured value to the corresponding channel
-  if(badbcid==0 && nhits>0) {
+  if(nhits>0) {
     if(_nhitsVec.size() < (nhits+1) ) for (int ichan=0; ichan < (nhits + 1); ichan++)_nhitsVec.push_back(0);
     
     _nhitsVec.at(nhits)++;

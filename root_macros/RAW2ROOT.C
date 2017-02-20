@@ -737,7 +737,7 @@ void RAW2ROOT::readEvent(std::vector < unsigned short int > & eventData , int Pl
 
 
       if(isValidChip){
-        const int offset=1; //was 2
+        const int offset=2; //was 2
         rawDataSize = i-chipStartIndex-CHIPENDTAG;
         local_offset = (rawDataSize-offset)%(1+NCHANNELS*2);
 
@@ -985,7 +985,7 @@ void RAW2ROOT::ReadFile(TString inputFileName, bool overwrite, int PlaneEventThr
 
   //int rawDataSize=0;
   //int nColumns = 0;
-  bool outlog = true;
+  bool outlog = false;
   bool altTag = false;
   int countchipdata=0;
   int countchip=0;

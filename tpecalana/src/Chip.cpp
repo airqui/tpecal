@@ -49,7 +49,7 @@ void Chip::setBufferDepth(unsigned bufferDepth) {
   }
 }
 
-void Chip::acquireChipChannelData(Int_t *aValNHitsArray, Int_t *aValBadBcidArray, Int_t *aValArrayHigh, int  *aValArrayLow, Int_t *aGainHitArrayHigh, Int_t *aGainHitArrayLow) {
+void Chip::acquireChipChannelData(Int_t *aValNHitsArray, Int_t *aValBadBcidArray, Int_t *aValCorrectedBcidArray, Int_t *aValArrayHigh, int  *aValArrayLow, Int_t *aGainHitArrayHigh, Int_t *aGainHitArrayLow) {
   //It is assumed that we receive a pointer to the first entry in the first buffer positions of a chip
 
   unsigned counter(0);
@@ -67,6 +67,7 @@ void Chip::acquireChipChannelData(Int_t *aValNHitsArray, Int_t *aValBadBcidArray
 
       Int_t nhits = *(aValNHitsArray+ibuf*64/_nChannels);
       Int_t badbcid = *(aValBadBcidArray+ibuf*64/_nChannels);
+      Int_t correctedbcid = *(aValCorrectedBcidArray+ibuf*64/_nChannels);
       Int_t highgain = *(aValArrayHigh+counter);
       Int_t lowgain = *(aValArrayLow+counter);
       Int_t highgain_hit = *(aGainHitArrayHigh+counter);
@@ -74,7 +75,7 @@ void Chip::acquireChipChannelData(Int_t *aValNHitsArray, Int_t *aValBadBcidArray
 
 
       allChannelsFilled = _chipBuffer.at(ibuf).setChannelVals(
-							      nhits, badbcid,
+							      nhits, badbcid, correctedbcid,
 							      highgain, lowgain,
 							      highgain_hit, lowgain_hit) ;
 

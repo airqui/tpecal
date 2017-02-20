@@ -43,6 +43,11 @@ namespace globalvariables
   TString getPlaneEventsThresholdTStringAnalysis( );
   void setPlaneEventsThreshold(int);
 
+ // choose the Min BCID Threshold
+  extern int minBcid_th;
+  int getMinBCIDThreshold();
+  void setMinBCIDThreshold(int);
+
   // enabled chips
   // to be modified by a method that actually looks into a rundb file or an xml file and knows how many chips were
   // enabled

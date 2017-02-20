@@ -419,7 +419,7 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
 
   //Loop over all enabled chips to fill the nhit rate for SCA=0 and SCA>0
   for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _NhitsChipMap_buf0.begin();mapiter!=_NhitsChipMap_buf0.end();mapiter++) {
-    std::cout << "MonitorManager::simpleChipAnalysis ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
+    std::cout << "MonitorManager::simpleChipAnalysis, Hits ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
 
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
     unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
@@ -436,21 +436,25 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
     std::vector<Int_t> nhitstotal;
     for (unsigned ihits=0; ihits < numChans; ihits++) nhitstotal.push_back(0);
 
-	for (unsigned ibuf=1; ibuf < bufdepth; ibuf++) {
-		std::vector<Int_t> nhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*helpMapIter).first).getChipBuffer(ibuf).getNhitsRate();
-	    for (unsigned ihits=0; ihits < nhitsvec.size(); ihits++) nhitstotal.at(ihits)+=nhitsvec.at(ihits);
-	}
-
+    for (unsigned ibuf=1; ibuf < bufdepth; ibuf++) {
+      std::vector<Int_t> nhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*helpMapIter).first).getChipBuffer(ibuf).getNhitsRate();
+      if(nhitsvec.size()>numChans) continue; //safety check... but how is that even possible? 
+      for (unsigned ihits=0; ihits <nhitsvec.size(); ihits++) {
+	std::cout<<ihits<<" "<<nhitsvec.size()<<" "<< nhitstotal.size()<<std::endl;
+	nhitstotal.at(ihits)+=nhitsvec.at(ihits);
+      }
+    }  
     for (unsigned ihits=0; ihits < nhitstotal.size(); ihits++) {
-    	if((*helpMapIter).second.size() < ihits+1)  (*helpMapIter).second.push_back(0);
-    	(*helpMapIter).second.at(ihits)=nhitstotal.at(ihits);
+      if((*helpMapIter).second.size() < ihits+1)  (*helpMapIter).second.push_back(0);
+      (*helpMapIter).second.at(ihits)=nhitstotal.at(ihits);
     }
+
   }
 
 
   //Loop over all enabled chips to fill the bcid mean and rms calculation rate for SCA=0 and SCA>0
   for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _BcidChipMap_buf0.begin();mapiter!=_BcidChipMap_buf0.end();mapiter++) {
-    std::cout << "MonitorManager::simpleChipAnalysis ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
+    std::cout << "MonitorManager::simpleChipAnalysis, BCID ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
 
     std::vector<Int_t> Bcidvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getBcidVec();
     for(unsigned ibcid=0; ibcid<Bcidvec.size(); ibcid++)
@@ -462,8 +466,8 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
 
     for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
     	std::vector<Int_t> Bcidvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getBcidVec();
-    	for(unsigned ibcid=0; ibcid<Bcidvec2.size(); ibcid++)
-    		(*helpMapIter).second.push_back(Bcidvec2.at(ibcid));
+    	for(unsigned ibcid=0; ibcid<Bcidvec2.size(); ibcid++)   (*helpMapIter).second.push_back(Bcidvec2.at(ibcid));
+
     }
   }
 
@@ -484,8 +488,8 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
   TH2F * NHitsRate_buf0 = new TH2F("NHitsRate_buf0","NHitsRate_buf0",10,-0.5,9.5,16,-0.5,15.5);
   TH2F * NHitsRate = new TH2F("NHitsRate","NHitsRate",10,-0.5,9.5,16,-0.5,15.5);
 
-  TH2F * BCID_buf0 = new TH2F("BCID_buf0","BCID_buf0",1600,-0.5,1599.5,16,-0.5,15.5);
-  TH2F * BCID = new TH2F("BCID","BCID",1600,-0.5,1599.5,16,-0.5,15.5);
+  TH2F * BCID_buf0 = new TH2F("BCID_buf0","BCID_buf0",100000,-0.5,99999.5,16,-0.5,15.5);
+  TH2F * BCID = new TH2F("BCID","BCID",100000,-0.5,99999.5,16,-0.5,15.5);
 
 
   //Loop over all enabled chips

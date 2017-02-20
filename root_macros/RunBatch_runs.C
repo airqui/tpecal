@@ -3,9 +3,9 @@
 void RunBatch_runs(TString path, bool overwrite){
   // compile/load Raw2root class before  ( .x RAW2ROOT.C+ in root shell)
   // .x RunBatch.C("/home/calice/data/SCurveAll_FEV10/",true)
-  const int Start = 150;
-  const int Step = 5;
-  const int Stop = 250;
+  const int Start = 120;
+  const int Step = 10;
+  const int Stop = 280;
 
   const int PlanEventTh = 32;
   const int MinBcidInc = 10;
@@ -15,7 +15,7 @@ void RunBatch_runs(TString path, bool overwrite){
   TString filename;
   RAW2ROOT *ss;
   
-  for(int j = 0; j <64;j+=1){
+  for(int j = 0; j <64;j+=64){
     
     for(int i = 0;Start+Step*i<Stop+1;i++){
       filename = path;
@@ -24,7 +24,7 @@ void RunBatch_runs(TString path, bool overwrite){
       filename += "/";
       filename += "scurve_trig";
       filename += Start+Step*i;
-      filename += "_by_dif0.raw";
+      filename += "_dif_1_1_1.raw";
       cout << "File: " << filename << endl;
       ss = new RAW2ROOT();
       ss->ReadFile(filename.Data(), overwrite, PlanEventTh, MinBcidInc);

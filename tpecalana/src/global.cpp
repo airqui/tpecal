@@ -4,7 +4,7 @@ namespace globalvariables
 {
 
   //------------------------------------------------------------------
-  // for scan runs, (threshold scans, hold scans)
+  // values set for scan runs, (threshold scans, hold scans)
   std::vector<Double_t> scanValVec;
   TString ScanType = "";
   void setScanType(TString type) {
@@ -94,6 +94,34 @@ namespace globalvariables
       std::cout<<  " WRONG THRESHOLD CHOICE for the analysis, threshold="<< threshold <<std::endl;
       std::cout<<  " automatically set to 32 " <<std::endl;
       planeEvent_th = 32;
+    }
+  }
+
+
+ //------------------------------------------------------------------
+  // Set Min BCID for selection
+  int minBcid_th = 0;
+  int getMinBCIDThreshold()
+  {
+    if( minBcid_th > 0 ) {
+      return minBcid_th;
+    } else { 
+      //      std::cout<<  " WRONG MIN BCID THRESHOLD CHOICE for the analysis, threshold="<< minBcid_th<<std::endl;
+      //std::cout<<  " automatically set to 0 " <<std::endl;
+      minBcid_th = 0;
+    }
+    return planeEvent_th;
+  }
+
+  void setMinBCIDThreshold(int threshold )
+  {
+    if(threshold > 0 ) {
+      minBcid_th = threshold;
+      std::cout<<  " Min BCID Threshold set to "<< threshold <<std::endl;
+    } else { 
+      //std::cout<<  " WRONG Min BCID THRESHOLD CHOICE for the analysis, threshold="<< threshold <<std::endl;
+      //std::cout<<  " automatically set to 0 " <<std::endl;
+      minBcid_th = 0;
     }
   }
 

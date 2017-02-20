@@ -30,7 +30,7 @@ public:
     //Acquire information that contain global information on the buffers of a chip (at the moment we receive an array which is ugly)
     void acquireChipBufferData(Int_t*, Int_t*, Int_t*, Int_t*);
     //Acquire the data that belong to the channel of this chip (at the moment we receive an array which is ugly)
-    void acquireChipChannelData(Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*);
+    void acquireChipChannelData(Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*, Int_t*);
     //Return the number of channels connected to the ASIC
     unsigned getNumberOfASICChannels();
     //Return the bufferdepth

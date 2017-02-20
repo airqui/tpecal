@@ -21,8 +21,8 @@ public:
     ~Channel();
     void init();
     //A method to acquire data 
-    void acquireData(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t);
-    void acquireDataGain(Int_t, Int_t, Int_t, Int_t);
+    void acquireData(Int_t, Int_t, Int_t, Int_t, Int_t, Int_t, Int_t);
+    void acquireDataGain(Int_t, Int_t, Int_t, Int_t, Int_t);
     //Return the number of entries
     unsigned getNEntries();
     //Return the number of triggers

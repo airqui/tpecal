@@ -38,7 +38,7 @@ using namespace boost::filesystem;
 void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_output ) {
 
   std::string path=datadirStr+"/";
-  if(buffer >0 ) path+="0/";
+  if(step >0 ) path+="0/";
 
   if ( !exists( path ) ) {
     path=datadirStr;
@@ -60,8 +60,8 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
       string scanvalue;
       if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
 	scanvalue =mystring.substr(mystring.find("trig")+4, 3);
-	if( atof(scanvalue.c_str()) > 0 && (atoi(scanvalue.c_str()) % 20) ==0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	//	if( atof(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	//	if( atof(scanvalue.c_str()) > 0 && (atoi(scanvalue.c_str()) % 5  ) ==0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	if( atof(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
 	std::cout<<atof(scanvalue.c_str())<<std::endl;
       }
     }
@@ -91,19 +91,16 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
       for(int ifile =0; ifile<64 && step>0; ifile+=step) {
 	std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<" " << step << " " << ifile<< std::endl;
 	inputFileStr.str("");
-	inputFileStr << datadirStr << "/"<<ifile<<"/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_by_dif0.raw.root";
+	inputFileStr << datadirStr << "/"<<ifile<<"/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_dif_1_1_1.raw.root";
 	runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
       }
     } else {
       inputFileStr.str("");
-      inputFileStr << datadirStr << "/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_by_dif0.raw.root";
+      inputFileStr << datadirStr << "/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_dif_1_1_1.raw.root";
       runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
     }
       
     ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
-      
-    TString output_path ;
-    output_path =  TString(datadirStr_output) + "/"+ scanstring + TString::Format("%i",int(globalvariables::getScanVectorDoubles().at(irun) ) ) ;
       
     ////reset experimental setup and run manager
     scanManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
@@ -113,7 +110,7 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
 
   TString scanfile;
   if(globalvariables::getAnalysisType() == "scurves" )  
-    scanfile= TString(datadirStr_output)+TString::Format("/Scurves_PlaneEvThresh%i_buff%i_",globalvariables::getPlaneEventsThreshold(),buffer);
+    scanfile= TString(datadirStr_output)+TString::Format("/Scurves_PlaneEvThresh%i_buff%i_minBCID%i",globalvariables::getPlaneEventsThreshold(),buffer,globalvariables::getMinBCIDThreshold());
 
   if(globalvariables::getAnalysisType() == "PlaneEventsScan" )  
     scanfile= TString(datadirStr_output)+TString::Format("/PlaneEventsScan_PlaneEvThresh%i_",globalvariables::getPlaneEventsThreshold());
@@ -215,6 +212,7 @@ int main(int argc, char* argv[6])
   std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
   std::cout << "    step          == in case of scans, the number of channels in each subrun (default 8) " << std::endl;
   std::cout << "    buffer        == buffer to analyze (for scans) 0-14. If 15, all are analyzed together. (default 0)" << std::endl;
+  std::cout << "    BCID thr      == minimum BCID required (default 0)" << std::endl;
   std::cout << "  " << std::endl;
   std::cout << "  " << std::endl;
   std::cout << "./tpecalana for normal runs" << std::endl;
@@ -265,6 +263,11 @@ int main(int argc, char* argv[6])
   if(argc > 5) step = atoi(argv[5]);
   int buffer = 0;
   if(argc > 6) buffer = atoi(argv[6]);
+
+  int minbcid = 0;
+  if(argc > 7) minbcid = atoi(argv[7]);
+  globalvariables::setMinBCIDThreshold(minbcid); 
+
   // -------------------------------------------------------------
 
 
@@ -296,5 +299,6 @@ int main(int argc, char* argv[6])
   }
 
   fooApp.Run();
+  return 0;
 
 }

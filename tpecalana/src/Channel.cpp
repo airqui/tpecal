@@ -53,46 +53,50 @@ Channel::~Channel(){/*no op*/}
 void Channel::init(){/*no op*/}
 
 
-void Channel::acquireData(Int_t nhits, Int_t badbcid, Int_t valHigh, Int_t valLow, Int_t gainHitHigh, Int_t gainHitLow) {
+void Channel::acquireData(Int_t nhits, Int_t badbcid, Int_t correctedbcid, Int_t valHigh, Int_t valLow, Int_t gainHitHigh, Int_t gainHitLow) {
 
   Int_t gainAnalysis = globalvariables::getGainAnalysis();
-  if(gainAnalysis == 1) acquireDataGain(nhits, badbcid, valHigh, gainHitHigh);
-  else if(gainAnalysis == 0) acquireDataGain(nhits, badbcid, valLow, gainHitLow);
+  if(gainAnalysis == 1) acquireDataGain(nhits, badbcid, correctedbcid, valHigh, gainHitHigh);
+  else if(gainAnalysis == 0) acquireDataGain(nhits, badbcid, correctedbcid, valLow, gainHitLow);
   else std::cout<<"ERROR, you should define in which gain you do the analysis: globalvariables::setGainAnalysis() " <<std::endl;
 
 }
 
-void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t val, Int_t gainHit) {
+void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t correctedbcid, Int_t val, Int_t gainHit) {
 
   Int_t thresh = globalvariables::getPlaneEventsThreshold();
-  
-  //Count number of entries
-  if( val>0 ) _numEntr++;
+  Int_t bcid_thresh = globalvariables::getMinBCIDThreshold();
 
-  // Make filtering for pedestal and trigger counts
-  // All selection stuff is hardcoded here...  BAD!!
-
-  if (gainHit >-0.5  &&  val>10 && badbcid <30 && nhits < thresh ) {
-    calculateSums(val,gainHit);
-    if (gainHit == 0 )   _nPedestals++;
-    if (gainHit == 1 )    _nTriggers++;
+  if(correctedbcid > bcid_thresh ){ 
+    
+    //Count number of entries
+    if( val>0 ) _numEntr++;
+    
+    // Make filtering for pedestal and trigger counts
+    // All selection stuff is hardcoded here...  BAD!!
+    
+    if (gainHit >-0.5  ){//&&  val>10 && badbcid <30 && nhits < thresh ) {
+      calculateSums(val,gainHit);
+      if (gainHit == 0 )   _nPedestals++;
+      if (gainHit == 1 )    _nTriggers++;
+    }
+    
+    // Clasify and count the events not included in the filtering, with consequtive bcid
+    if( badbcid> 0 && gainHit == 1 &&  val>10 ) {
+      if (  badbcid == 1   && nhits <= thresh ) _nTriggers_consBcid1++;
+      else if (  (badbcid >1 && badbcid < 6)  && nhits <= thresh  ) _nTriggers_consBcid5++;
+      else if( (badbcid >5 && badbcid < 16)  && nhits <= thresh   ) _nTriggers_consBcid10++;
+    }
+    
+    // Clasify and count the events not included in the filtering, with consecutive bcid
+    if ( (badbcid==0 || (badbcid>10 && badbcid <30) ) && gainHit == 1 &&  val>10 && nhits > thresh ) _nTriggers_planeEvents++;
+    
+    if( gainHit == 1 &&  (badbcid > 30 || val < 10 )  )  _nTriggers_negativeData++;
+    
+    //Count number of undefined entries
+    if (gainHit < 0) _nUndefined++;
+    
   }
-  
-  // Clasify and count the events not included in the filtering, with consequtive bcid
-  if( badbcid> 0 && gainHit == 1 &&  val>10 ) {
-    if (  badbcid == 1   && nhits <= thresh ) _nTriggers_consBcid1++;
-    else if (  (badbcid >1 && badbcid < 6)  && nhits <= thresh  ) _nTriggers_consBcid5++;
-    else if( (badbcid >5 && badbcid < 16)  && nhits <= thresh   ) _nTriggers_consBcid10++;
-  }
-
-  // Clasify and count the events not included in the filtering, with consecutive bcid
-  if ( (badbcid==0 || (badbcid>10 && badbcid <30) ) && gainHit == 1 &&  val>10 && nhits > thresh ) _nTriggers_planeEvents++;
-
-  
-  if( gainHit == 1 &&  (badbcid > 30 || val < 10 )  )  _nTriggers_negativeData++;
-  
-  //Count number of undefined entries
-  if (gainHit < 0) _nUndefined++;
   
 }
 

@@ -3,10 +3,13 @@
 # 
 # Example script to run monitoring and analysis over one file
 
-FOLDER_INPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by8/"
-FOLDER_OUTPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by8/results/"
+#FOLDER_INPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by8/"
+#FOLDER_OUTPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by8/results/"
 
-for i in $(seq 220 10 250)
+FOLDER_INPUT="/home/irles/WorkArea/TestBench/2016/rawdata/daq_tests/20161215_123714/scurves_by8_masknoisy/"
+FOLDER_OUTPUT="/home/irles/WorkArea/TestBench/2016/rawdata/daq_tests/20161215_123714/scurves_by8_masknoisy/output_gaussScurve/"
+
+for i in $(seq 181 3 205)
 do
     FILE="scurve_trig${i}_by_dif0.raw"
     

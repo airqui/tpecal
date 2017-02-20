@@ -1,13 +1,36 @@
-#!/bin/bash                                                                                                                                                                    
+#!/bin/bash      
+
+source script1.sh &
+
+# ----------------------------------------------------------
 FOLDER_INPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by1/"
-FOLDER_OUTPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by1/results/"
-#mkdir $FOLDER_OUTPUT
-#./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT PlaneEventsScan 16 8
+FOLDER_OUTPUT= "/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by1/results/"
 
-#xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT PlaneEventsScan 16 0" &
-xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 0" &
-xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 1" &
-xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15" 
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1245 
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1246 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1247 
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1250 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1255 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1260 
 
-#xterm -e "time ./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 16 0 2" 
+# ----------------------------------------------------------
+FOLDER_INPUT="/home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by8/"
+FOLDER_OUTPUT=" /home/irles/llr_testbench_data/sk2/20170202_165616/scurves_by8/results/"
 
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1245
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1246 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1247 
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1250 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1255 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1260 
+
+
+FOLDER_INPUT="/home/irles/llr_testbench_data/sk2a/201701/"
+FOLDER_OUTPUT="/home/irles/llr_testbench_data/sk2a/201701/results/"
+
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1245 
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1246 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1247 
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1250 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1255 &
+./../bin/tpecalana  $FOLDER_INPUT $FOLDER_OUTPUT scurves 1 0 15 1260 

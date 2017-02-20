@@ -129,7 +129,7 @@ void Dif::dataAnalysis(TFile* aDifFile, int PlaneEventThreshold) {
       		  &bcid[containerEntryofASU][0], &corrected_bcid[containerEntryofASU][0], &badbcid[containerEntryofASU][0], &nhits[containerEntryofASU][0]);
       //
       _asuVec.at(iasu).transferChipChannelData(&chipid[containerEntryofASU],
-					       &nhits[containerEntryofASU][0], &badbcid[containerEntryofASU][0],
+					       &nhits[containerEntryofASU][0], &badbcid[containerEntryofASU][0], &corrected_bcid[containerEntryofASU][0],
 					       &high_gain[containerEntryofASU][0][0], &low_gain[containerEntryofASU][0][0],
 					       &gain_hit_high[containerEntryofASU][0][0], &gain_hit_low[containerEntryofASU][0][0]);
 
