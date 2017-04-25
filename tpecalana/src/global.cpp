@@ -110,7 +110,7 @@ namespace globalvariables
       //std::cout<<  " automatically set to 0 " <<std::endl;
       minBcid_th = 0;
     }
-    return planeEvent_th;
+    return minBcid_th;
   }
 
   void setMinBCIDThreshold(int threshold )

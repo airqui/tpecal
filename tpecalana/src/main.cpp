@@ -35,10 +35,10 @@ using namespace boost::filesystem;
 
 
 
-void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_output ) {
+void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string datadirStr_output ) {
 
   std::string path=datadirStr+"/";
-  if(step >0 ) path+="0/";
+  //if(step >0 ) path+="roc1_0/";
 
   if ( !exists( path ) ) {
     path=datadirStr;
@@ -50,24 +50,36 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
   }  
  
   boost::filesystem::path apk_path(path);
-  boost::filesystem::recursive_directory_iterator end;
+  boost::filesystem::directory_iterator end;
       
-  for (boost::filesystem::recursive_directory_iterator i(apk_path); i != end; ++i)   {
+  for (boost::filesystem::directory_iterator i(apk_path); i != end; ++i)   {
     const boost::filesystem::path cp = (*i);
 
     std::string mystring = cp.string();
-    if(mystring.substr(mystring.length() - 4) == "root" ) {
+    if(mystring.substr(mystring.length() - 18) == string(dif+".raw.root") ){
       string scanvalue;
       if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
 	scanvalue =mystring.substr(mystring.find("trig")+4, 3);
-	//	if( atof(scanvalue.c_str()) > 0 && (atoi(scanvalue.c_str()) % 5  ) ==0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	if( atof(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	std::cout<<atof(scanvalue.c_str())<<std::endl;
+
+	if( atoi(scanvalue.c_str()) % 5 == 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	
+	/*	if( atof(scanvalue.c_str())<145) {
+	  if( atoi(scanvalue.c_str()) % 20 ==0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	} else if( atof(scanvalue.c_str())<260 ) {
+	  if (atoi(scanvalue.c_str()) % 4 == 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	} else if( atoi(scanvalue.c_str()) % 50 ==0 )  globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	*/
+      
+	std::cout<<" Main::GetScanValue "<<atof(scanvalue.c_str())<<std::endl;
+	std::cout<<mystring<<" for dif "<<dif<<std::endl;
       }
     }
   }
 
+  for (unsigned irun=0; irun < globalvariables::getScanVectorDoubles().size();irun++) 
+    std::cout<<" Main::NextScanValue: "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
 
+  
   RunManager runmanager;    
   ScanManager scanManager;    scanManager.init();
 
@@ -80,7 +92,8 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
     std::stringstream inputFileStr;
       
     std::cout<<"  ----------------------------------------- " <<std::endl;
-    std::cout<<" New Trigger: "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
+    std::cout<<" Main::NextScanValue: "<< globalvariables::getScanVectorDoubles().at(irun) <<std::endl;
+
     ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
       
     TString scanstring;
@@ -88,18 +101,21 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
       scanstring="scurve_trig";       
       
     if(step> 0)  {
-      for(int ifile =0; ifile<64 && step>0; ifile+=step) {
+      for(int ifile =0; ifile<64; ifile+=step) {
 	std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<" " << step << " " << ifile<< std::endl;
 	inputFileStr.str("");
-	inputFileStr << datadirStr << "/"<<ifile<<"/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_dif_1_1_1.raw.root";
+	inputFileStr << datadirStr << "/roc1_"<<ifile<<"/"<<+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_"+dif<<".raw.root";
 	runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
       }
     } else {
       inputFileStr.str("");
-      inputFileStr << datadirStr << "/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_dif_1_1_1.raw.root";
+      inputFileStr << datadirStr << "/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_"+dif<<".raw.root";
+      //dif_1_1_1.raw.root";
+      std::cout<<" Main::ReadFile "<<inputFileStr.str().c_str()<<std::endl;
       runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
     }
-      
+
+
     ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
       
     ////reset experimental setup and run manager
@@ -110,13 +126,13 @@ void ScanAnalysis(int step, int buffer, string datadirStr, string datadirStr_out
 
   TString scanfile;
   if(globalvariables::getAnalysisType() == "scurves" )  
-    scanfile= TString(datadirStr_output)+TString::Format("/Scurves_PlaneEvThresh%i_buff%i_minBCID%i",globalvariables::getPlaneEventsThreshold(),buffer,globalvariables::getMinBCIDThreshold());
+    scanfile = TString(datadirStr_output)+TString::Format("/Scurves_PlaneEvThresh%i_buff%i_minBCID%i_",globalvariables::getPlaneEventsThreshold(),buffer,globalvariables::getMinBCIDThreshold())+dif;
 
   if(globalvariables::getAnalysisType() == "PlaneEventsScan" )  
     scanfile= TString(datadirStr_output)+TString::Format("/PlaneEventsScan_PlaneEvThresh%i_",globalvariables::getPlaneEventsThreshold());
 
   scanManager.displayResults( scanfile,buffer );
-
+    
 
 }
 
@@ -265,8 +281,21 @@ int main(int argc, char* argv[6])
   if(argc > 6) buffer = atoi(argv[6]);
 
   int minbcid = 0;
-  if(argc > 7) minbcid = atoi(argv[7]);
+  TString dif;
+  if(argc > 7)     minbcid = atoi(argv[7]);
+
+  int idif=0;
+  if(argc > 8) {
+    idif=atoi(argv[8]);
+    if(idif==0) dif="dif_1_1_1";
+    if(idif==1) dif="dif_1_1_2";
+    if(idif==2) dif="dif_1_1_3";
+    if(idif==3) dif="dif_1_2_1";
+    if(idif==4) dif="dif_1_2_2";
+  }
+  //  minbcid=1249;
   globalvariables::setMinBCIDThreshold(minbcid); 
+
 
   // -------------------------------------------------------------
 
@@ -277,9 +306,9 @@ int main(int argc, char* argv[6])
 
   if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan" || globalvariables::getAnalysisType() == "PlaneEventsScan" ) {
     globalvariables::setGainAnalysis(1); //high =1, low =0
-    globalvariables::setPlaneEventsThreshold(step-3); //high =1, low =0
+    globalvariables::setPlaneEventsThreshold(64); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
-    ScanAnalysis(step, buffer, datadirStr, datadirStr_output) ;
+    ScanAnalysis(dif,step, buffer, datadirStr, datadirStr_output) ;
   }
 
   if(globalvariables::getAnalysisType() == "Pedestal" || globalvariables::getAnalysisType() == "PedestalMIP" || globalvariables::getAnalysisType() == "MIP" ) {
@@ -290,7 +319,7 @@ int main(int argc, char* argv[6])
   }
 
   if(globalvariables::getAnalysisType() == "MonitorChannel" || globalvariables::getAnalysisType() == "MonitorChip"  ) {
-    globalvariables::setPlaneEventsThreshold(step); 
+    globalvariables::setPlaneEventsThreshold(64); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     if( globalvariables::getAnalysisType() == "MonitorChannel" ) MonitorRun(datadirStr, datadirStr_output,"channel") ;

@@ -32,8 +32,10 @@ void ScanManager::init(){
   _nRuns=0;
   //to be removed
   for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size(); ichip++) {
-    _ntrigVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<unsigned> >  () ));
-    _maxHithelpVec.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<unsigned> () ));
+    _ntrigVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> >  () ));
+    _maxHithelpVec.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Double_t> () ));
+    _maxHitCounthelpVec.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Double_t> () ));
+
     _ntrigChipVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> > () ));
     _ntrigChipVecMapHigh_norm.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> > () ));
 
@@ -142,49 +144,64 @@ void ScanManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
 
 void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
     
+  std::vector<std::pair<unsigned, unsigned> >acqnumber=aExpSetup->getDif(0).getDifStatVec();
+  float nSpills= acqnumber.size();
+  //for(int iac=0; iac<acqnumber.size();iac++) 
+    //std::cout<< iac << " " << acqnumber.at(iac).first << " " << acqnumber.at(iac).second <<std::endl;
+
   //Loop over all enabled chips
   for (channelInfoComplUnsigned_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
-    std::cout << "*************New chip: " << (*mapiter).first << "********************" << std::endl;
-    std::map<unsigned, std::vector<unsigned> >::iterator helpMapIter = _maxHithelpVec.find((*mapiter).first);
+    //    std::cout << "*************New chip: " << (*mapiter).first << "********************" << std::endl;
+    std::map<unsigned, std::vector<Double_t> >::iterator helpMapIter = _maxHithelpVec.find((*mapiter).first);
+    std::map<unsigned, std::vector<Double_t> >::iterator helpMapIter2 = _maxHitCounthelpVec.find((*mapiter).first);
+
     unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
 
     for (unsigned ichan=0; ichan < numChans; ichan++) {
       //Build up the vector for the individual channels (needs to be done only once)
-      if((*mapiter).second.size() < ichan+1) (*mapiter).second.push_back (std::vector<unsigned> () );
+      if((*mapiter).second.size() < ichan+1) (*mapiter).second.push_back (std::vector<Double_t> () );
       //reads out the trigger of each channel
       unsigned ntrigmtmp(0);
 
       int bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
+
       for(int ibuf=0; ibuf<bufdepth; ibuf++){
-	if(buffer == 16 ) {
-	  if(ibuf>0) {
-	    std::vector<unsigned> trigmtmpvec;
-	    trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
-	    ntrigmtmp+=trigmtmpvec.at(0);
+	if(ibuf==buffer || buffer == 15 ) {
+	  std::vector<unsigned> trigmtmpvec;
+	  trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
+	  //ntrigmtmp+=trigmtmpvec.at(0);
+	  for(int itrig=0; itrig<trigmtmpvec.size() ; itrig++) {
+	    if(itrig!=1 && itrig<5) ntrigmtmp+=trigmtmpvec.at(itrig); 
+	    //save all triggers (bcid+1, bcid+x included) except plane and negative events
 	  }
-	} else {
-	  if(ibuf==buffer || buffer == 15 ) {
-	    std::vector<unsigned> trigmtmpvec;
-	    trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
-	    ntrigmtmp+=trigmtmpvec.at(0);
-	  }
-	}
-      }
+	}//if
+      }//ibuf
       
       //Add for each run the value in that channel
       //fills the triggers into a vector that is a part of a map of chips and channels
-      (*mapiter).second.at(ichan).push_back(ntrigmtmp);
-      if(ntrigmtmp>0) std::cout << "ScanManager::sCurveAnalysis - chip " << (*mapiter).first << " Channel: " << ichan << " Triggers: " << ntrigmtmp << std::endl;
-      //Store the maximum nummber of triggers
+
+      double trig_per_spill = 0;
+      if( nSpills > 1 )trig_per_spill = ntrigmtmp/nSpills;
+      (*mapiter).second.at(ichan).push_back(trig_per_spill);
+      //      if(ntrigmtmp>0) std::cout << "ScanManager::sCurveAnalysis - chip " << (*mapiter).first << " Channel: " << ichan << " Triggers: " << ntrigmtmp << " " << nSpills << " " << ntrigmtmp/nSpills << std::endl;
+      //Store the maximum nummber of triggers/spills
       if (helpMapIter != _maxHithelpVec.end()) {
-  	if ((*helpMapIter).second.size()<ichan+1 ) (*helpMapIter).second.push_back(ntrigmtmp);
+  	if ((*helpMapIter).second.size()<ichan+1 ) (*helpMapIter).second.push_back(trig_per_spill);
   	else {
-  	  if (ntrigmtmp >  (*helpMapIter).second.at(ichan)) {
-  	    (*helpMapIter).second.at(ichan) = ntrigmtmp;
-  	  }
-                    
+  	  if (ntrigmtmp/nSpills >  (*helpMapIter).second.at(ichan)) {
+  	    (*helpMapIter).second.at(ichan) = trig_per_spill;
+  	  }               
   	}
-      }          
+      }  
+      //Store the maximum nummber of triggers
+      if (helpMapIter2 != _maxHitCounthelpVec.end()) {
+  	if ((*helpMapIter2).second.size()<ichan+1 ) (*helpMapIter2).second.push_back(ntrigmtmp);
+  	else {
+  	  if (ntrigmtmp >  (*helpMapIter2).second.at(ichan)) {
+  	    (*helpMapIter2).second.at(ichan) = ntrigmtmp;
+  	  }               
+  	}
+      } 
     }      
   }
 }
@@ -235,7 +252,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
   TGraph * g_fitChisq = new TGraph(64);
   //-----
   TH1F * hist_fitParScurve_1 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_norm",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_norm",int((*aMapIter).first)),100,0.55,1.55);
-  TH1F * hist_fitParScurve_2 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_mean",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_mean",int((*aMapIter).first)),400,165.05,205.05);
+  TH1F * hist_fitParScurve_2 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_mean",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_mean",int((*aMapIter).first)),400,125,250);
   TH1F * hist_fitParScurve_3 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_sigma",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_sigma",int((*aMapIter).first)),500,0.05,50.05);
  
   TH1F * hist_fitParErrScurve_1 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_Errnorm",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_Errnorm",int((*aMapIter).first)),100,0,0.5);
@@ -244,15 +261,17 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
  
   TH1F * hist_fitChisq = new TH1F(TString::Format("hist_Chip%i_fitChisq_NDF",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitChisq_NDF",int((*aMapIter).first)),100,-0.05,9.95);
 
-  //An iterator used to fetch the maximum number of counts
-  std::map<unsigned, std::vector<unsigned> >::iterator helpMapIter = _maxHithelpVec.find((*aMapIter).first);
+  //An iterator used to fetch the maximum number of counts/spill and counts
+  std::map<unsigned, std::vector<Double_t> >::iterator helpMapIter = _maxHithelpVec.find((*aMapIter).first);
+  std::map<unsigned, std::vector<Double_t> >::iterator helpMapIter2 = _maxHitCounthelpVec.find((*aMapIter).first);
+
   //Loopover all chips
   std::cout << "ScanManager::sCurveAnalysisGraphicsPainter: Chip: " << (*aMapIter).first << std::endl;
   //Loop over all channels
   //Helper variable to count channels
   unsigned ichan(0);
     
-  for (std::vector<std::vector<unsigned> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
+  for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
     std::cout << "ScanManager::sCurveAnalysisGraphicsPainter: Nchan: " << ichan << std::endl;
     //At least as a sanity check we verify that the size of the vector for each channel corresponds to the size of the
     //vector holding the thresholds as defined above
@@ -268,19 +287,20 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
     double evalarray[ (*chanVeciter).size()];
     double evalarray_x[ (*chanVeciter).size()];
     //A local variable that holds the reference values
-    double ref(static_cast<double>((*helpMapIter).second.at(ichan)));
+    double ref(static_cast<double>((*helpMapIter).second.at(ichan))); //max triggers / num spills (acq)
+    double ref_count(static_cast<double>((*helpMapIter2).second.at(ichan))); // max triggers
 
     //Loop over the entries with trigger in the given runs
     //Helper variable to count runs
     unsigned irun(0);
-    for (std::vector<unsigned>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
+    for (std::vector<Double_t>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
       // std::cout << "ScanManager::sCurveAnalysisGraphicsPainter: Run " << irun << ": " << (*runIter) << std::endl;
       //Fetch the value for that run
       double runval(static_cast<double>((*runIter)));
       //Fill the array with the relative counts for a given channel in a given run
-      if(ref > 0) {
+      if(ref_count > 5 && ref>0) {
 	valarray[irun] = runval/ref;
-	evalarray[irun] = sqrt(runval)/ref;
+	evalarray[irun] = sqrt(runval)/sqrt(ref_count);
       }   else {
 	valarray[irun] = 0;
 	evalarray[irun] = 0;
@@ -314,32 +334,38 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
     } else {
       graphScurve.back()->SetName(TString::Format("Chip%i_chn%i",int((*aMapIter).first),int(ichan)));
       graphScurve.back()->Write();
-      if(ref > 0) graphScurve.back()->Draw("PSL");
+      if(ref_count > 5) graphScurve.back()->Draw("PSL");
     }
     FitGraphs fit;
-    TF1 * f = fit.FitScurveGauss(graphScurve.back());
+    TF1 * f;
+    if(buffer!=0) f= fit.FitScurveGauss(graphScurve.back());
+    else f= fit.FitScurve(graphScurve.back());
     Int_t pointID = g_fitParScurve_1->GetN();
-    g_fitParScurve_1->SetPoint(pointID,ichan , f->GetParameter(0) );
-    g_fitParScurve_2->SetPoint(pointID,ichan , f->GetParameter(1) );
-    g_fitParScurve_3->SetPoint(pointID,ichan , f->GetParameter(2) );
-
-    g_fitParErrScurve_1->SetPoint(pointID,ichan , f->GetParError(0) );
-    g_fitParErrScurve_2->SetPoint(pointID,ichan , f->GetParError(1) );
-    g_fitParErrScurve_3->SetPoint(pointID,ichan , f->GetParError(2) );
-
-    pointID = g_fitChisq->GetN();
-    if(f->GetNDF()!=0) g_fitChisq->SetPoint(pointID,ichan , f->GetChisquare()/f->GetNDF());
-
-    hist_fitParScurve_1->Fill(f->GetParameter(0));
-    hist_fitParScurve_2->Fill(f->GetParameter(1));
-    hist_fitParScurve_3->Fill(f->GetParameter(2));
-
-    hist_fitParErrScurve_1->Fill(f->GetParError(0));
-    hist_fitParErrScurve_2->Fill(f->GetParError(1));
-    hist_fitParErrScurve_3->Fill(f->GetParError(2));
-   
-    hist_fitChisq->Fill(f->GetChisquare()/f->GetNDF());
-
+    if(f!=0) {
+      if(f->GetParameter(0) >0 ) {
+	g_fitParScurve_1->SetPoint(pointID,ichan , f->GetParameter(0) );
+	g_fitParScurve_2->SetPoint(pointID,ichan , f->GetParameter(1) );
+	g_fitParScurve_3->SetPoint(pointID,ichan , f->GetParameter(2) );
+	
+	g_fitParErrScurve_1->SetPoint(pointID,ichan , f->GetParError(0) );
+	g_fitParErrScurve_2->SetPoint(pointID,ichan , f->GetParError(1) );
+	g_fitParErrScurve_3->SetPoint(pointID,ichan , f->GetParError(2) );
+	
+	pointID = g_fitChisq->GetN();
+	if(f->GetNDF()!=0) g_fitChisq->SetPoint(pointID,ichan , f->GetChisquare()/f->GetNDF());
+	
+	
+	hist_fitParScurve_1->Fill(float(f->GetParameter(0)));
+	hist_fitParScurve_2->Fill(float(f->GetParameter(1)));
+	hist_fitParScurve_3->Fill(float(f->GetParameter(2)));
+	
+	hist_fitParErrScurve_1->Fill(float(f->GetParError(0)));
+	hist_fitParErrScurve_2->Fill(float(f->GetParError(1)));
+	hist_fitParErrScurve_3->Fill(float(f->GetParError(2)));
+	
+	if(f->GetNDF()!=0) hist_fitChisq->Fill(float(f->GetChisquare())/float(f->GetNDF()));
+      }
+    }
     ichan++;
   }
 
@@ -355,7 +381,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
   g_fitParScurve_2->SetTitle(TString::Format("Chip%i_GaussScurve_mean",int((*aMapIter).first)));
   g_fitParScurve_2->SetName(TString::Format("Chip%i_GaussScurve_mean",int((*aMapIter).first)));
   g_fitParScurve_2->GetYaxis()->SetTitle("DAC");
-  g_fitParScurve_2->GetYaxis()->SetRangeUser(170,190);
+  g_fitParScurve_2->GetYaxis()->SetRangeUser(170,220);
   g_fitParScurve_2->GetXaxis()->SetTitle("channel");
   g_fitParScurve_2->Draw("AL");
 
@@ -374,12 +400,14 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
   g_fitChisq->GetYaxis()->SetRangeUser(0,5);
   g_fitChisq->Draw("AL");
 
+  c_chips->Update();
 
   c_chips->cd(9);
   hist_fitParScurve_1->SetTitle(TString::Format("hist_Chip%i_GaussScurve_norm",int((*aMapIter).first)));
   hist_fitParScurve_1->GetYaxis()->SetTitle("");
   hist_fitParScurve_1->GetXaxis()->SetTitle("channel");
   hist_fitParScurve_1->Draw("L");
+  //g_fitParScurve_1->Draw("AL");
 
   c_chips->cd(10);
   hist_fitParScurve_2->SetTitle(TString::Format("hist_Chip%i_GaussScurve_mean",int((*aMapIter).first)));
@@ -397,12 +425,13 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
   hist_fitChisq->GetXaxis()->SetTitle("#Chi^{2}/NDF");
   hist_fitChisq->Draw("L");
 
+  c_chips->Update();
 
   //Loop over all chips and display the maximum number of hits in a given channel
     
   if (helpMapIter != _maxHithelpVec.end()) {
     unsigned ichan(0);
-    for (std::vector<unsigned>::iterator chanIter= (*helpMapIter).second.begin();chanIter!= (*helpMapIter).second.end() ; chanIter++) {
+    for (std::vector<Double_t>::iterator chanIter= (*helpMapIter).second.begin();chanIter!= (*helpMapIter).second.end() ; chanIter++) {
       std::cout << "ScanManager::sCurveAnalysisGraphicsPainter: maxcount Nchan: " << ichan << ", " << (*chanIter) << std::endl;
       ichan++;
     }

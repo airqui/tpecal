@@ -53,6 +53,7 @@ private:
     std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap; //npedestals per chip and channel
     std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0; //ntriggers per chip and channel
     std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_buf0; //npedestals per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _ErrorsChipChannelVecMap; //nerrors per chip and channel
 
     std::map<unsigned,std::vector<Double_t> > _PedWidthChipChannelVecMap; //pedestal width per chip and channel (one buffer)
     std::map<unsigned,std::vector<Double_t> > _SignalWidthChipChannelVecMap; //signal width per chip and channel (one buffer)

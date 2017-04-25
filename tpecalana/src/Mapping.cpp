@@ -71,7 +71,7 @@ void Mapping::createChipChannelMapping() {
     //The check of the connection pattern for the last chip that has been handled
     checkConnectionPattern();
     //At the end of this method we should have the channel mapping, a list of connection patterns and the association of each chip to a connection pattern. We will validate thus in a dedicated method that will only be enabled for debugging purposes
-    verifyMapping();
+    //    verifyMapping();
 }
 
 void Mapping::handleMappingData(unsigned ichip, double xchip, double ychip, unsigned ichan, double xchan, double ychan) {

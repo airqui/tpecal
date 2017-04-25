@@ -46,9 +46,10 @@ private:
 
     //S-curve analysis
     //A map that holds the number of triggers of all channels for all runs for all enabled chips
-    typedef std::map<unsigned, std::vector<std::vector<unsigned> > > channelInfoComplUnsigned_t;
+    typedef std::map<unsigned, std::vector<std::vector<Double_t> > > channelInfoComplUnsigned_t;
     channelInfoComplUnsigned_t _ntrigVecMapHigh;
-    std::map<unsigned, std::vector<unsigned> > _maxHithelpVec;
+    std::map<unsigned, std::vector<Double_t> > _maxHithelpVec;
+    std::map<unsigned, std::vector<Double_t> > _maxHitCounthelpVec;
     //analysis
     void sCurveAnalysis(ExperimentalSetup*,int);
     //The method that will effectively call the graphics part

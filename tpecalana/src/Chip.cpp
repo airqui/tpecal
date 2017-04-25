@@ -79,8 +79,8 @@ void Chip::acquireChipChannelData(Int_t *aValNHitsArray, Int_t *aValBadBcidArray
 							      highgain, lowgain,
 							      highgain_hit, lowgain_hit) ;
 
-      if( nhits==0 && highgain_hit==1 )
-	std::cout<<"ALERT Chip "<<nhits<<" "<< highgain <<" "<<highgain_hit<<" "<<_nChannels<<" "<<counter<<" "<<ibuf<<" "<<ibuf*64/_nChannels<<std::endl;
+      //      if( nhits==0 && highgain_hit==1 )
+      //std::cout<<"ALERT Chip "<<nhits<<" "<< highgain <<" "<<highgain_hit<<" "<<_nChannels<<" "<<counter<<" "<<ibuf<<" "<<ibuf*64/_nChannels<<std::endl;
 
       counter++;
       //A stop condition for debugging purposes to avoid endless loops and segfaults
