@@ -63,7 +63,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
       if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
 	scanvalue =mystring.substr(mystring.find("trig")+4, 3);
 
-	if( atoi(scanvalue.c_str()) % 30 == 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	if( atoi(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
 	std::cout<<" Main::GetScanValue "<<atof(scanvalue.c_str())<<std::endl;
 	std::cout<<mystring<<" for dif "<<dif<<std::endl;
       }
