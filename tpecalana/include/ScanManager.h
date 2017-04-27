@@ -39,6 +39,7 @@ public:
 private:
 
     TFile* f_scurve;
+    ofstream fout_scurves;
 
     //Number of runs analysed by the manager
     unsigned _nRuns;
@@ -54,7 +55,7 @@ private:
     void sCurveAnalysis(ExperimentalSetup*,int);
     //The method that will effectively call the graphics part
     void sCurveAnalysisGraphics(TString,int);
-    void sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator, TString,int);
+    void sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator, TString, int);
     
     //Plane Events analysis, per chip
     typedef std::map<unsigned, std::vector<std::vector<Double_t> > > ChipInfoComplDouble_t;

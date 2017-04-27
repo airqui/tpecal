@@ -29,7 +29,8 @@ public:
     // TF1* GetScurveTF1(TGraph* gr);
     TF1* FitScurve(TGraphErrors* gr);
     TF1* FitScurveGauss(TGraphErrors* gr);
-
+    float FirstZero(TGraphErrors* gr);
+    
 private:
     //   Double_t erf( Double_t *x, Double_t *par);
     // void errorfunc();

@@ -208,21 +208,29 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
 
 
 void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
-    
+
+  fout_scurves.open(file_sufix+".log",ios::out);
+
+  fout_scurves<<"#Scurve analysis summary" <<std::endl;
+  fout_scurves<<"#"<<file_sufix <<std::endl;
+  fout_scurves<<"#chip channel threshold width chi2/NDF first_zero" <<std::endl;
+
   //Loop over all enabled chips
   for (channelInfoComplUnsigned_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
     sCurveAnalysisGraphicsPainter(mapiter,file_sufix, buffer);
   }
+
+  fout_scurves.close();
 }
 
 
 void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator aMapIter, TString file_sufix, int buffer) {
     
 
-  TString gain = globalvariables::getGainTStringAnalysis();
+  // TString gain = globalvariables::getGainTStringAnalysis();
   TString filerecreate = "RECREATE";
   if((*aMapIter).first  > 0) filerecreate="UPDATE";
-  TFile *f_scurve = TFile::Open(file_sufix+gain+".root", filerecreate);
+  TFile *f_scurve = TFile::Open(file_sufix+".root", filerecreate);
   TDirectory *dir = f_scurve->GetDirectory(TString::Format("scurves_graphs_buffer%i",buffer));
   if (!dir) dir = f_scurve->mkdir(TString::Format("scurves_graphs_buffer%i",buffer));
 
@@ -230,8 +238,8 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
   std::stringstream canvasNameStr;
   canvasNameStr << "Chip" << (*aMapIter).first ;
   std::stringstream canvasTitleStr;
-  canvasTitleStr << "Chip" << (*aMapIter).first << "_" << TString::Format("Scurves_PlaneEvThresh%i_minBCID%i",globalvariables::getPlaneEventsThreshold(),globalvariables::getMinBCIDThreshold());//the iterator gives the chip ID
-  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasTitleStr.str().c_str(),11,30,1400,1000);
+  canvasTitleStr << "Chip" << (*aMapIter).first << "_" << TString::Format("Scurves_PlaneEvThresh%i",globalvariables::getPlaneEventsThreshold());//the iterator gives the chip ID
+  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasTitleStr.str().c_str(),11,30,1600,800);
   c_chips->Divide(4,3);
   c_chips->SetTitle(canvasTitleStr.str().c_str());
 
@@ -251,13 +259,13 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
 
   TGraph * g_fitChisq = new TGraph(64);
   //-----
-  TH1F * hist_fitParScurve_1 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_norm",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_norm",int((*aMapIter).first)),100,0.55,1.55);
-  TH1F * hist_fitParScurve_2 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_mean",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_mean",int((*aMapIter).first)),400,125,250);
-  TH1F * hist_fitParScurve_3 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_sigma",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_sigma",int((*aMapIter).first)),500,0.05,50.05);
+  TH1F * hist_fitParScurve_1 = new TH1F(TString::Format("hist_Chip%i_Scurve_firstzero",int((*aMapIter).first)),TString::Format("hist_Chip%i_Scurve_firstzero",int((*aMapIter).first)),200,100.5,300.5);
+  TH1F * hist_fitParScurve_2 = new TH1F(TString::Format("hist_Chip%i_Scurve_mean",int((*aMapIter).first)),TString::Format("hist_Chip%i_Scurve_mean",int((*aMapIter).first)),400,125,250);
+  TH1F * hist_fitParScurve_3 = new TH1F(TString::Format("hist_Chip%i_Scurve_sigma",int((*aMapIter).first)),TString::Format("hist_Chip%i_Scurve_sigma",int((*aMapIter).first)),500,0.05,50.05);
  
-  TH1F * hist_fitParErrScurve_1 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_Errnorm",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_Errnorm",int((*aMapIter).first)),100,0,0.5);
-  TH1F * hist_fitParErrScurve_2 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_Errmean",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_Errmean",int((*aMapIter).first)),100,0,5);
-  TH1F * hist_fitParErrScurve_3 = new TH1F(TString::Format("hist_Chip%i_GaussScurve_Errsigma",int((*aMapIter).first)),TString::Format("hist_Chip%i_GaussScurve_Errsigma",int((*aMapIter).first)),100,0,5);
+  TH1F * hist_fitParErrScurve_1 = new TH1F(TString::Format("hist_Chip%i_Scurve_Errnorm",int((*aMapIter).first)),TString::Format("hist_Chip%i_Scurve_Errnorm",int((*aMapIter).first)),100,0,0.5);
+  TH1F * hist_fitParErrScurve_2 = new TH1F(TString::Format("hist_Chip%i_Scurve_Errmean",int((*aMapIter).first)),TString::Format("hist_Chip%i_Scurve_Errmean",int((*aMapIter).first)),100,0,5);
+  TH1F * hist_fitParErrScurve_3 = new TH1F(TString::Format("hist_Chip%i_Scurve_Errsigma",int((*aMapIter).first)),TString::Format("hist_Chip%i_Scurve_Errsigma",int((*aMapIter).first)),100,0,5);
  
   TH1F * hist_fitChisq = new TH1F(TString::Format("hist_Chip%i_fitChisq_NDF",int((*aMapIter).first)),TString::Format("hist_Chip%i_fitChisq_NDF",int((*aMapIter).first)),100,-0.05,9.95);
 
@@ -321,7 +329,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
     graphScurve.back()->SetMarkerStyle(20+ichan%16);
     //We have only 15 different marker symbols but in principle 16 channels to draw
     if (ichan%16==15) graphScurve.back()->SetMarkerStyle(5);
-    graphScurve.back()->SetMarkerSize(1.2);
+    graphScurve.back()->SetMarkerSize(0.8);
     if (ichan%16 == 0) {
       c_chips->cd(ipad+1);
       ipad++;
@@ -340,88 +348,109 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iter
     TF1 * f;
     if(buffer!=0) f= fit.FitScurveGauss(graphScurve.back());
     else f= fit.FitScurve(graphScurve.back());
+
+    float first_zero = fit.FirstZero(graphScurve.back());
+    
     Int_t pointID = g_fitParScurve_1->GetN();
-    if(f!=0) {
-      if(f->GetParameter(0) >0 ) {
-	g_fitParScurve_1->SetPoint(pointID,ichan , f->GetParameter(0) );
-	g_fitParScurve_2->SetPoint(pointID,ichan , f->GetParameter(1) );
-	g_fitParScurve_3->SetPoint(pointID,ichan , f->GetParameter(2) );
+
+    g_fitParScurve_1->SetPoint(pointID,ichan , first_zero  );
+    g_fitParErrScurve_1->SetPoint(pointID,ichan , 0 );
+    hist_fitParScurve_1->Fill( first_zero);
+    hist_fitParErrScurve_1->Fill(0);
+
+    if(f->GetParameter(1) > 150 ) {
+      //  g_fitParScurve_1->SetPoint(pointID,ichan , f->GetParameter(0) );
+      g_fitParScurve_2->SetPoint(pointID,ichan , f->GetParameter(1) );
+      g_fitParScurve_3->SetPoint(pointID,ichan , f->GetParameter(2) );
+      
+      //   g_fitParErrScurve_1->SetPoint(pointID,ichan , f->GetParError(0) );
+      g_fitParErrScurve_2->SetPoint(pointID,ichan , f->GetParError(1) );
+      g_fitParErrScurve_3->SetPoint(pointID,ichan , f->GetParError(2) );
+      
+      pointID = g_fitChisq->GetN();
+
+      float chi2ndf = 0;
+      if(f->GetNDF()!=0) chi2ndf = f->GetChisquare()/f->GetNDF();
+      g_fitChisq->SetPoint(pointID,ichan , chi2ndf);
+      
+      
+      // hist_fitParScurve_1->Fill(float(f->GetParameter(0)));
+      hist_fitParScurve_2->Fill(float(f->GetParameter(1)));
+      hist_fitParScurve_3->Fill(float(f->GetParameter(2)));
+      
+      // hist_fitParErrScurve_1->Fill(float(f->GetParError(0)));
+      hist_fitParErrScurve_2->Fill(float(f->GetParError(1)));
+      hist_fitParErrScurve_3->Fill(float(f->GetParError(2)));
+      
+       hist_fitChisq->Fill(chi2ndf);
+
+      fout_scurves<<int((*aMapIter).first) << " " <<ichan << " ";
+      fout_scurves<<std::fixed << std::setprecision(3) << f->GetParameter(1) << " " << f->GetParameter(2) <<  " " << chi2ndf <<" "<<first_zero<<std::endl;
 	
-	g_fitParErrScurve_1->SetPoint(pointID,ichan , f->GetParError(0) );
-	g_fitParErrScurve_2->SetPoint(pointID,ichan , f->GetParError(1) );
-	g_fitParErrScurve_3->SetPoint(pointID,ichan , f->GetParError(2) );
-	
-	pointID = g_fitChisq->GetN();
-	if(f->GetNDF()!=0) g_fitChisq->SetPoint(pointID,ichan , f->GetChisquare()/f->GetNDF());
-	
-	
-	hist_fitParScurve_1->Fill(float(f->GetParameter(0)));
-	hist_fitParScurve_2->Fill(float(f->GetParameter(1)));
-	hist_fitParScurve_3->Fill(float(f->GetParameter(2)));
-	
-	hist_fitParErrScurve_1->Fill(float(f->GetParError(0)));
-	hist_fitParErrScurve_2->Fill(float(f->GetParError(1)));
-	hist_fitParErrScurve_3->Fill(float(f->GetParError(2)));
-	
-	if(f->GetNDF()!=0) hist_fitChisq->Fill(float(f->GetChisquare())/float(f->GetNDF()));
-      }
+    } else {
+      
+      fout_scurves<<int((*aMapIter).first) << " " <<ichan << " ";
+      fout_scurves<<fixed << setprecision(3) << 0 << " " << 0 <<  " " << 0 <<" " <<first_zero<<std::endl;
+      
     }
+
     ichan++;
   }
 
 
   c_chips->cd(5);
-  g_fitParScurve_1->SetTitle(TString::Format("Chip%i_GaussScurve_norm",int((*aMapIter).first)));
-  g_fitParScurve_1->SetName(TString::Format("Chip%i_GaussScurve_norm",int((*aMapIter).first)));
+  g_fitParScurve_1->SetTitle(TString::Format("Chip%i_Scurve_firstzero",int((*aMapIter).first)));
+  g_fitParScurve_1->SetName(TString::Format("Chip%i_Scurve_firstzero",int((*aMapIter).first)));
   g_fitParScurve_1->GetYaxis()->SetTitle("");
   g_fitParScurve_1->GetXaxis()->SetTitle("channel");
   g_fitParScurve_1->Draw("AL");
 
   c_chips->cd(6);
-  g_fitParScurve_2->SetTitle(TString::Format("Chip%i_GaussScurve_mean",int((*aMapIter).first)));
-  g_fitParScurve_2->SetName(TString::Format("Chip%i_GaussScurve_mean",int((*aMapIter).first)));
+  g_fitParScurve_2->SetTitle(TString::Format("Chip%i_Scurve_mean",int((*aMapIter).first)));
+  g_fitParScurve_2->SetName(TString::Format("Chip%i_Scurve_mean",int((*aMapIter).first)));
   g_fitParScurve_2->GetYaxis()->SetTitle("DAC");
   g_fitParScurve_2->GetYaxis()->SetRangeUser(170,220);
   g_fitParScurve_2->GetXaxis()->SetTitle("channel");
   g_fitParScurve_2->Draw("AL");
 
   c_chips->cd(7);
-  g_fitParScurve_3->SetTitle(TString::Format("Chip%i_GaussScurve_sigma",int((*aMapIter).first)));
-  g_fitParScurve_3->SetName(TString::Format("Chip%i_GaussScurve_sigma",int((*aMapIter).first)));  
+  g_fitParScurve_3->SetTitle(TString::Format("Chip%i_Scurve_sigma",int((*aMapIter).first)));
+  g_fitParScurve_3->SetName(TString::Format("Chip%i_Scurve_sigma",int((*aMapIter).first)));  
   g_fitParScurve_3->GetYaxis()->SetTitle("DAC");
   g_fitParScurve_3->GetXaxis()->SetTitle("channel");
   g_fitParScurve_3->Draw("AL");
 
   c_chips->cd(8);
-  g_fitChisq->SetTitle(TString::Format("Chip%i_GaussScurve_chisq",int((*aMapIter).first)));
-  g_fitChisq->SetName(TString::Format("Chip%i_GaussScurve_chisq",int((*aMapIter).first)));
+  g_fitChisq->SetTitle(TString::Format("Chip%i_Scurve_chisq",int((*aMapIter).first)));
+  g_fitChisq->SetName(TString::Format("Chip%i_Scurve_chisq",int((*aMapIter).first)));
   g_fitChisq->GetXaxis()->SetTitle("channel");
   g_fitChisq->GetYaxis()->SetTitle("#Chi^{2}/NDF");
   g_fitChisq->GetYaxis()->SetRangeUser(0,5);
   g_fitChisq->Draw("AL");
 
+
   c_chips->Update();
 
   c_chips->cd(9);
-  hist_fitParScurve_1->SetTitle(TString::Format("hist_Chip%i_GaussScurve_norm",int((*aMapIter).first)));
+  hist_fitParScurve_1->SetTitle(TString::Format("hist_Chip%i_Scurve_firstzero",int((*aMapIter).first)));
   hist_fitParScurve_1->GetYaxis()->SetTitle("");
   hist_fitParScurve_1->GetXaxis()->SetTitle("channel");
   hist_fitParScurve_1->Draw("L");
   //g_fitParScurve_1->Draw("AL");
 
   c_chips->cd(10);
-  hist_fitParScurve_2->SetTitle(TString::Format("hist_Chip%i_GaussScurve_mean",int((*aMapIter).first)));
+  hist_fitParScurve_2->SetTitle(TString::Format("hist_Chip%i_Scurve_mean",int((*aMapIter).first)));
   hist_fitParScurve_2->GetYaxis()->SetTitle("");
   hist_fitParScurve_2->GetXaxis()->SetTitle("DAC");
   hist_fitParScurve_2->Draw("L");
 
   c_chips->cd(11);
-  hist_fitParScurve_3->SetTitle(TString::Format("hist_Chip%i_GaussScurve_sigma",int((*aMapIter).first)));
+  hist_fitParScurve_3->SetTitle(TString::Format("hist_Chip%i_Scurve_sigma",int((*aMapIter).first)));
   hist_fitParScurve_3->GetXaxis()->SetTitle("DAC");
   hist_fitParScurve_3->Draw("L");
 
   c_chips->cd(12);
-  hist_fitChisq->SetTitle(TString::Format("hist_Chip%i_GaussScurve_chisq",int((*aMapIter).first)));
+  hist_fitChisq->SetTitle(TString::Format("hist_Chip%i_Scurve_chisq",int((*aMapIter).first)));
   hist_fitChisq->GetXaxis()->SetTitle("#Chi^{2}/NDF");
   hist_fitChisq->Draw("L");
 

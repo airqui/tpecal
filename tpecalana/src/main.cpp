@@ -9,14 +9,16 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <TFile.h>
-#include <TGraph.h>
-#include <TCanvas.h>
 #include <cmath>
 #include <vector>
 #include <map>
-#include <TObject.h>
-#include <TApplication.h>
+
+#include "TRint.h"
+#include "TROOT.h"
+#include "TStyle.h"
+#include <TFile.h>
+#include <TGraph.h>
+#include <TCanvas.h>
 
 #include "RunManager.h"
 #include "ExperimentalSetup.h"
@@ -61,15 +63,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
       if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
 	scanvalue =mystring.substr(mystring.find("trig")+4, 3);
 
-	if( atoi(scanvalue.c_str()) % 5 == 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	
-	/*	if( atof(scanvalue.c_str())<145) {
-	  if( atoi(scanvalue.c_str()) % 20 ==0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	} else if( atof(scanvalue.c_str())<260 ) {
-	  if (atoi(scanvalue.c_str()) % 4 == 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	} else if( atoi(scanvalue.c_str()) % 50 ==0 )  globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	*/
-      
+	if( atoi(scanvalue.c_str()) % 30 == 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
 	std::cout<<" Main::GetScanValue "<<atof(scanvalue.c_str())<<std::endl;
 	std::cout<<mystring<<" for dif "<<dif<<std::endl;
       }
@@ -110,7 +104,6 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
     } else {
       inputFileStr.str("");
       inputFileStr << datadirStr << "/"+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_"+dif<<".raw.root";
-      //dif_1_1_1.raw.root";
       std::cout<<" Main::ReadFile "<<inputFileStr.str().c_str()<<std::endl;
       runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
     }
@@ -126,12 +119,12 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
 
   TString scanfile;
   if(globalvariables::getAnalysisType() == "scurves" )  
-    scanfile = TString(datadirStr_output)+TString::Format("/Scurves_PlaneEvThresh%i_buff%i_minBCID%i_",globalvariables::getPlaneEventsThreshold(),buffer,globalvariables::getMinBCIDThreshold())+dif;
+    scanfile = TString(datadirStr_output)+TString::Format("/Scurves_PlaneEvThresh%i_buff%i_",globalvariables::getPlaneEventsThreshold(),buffer)+dif;
 
   if(globalvariables::getAnalysisType() == "PlaneEventsScan" )  
     scanfile= TString(datadirStr_output)+TString::Format("/PlaneEventsScan_PlaneEvThresh%i_",globalvariables::getPlaneEventsThreshold());
 
-  scanManager.displayResults( scanfile,buffer );
+  scanManager.displayResults( scanfile , buffer );
     
 
 }
@@ -228,7 +221,7 @@ int main(int argc, char* argv[6])
   std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
   std::cout << "    step          == in case of scans, the number of channels in each subrun (default 8) " << std::endl;
   std::cout << "    buffer        == buffer to analyze (for scans) 0-14. If 15, all are analyzed together. (default 0)" << std::endl;
-  std::cout << "    BCID thr      == minimum BCID required (default 0)" << std::endl;
+  std::cout << "    dif_id        == dif_id string (default dif_1_1_1)" << std::endl;
   std::cout << "  " << std::endl;
   std::cout << "  " << std::endl;
   std::cout << "./tpecalana for normal runs" << std::endl;
@@ -263,14 +256,14 @@ int main(int argc, char* argv[6])
     return 0;
   }   
 
-  if ( !exists( datadirStr_output ) ) {
-    std::cout << " OUTPUT directory doesn't exist !!! are you sure that you want to continue? "<<std::endl;
-    //TString cont ="n";
-    //std::cin>> cont;
-    //if(cont != "y") return 0;
-  }
-
   globalvariables::setAnalysisType(TString(argv[3]));
+
+  if ( globalvariables::getAnalysisType()== "scurves" ||  globalvariables::getAnalysisType()== "holdscan"  ||  globalvariables::getAnalysisType()== "PlaneEventsScan" ) {
+     if ( !exists( datadirStr ) ) {
+       std::cout << " OUTPUT directory doesn't exist !!! Stop here "<<std::endl;
+       return 0;
+     }
+  }
 
   if(argc > 4) globalvariables::setEnabledChipsNumber(atoi(argv[4])); //
   else globalvariables::setEnabledChipsNumber(0); //
@@ -280,21 +273,10 @@ int main(int argc, char* argv[6])
   int buffer = 0;
   if(argc > 6) buffer = atoi(argv[6]);
 
-  int minbcid = 0;
-  TString dif;
-  if(argc > 7)     minbcid = atoi(argv[7]);
+  TString dif = "dif_1_1_1";
+  if(argc > 7)     dif = TString(argv[7]);
 
-  int idif=0;
-  if(argc > 8) {
-    idif=atoi(argv[8]);
-    if(idif==0) dif="dif_1_1_1";
-    if(idif==1) dif="dif_1_1_2";
-    if(idif==2) dif="dif_1_1_3";
-    if(idif==3) dif="dif_1_2_1";
-    if(idif==4) dif="dif_1_2_2";
-  }
-  //  minbcid=1249;
-  globalvariables::setMinBCIDThreshold(minbcid); 
+  globalvariables::setMinBCIDThreshold(0); 
 
 
   // -------------------------------------------------------------
@@ -302,8 +284,25 @@ int main(int argc, char* argv[6])
 
   // -------------------------------------------------------------
   // START THE ANALYSIS
-  TApplication fooApp("fooApp",&argc,argv);
+  TApplication *fooApp = new TApplication("fooApp",&argc,argv);
 
+  gROOT->SetStyle("Modern");
+  gStyle->SetTitleH(0.08);
+
+  gStyle->SetNdivisions(505,"Y");
+  gStyle->SetLabelSize(0.07,"Y");
+  gStyle->SetLabelOffset(0.005,"Y");
+  gStyle->SetTitleSize(0.065,"Y");
+  gStyle->SetTitleOffset(0.7,"Y");
+
+  gStyle->SetNdivisions(510,"X");
+  gStyle->SetLabelSize(0.065,"X");
+  gStyle->SetLabelOffset(0.0,"X");
+  gStyle->SetTitleSize(0.065,"X");
+  gStyle->SetTitleOffset(0.75,"X");
+
+  gStyle->SetTitleStyle(2001);
+  
   if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan" || globalvariables::getAnalysisType() == "PlaneEventsScan" ) {
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setPlaneEventsThreshold(64); //high =1, low =0
@@ -327,7 +326,7 @@ int main(int argc, char* argv[6])
 
   }
 
-  fooApp.Run();
+  fooApp->Run();
   return 0;
 
 }
