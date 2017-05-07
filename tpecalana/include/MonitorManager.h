@@ -80,8 +80,18 @@ private:
     std::map<unsigned,std::vector<Int_t> > _BcidChipMap; //bcid per chip, bufer >0
     std::map<unsigned,std::vector<Int_t> > _BcidChipMap_buf0; //bcid per chip, bufer== 0
 
+    std::map<unsigned,std::vector<Int_t> > _RetrigNhitsChipMap; //nhits rates per chip, bufer >0, badbcid>0 && badbcid<16
+    std::map<unsigned,std::vector<Int_t> > _RetrigNhitsChipMap_buf0; //nhits rates per chip, bufer== 0, badbcid>0  && badbcid<16
 
+    std::map<unsigned,std::vector<Int_t> > _RetrigBcidChipMap; //bcid per chip, bufer >0, badbcid>0  && badbcid<16
+    std::map<unsigned,std::vector<Int_t> > _RetrigBcidChipMap_buf0; //bcid per chip, bufer== 0, badbcid>0 && badbcid<16
+    
+    std::map<unsigned,std::vector<Int_t> > _NegativeNhitsChipMap; //nhits rates per chip, bufer >0, badbcid>30, negative events
+    std::map<unsigned,std::vector<Int_t> > _NegativeNhitsChipMap_buf0; //nhits rates per chip, bufer== 0, badbcid>30 , negative events
 
+    std::map<unsigned,std::vector<Int_t> > _NegativeBcidChipMap; //bcid per chip, bufer >0, badbcid>30 , negative events
+    std::map<unsigned,std::vector<Int_t> > _NegativeBcidChipMap_buf0; //bcid per chip, bufer== 0, badbcid>30, negative events
+    
     // AUXILIARY FUNCTIONS
     Double_t GetMean(std::vector<Double_t>);
     Double_t GetMedian(std::vector<Double_t>);

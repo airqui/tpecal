@@ -21,7 +21,12 @@ ChipBuffer::ChipBuffer(unsigned bufferID){
 
   //nhits and bcid analysis
   _nhitsVec.clear();
+  _nRetrighitsVec.clear();
+  _nNegativehitsVec.clear();
   _chipBcidVec.clear();
+  _chipRetrigBcidVec.clear();
+  _chipNegativeBcidVec.clear();
+
 
 }
 
@@ -66,24 +71,61 @@ bool ChipBuffer::setChannelVals(Int_t nhits, Int_t badbcid,  Int_t correctedbcid
 
 void ChipBuffer::setChipVals(Int_t bcid, Int_t corrected_bcid, Int_t badbcid, Int_t nhits) {
   //pass the measured value to the corresponding channel
-  if(nhits>0 && badbcid>-0.5 && badbcid<16) {
+  if(nhits>0 && badbcid == 0) {
 
     if(_nhitsVec.size() < (nhits+1) ) 
       for (int ichan=0; ichan < (nhits + 1); ichan++)
 	_nhitsVec.push_back(0);
     
     _nhitsVec.at(nhits)++;
-    _chipBcidVec.push_back(corrected_bcid);
+    _chipBcidVec.push_back(bcid);
+  }
+
+  if(nhits>0 && badbcid>0 && badbcid<16 ) {
+    if(_nRetrighitsVec.size() < (nhits+1) )
+      for (int ichan=0; ichan < (nhits + 1); ichan++)
+	_nRetrighitsVec.push_back(0);
+
+    _nRetrighitsVec.at(nhits)++;
+    _chipRetrigBcidVec.push_back(bcid);
+
+  }
+    
+  if(nhits>0 && badbcid>30 ) {
+    if(_nNegativehitsVec.size() < (nhits+1) )
+      for (int ichan=0; ichan < (nhits + 1); ichan++)
+	_nNegativehitsVec.push_back(0);
+
+    _nNegativehitsVec.at(nhits)++;
+    _chipNegativeBcidVec.push_back(bcid);
+
   }
   
 }
+
+std::vector<Int_t> ChipBuffer::getRetrigBcidVec() {
+  return _chipRetrigBcidVec;
+}
+
+std::vector<Int_t> ChipBuffer::getRetrigNhitsRate( ) {
+  return _nRetrighitsVec;
+}
+
+std::vector<Int_t> ChipBuffer::getNegativeBcidVec() {
+  return _chipNegativeBcidVec;
+}
+
+std::vector<Int_t> ChipBuffer::getNegativeNhitsRate( ) {
+  return _nNegativehitsVec;
+}
+
 
 std::vector<Int_t> ChipBuffer::getBcidVec() {
   return _chipBcidVec;
 }
 
 std::vector<Int_t> ChipBuffer::getNhitsRate( ) {
-	return _nhitsVec;
+  return _nhitsVec;
 }
 
 

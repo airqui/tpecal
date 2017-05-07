@@ -75,7 +75,7 @@ void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t correctedbcid, I
     // Make filtering for pedestal and trigger counts
     // All selection stuff is hardcoded here...  BAD!!
     
-    if (gainHit >-0.5  &&  val>10 && badbcid ==0 && nhits <= thresh){//&&  val>10 && badbcid <30 && nhits < thresh ) {
+    if (gainHit >-0.5  &&  val>10 && badbcid == 0 && nhits <= thresh){//&&  val>10 && badbcid <30 && nhits < thresh ) {
       calculateSums(val,gainHit);
       if (gainHit == 0 )   _nPedestals++;
       if (gainHit == 1 )    _nTriggers++;
@@ -90,7 +90,7 @@ void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t correctedbcid, I
     }  
     
   
-    if( gainHit == 1 &&  val < 10   )  _nTriggers_negativeData++;
+    if( gainHit == 1 &&  val > 0 && val < 10   )  _nTriggers_negativeData++;
     //Count number of undefined entries
     if (gainHit < 0 || gainHit>2) _nUndefined++;
  

@@ -84,7 +84,7 @@ void ExperimentalSetup::setRunSetup(std::vector<std::string> aFileNameVec) {
 
 
 
-void ExperimentalSetup::executeExperiment(std::vector<TFile*> aFileVec, int PlaneEventThreshold = 30) {
+void ExperimentalSetup::executeExperiment(std::vector<TFile*> aFileVec) {
 
   if(_difVec.size() != aFileVec.size()) {
     std::cout << " Warning the number of dif files do not correspond to the number of difs in the experiment" << std::endl;
@@ -99,9 +99,9 @@ void ExperimentalSetup::executeExperiment(std::vector<TFile*> aFileVec, int Plan
   //Read in the dif files
   if(_difVec.size() < aFileVec.size()) {
     for (unsigned ifile=0; ifile < aFileVec.size(); ifile++)
-      _difVec.at(_difVec.size()-1).dataAnalysis(aFileVec.at(ifile),PlaneEventThreshold);
+      _difVec.at(_difVec.size()-1).dataAnalysis(aFileVec.at(ifile));
   }  else {
-    for (unsigned idif=0; idif < _difVec.size(); idif++) _difVec.at(idif).dataAnalysis(aFileVec.at(idif),PlaneEventThreshold);
+    for (unsigned idif=0; idif < _difVec.size(); idif++) _difVec.at(idif).dataAnalysis(aFileVec.at(idif));
   }
    
 }

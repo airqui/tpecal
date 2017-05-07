@@ -49,7 +49,10 @@ public:
     void setChipVals(Int_t , Int_t , Int_t , Int_t );
     std::vector<Int_t> getBcidVec();
     std::vector<Int_t> getNhitsRate();
-
+    std::vector<Int_t> getRetrigBcidVec();
+    std::vector<Int_t> getRetrigNhitsRate();
+    std::vector<Int_t> getNegativeBcidVec();
+    std::vector<Int_t> getNegativeNhitsRate(); 
 
 
 private:
@@ -70,7 +73,10 @@ private:
     //chip buffer monitoring objects
     std::vector<Int_t> _nhitsVec;
     std::vector<Int_t> _chipBcidVec;
-
+    std::vector<Int_t> _nRetrighitsVec;
+    std::vector<Int_t> _chipRetrigBcidVec;
+    std::vector<Int_t> _nNegativehitsVec;
+    std::vector<Int_t> _chipNegativeBcidVec;
 };
 
 #endif /* defined(__cobana_project__ChipBuffer__) */

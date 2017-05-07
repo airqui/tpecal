@@ -34,7 +34,7 @@ void Dif::init(std::vector< std::pair<std::string, std::pair<unsigned,unsigned> 
 }
 
 
-void Dif::dataAnalysis(TFile* aDifFile, int PlaneEventThreshold) {
+void Dif::dataAnalysis(TFile* aDifFile) {
 
   std::cout << "New file " << std::endl;
   //Loop over the connected ASUs to retrieve the information needed for a proper exploitation of the data container

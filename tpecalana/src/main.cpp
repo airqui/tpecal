@@ -109,7 +109,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
     }
 
 
-    ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
+    ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec());
       
     ////reset experimental setup and run manager
     scanManager.acquireRunInformation(ExperimentalSetup::getInstance(), buffer);
@@ -149,7 +149,7 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
   runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
   
   
-  ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
+  ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec());
   
   TString output_path ;
   output_path =  TString(datadirStr_output) ;
@@ -183,11 +183,15 @@ void MonitorRun(string datadirStr, string datadirStr_output , TString type) {
   runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
   
   
-  ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec(),10);
+  ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec());
   
   TString output_path ;
   output_path =  TString(datadirStr_output);
-
+  gStyle->SetOptStat("i");
+  gStyle->SetStatY(0.97);
+  gStyle->SetStatX(0.95);
+  gStyle->SetStatW(0.2);
+  gStyle->SetStatH(0.25); 
   monManager.init();
   monManager.acquireRunInformation(ExperimentalSetup::getInstance(),type);
   monManager.displayResults(output_path,type);
@@ -318,7 +322,7 @@ int main(int argc, char* argv[6])
   }
 
   if(globalvariables::getAnalysisType() == "MonitorChannel" || globalvariables::getAnalysisType() == "MonitorChip"  ) {
-    globalvariables::setPlaneEventsThreshold(64); 
+    globalvariables::setPlaneEventsThreshold(10); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     if( globalvariables::getAnalysisType() == "MonitorChannel" ) MonitorRun(datadirStr, datadirStr_output,"channel") ;

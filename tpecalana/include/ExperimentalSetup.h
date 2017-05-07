@@ -31,7 +31,7 @@ public:
     //void addDifFileVec(std::vector<TFile*>);
     //Attention the experiment execution will have to be deferred to another class, otherwise no
     //parallel execution possbile!!!!
-    void executeExperiment(std::vector<TFile*>,int);
+    void executeExperiment(std::vector<TFile*>);
     //Return a  given DIF
     Dif getDif(unsigned);    
     //A method to reset values and objects

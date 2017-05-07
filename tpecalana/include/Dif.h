@@ -22,7 +22,7 @@ public:
     //Initialisation of class members after having received the input file
     void init(std::vector< std::pair<std::string, std::pair<unsigned,unsigned> > > );
     //The method in which it all happens
-    void dataAnalysis(TFile*, int);
+    void dataAnalysis(TFile*);
     //Return a given ASU
     //ASU getASU(unsigned);
     ASU getASU(unsigned);
