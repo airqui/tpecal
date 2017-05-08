@@ -91,7 +91,7 @@ void ChipBuffer::setChipVals(Int_t bcid, Int_t corrected_bcid, Int_t badbcid, In
 
   }
     
-  if(nhits>0 && badbcid>30 ) {
+  if(badbcid>30 ) {
     if(_nNegativehitsVec.size() < (nhits+1) )
       for (int ichan=0; ichan < (nhits + 1); ichan++)
 	_nNegativehitsVec.push_back(0);

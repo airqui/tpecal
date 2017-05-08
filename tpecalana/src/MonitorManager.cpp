@@ -468,105 +468,74 @@ void MonitorManager::simpleChannelAnalysisGraphics(TString file_sufix) {
 void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
 
   //Loop over all enabled chips to fill the nhit rate for SCA=0 and SCA>0
+  //Loop over all enabled chips to fill the bcid mean and rms calculation rate for SCA=0 and SCA>0
   for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _NhitsChipMap_buf0.begin();mapiter!=_NhitsChipMap_buf0.end();mapiter++) {
-    std::cout << "MonitorManager::simpleChipAnalysis, Hits ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
+    std::cout << "MonitorManager::simpleChipAnalysis, BCID ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
 
+    std::vector<Int_t> Nhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNhitsRate();
+    for(unsigned ibcid=0; ibcid<Nhitsvec.size(); ibcid++)
+      (*mapiter).second.push_back(Nhitsvec.at(ibcid));
+    //  if(Nhitsvec.size()==0) (*mapiter).second.push_back(0);
+    
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
-    unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
-
-    std::vector<Int_t> nhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNhitsRate();
-
-    for (unsigned ihits=0; ihits < nhitsvec.size(); ihits++) {
-      if((*mapiter).second.size() < ihits+1)  (*mapiter).second.push_back(0);
-      (*mapiter).second.at(ihits)=nhitsvec.at(ihits);
-    }
 
     std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _NhitsChipMap.find((*mapiter).first);
 
-    //Loop over all buffers >0
-    std::vector<Int_t> nhitstotal;
-    for (unsigned ihits=0; ihits < numChans; ihits++) nhitstotal.push_back(0);
+    for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
+      std::vector<Int_t> Nhitsvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getNhitsRate();
+      for(unsigned ibcid=0; ibcid<Nhitsvec2.size(); ibcid++)   (*helpMapIter).second.push_back(Nhitsvec2.at(ibcid));
 
-    for (unsigned ibuf=1; ibuf < bufdepth; ibuf++) {
-      std::vector<Int_t> nhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*helpMapIter).first).getChipBuffer(ibuf).getNhitsRate();
-      if(nhitsvec.size()>numChans) continue; //safety check... but how is that even possible? 
-      for (unsigned ihits=0; ihits <nhitsvec.size(); ihits++) {
-	nhitstotal.at(ihits)+=nhitsvec.at(ihits);
-      }
-    }  
-    for (unsigned ihits=0; ihits < nhitstotal.size(); ihits++) {
-      if((*helpMapIter).second.size() < ihits+1)  (*helpMapIter).second.push_back(0);
-      (*helpMapIter).second.at(ihits)=nhitstotal.at(ihits);
     }
-
   }
+  
 
   //-----------------------------------------------------------------------------
   // tagged as retrigger events, nhits analysis --> (if also negative ADC (<10) happens, then is considered as negative event, not retrigerred
   //Loop over all enabled chips to fill the nhit rate for SCA=0 and SCA>0
+
+    //--------------
+   // REtriggering Events
+  //Loop over all enabled chips to fill the bcid mean and rms calculation rate for SCA=0 and SCA>0
   for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _RetrigNhitsChipMap_buf0.begin();mapiter!=_RetrigNhitsChipMap_buf0.end();mapiter++) {
+    std::cout << "MonitorManager::simpleChipAnalysis, BCID ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
 
+    std::vector<Int_t> RetrigNhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getRetrigNhitsRate();
+    for(unsigned ibcid=0; ibcid<RetrigNhitsvec.size(); ibcid++)
+      (*mapiter).second.push_back(RetrigNhitsvec.at(ibcid));
+    //  if(RetrigNhitsvec.size()==0) (*mapiter).second.push_back(0);
+    
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
-    unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
-
-    std::vector<Int_t> Retrignhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getRetrigNhitsRate();
-    for (unsigned ihits=0; ihits < Retrignhitsvec.size(); ihits++) {
-      if((*mapiter).second.size() < ihits+1)  (*mapiter).second.push_back(0);
-      (*mapiter).second.at(ihits)=Retrignhitsvec.at(ihits);
-    }
 
     std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _RetrigNhitsChipMap.find((*mapiter).first);
 
-    //Loop over all buffers >0
-    std::vector<Int_t> Retrignhitstotal;
-    for (unsigned ihits=0; ihits < numChans; ihits++) Retrignhitstotal.push_back(0);
+    for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
+      std::vector<Int_t> RetrigNhitsvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getRetrigNhitsRate();
+      for(unsigned ibcid=0; ibcid<RetrigNhitsvec2.size(); ibcid++)   (*helpMapIter).second.push_back(RetrigNhitsvec2.at(ibcid));
 
-    for (unsigned ibuf=1; ibuf < bufdepth; ibuf++) {
-      std::vector<Int_t> Retrignhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*helpMapIter).first).getChipBuffer(ibuf).getRetrigNhitsRate();
-      if(Retrignhitsvec.size()>numChans) continue; //safety check... but how is that even possible? 
-      for (unsigned ihits=0; ihits <Retrignhitsvec.size(); ihits++) {
-	Retrignhitstotal.at(ihits)+=Retrignhitsvec.at(ihits);
-      }
-    }  
-    for (unsigned ihits=0; ihits < Retrignhitstotal.size(); ihits++) {
-      if((*helpMapIter).second.size() < ihits+1)  (*helpMapIter).second.push_back(0);
-      (*helpMapIter).second.at(ihits)=Retrignhitstotal.at(ihits);
     }
-
   }
-
+  
   //-----------------------------------------------------------------------------
   // tagged as Negative Events events, nhits analysis -->
   //Loop over all enabled chips to fill the nhit rate for SCA=0 and SCA>0
+  //Loop over all enabled chips to fill the bcid mean and rms calculation rate for SCA=0 and SCA>0
   for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _NegativeNhitsChipMap_buf0.begin();mapiter!=_NegativeNhitsChipMap_buf0.end();mapiter++) {
+    std::cout << "MonitorManager::simpleChipAnalysis, BCID ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
 
+    std::vector<Int_t> NegativeNhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNegativeNhitsRate();
+    for(unsigned ibcid=0; ibcid<NegativeNhitsvec.size(); ibcid++)
+      (*mapiter).second.push_back(NegativeNhitsvec.at(ibcid));
+    //  if(NegativeNhitsvec.size()==0) (*mapiter).second.push_back(0);
+    
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
-    unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
-
-    std::vector<Int_t> Negativenhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNegativeNhitsRate();
-    for (unsigned ihits=0; ihits < Negativenhitsvec.size(); ihits++) {
-      if((*mapiter).second.size() < ihits+1)  (*mapiter).second.push_back(0);
-      (*mapiter).second.at(ihits)=Negativenhitsvec.at(ihits);
-    }
 
     std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _NegativeNhitsChipMap.find((*mapiter).first);
 
-    //Loop over all buffers >0
-    std::vector<Int_t> Negativenhitstotal;
-    for (unsigned ihits=0; ihits < numChans; ihits++) Negativenhitstotal.push_back(0);
+    for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
+      std::vector<Int_t> NegativeNhitsvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getNegativeNhitsRate();
+      for(unsigned ibcid=0; ibcid<NegativeNhitsvec2.size(); ibcid++)   (*helpMapIter).second.push_back(NegativeNhitsvec2.at(ibcid));
 
-    for (unsigned ibuf=1; ibuf < bufdepth; ibuf++) {
-      std::vector<Int_t> Negativenhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*helpMapIter).first).getChipBuffer(ibuf).getNegativeNhitsRate();
-      if(Negativenhitsvec.size()>numChans) continue; //safety check... but how is that even possible? 
-      for (unsigned ihits=0; ihits <Negativenhitsvec.size(); ihits++) {
-	Negativenhitstotal.at(ihits)+=Negativenhitsvec.at(ihits);
-      }
-    }  
-    for (unsigned ihits=0; ihits < Negativenhitstotal.size(); ihits++) {
-      if((*helpMapIter).second.size() < ihits+1)  (*helpMapIter).second.push_back(0);
-      (*helpMapIter).second.at(ihits)=Negativenhitstotal.at(ihits);
     }
-
   }
 
   /// #########################################################   BCID 
@@ -599,6 +568,7 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
     std::vector<Int_t> RetrigBcidvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getRetrigBcidVec();
     for(unsigned ibcid=0; ibcid<RetrigBcidvec.size(); ibcid++)
       (*mapiter).second.push_back(RetrigBcidvec.at(ibcid));
+    if(RetrigBcidvec.size()==0) (*mapiter).second.push_back(-100);
     
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
 
@@ -609,7 +579,7 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
       for(unsigned ibcid=0; ibcid<RetrigBcidvec2.size(); ibcid++)   (*helpMapIter).second.push_back(RetrigBcidvec2.at(ibcid));
 
     }
-  } 
+  }
 
   //--------------
   // Negative Events
@@ -620,6 +590,7 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
     std::vector<Int_t> NegativeBcidvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNegativeBcidVec();
     for(unsigned ibcid=0; ibcid<NegativeBcidvec.size(); ibcid++)
       (*mapiter).second.push_back(NegativeBcidvec.at(ibcid));
+    if(NegativeBcidvec.size()==0) (*mapiter).second.push_back(-100);
     
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
 
@@ -639,7 +610,7 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
 
 
   //Declare and open a Canvas
-  TCanvas* c_chips = new TCanvas("SimpleChipMonitoring "+file_sufix,"SimpleChipMonitoring "+file_sufix,11,30,1600,800);
+  TCanvas* c_chips = new TCanvas("SimpleChipMonitoring "+file_sufix,"SimpleChipMonitoring "+file_sufix,11,30,1800,800);
   //Divide the canvas
   c_chips->Divide(4,3);
 
@@ -647,20 +618,20 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
   TH2F * NHitsRate_buf0 = new TH2F("NHitsRate_buf0","NHitsRate_buf0",66,-0.5,65.5,16,-0.5,15.5);
   TH2F * NHitsRate = new TH2F("NHitsRate","NHitsRate",66,-0.5,65.5,16,-0.5,15.5);
 
-  TH2F * BCID_buf0 = new TH2F("BCID_buf0","BCID_buf0",51,-50,5050,16,-0.5,15.5);
-  TH2F * BCID = new TH2F("BCID","BCID",51,-50,5050,16,-0.5,15.5);
+  TH2F * BCID_buf0 = new TH2F("BCID_buf0","BCID_buf0",42,-50,4150,16,-0.5,15.5);
+  TH2F * BCID = new TH2F("BCID","BCID",42,-50,4150,16,-0.5,15.5);
 
   TH2F * RetrigNHitsRate_buf0 = new TH2F("RetrigNHitsRate_buf0","RetrigNHitsRate_buf0",66,-0.5,65.5,16,-0.5,15.5);
   TH2F * RetrigNHitsRate = new TH2F("RetrigNHitsRate","RetrigNHitsRate",66,-0.5,65.5,16,-0.5,15.5);
 
-  TH2F * RetrigBCID_buf0 = new TH2F("RetrigBCID_buf0","RetrigBCID_buf0",51,-50,5050,16,-0.5,15.5);
-  TH2F * RetrigBCID = new TH2F("RetrigBCID","RetrigBCID",51,-50,5050,16,-0.5,15.5);
+  TH2F * RetrigBCID_buf0 = new TH2F("RetrigBCID_buf0","RetrigBCID_buf0",42,-50,4150,16,-0.5,15.5);
+  TH2F * RetrigBCID = new TH2F("RetrigBCID","RetrigBCID",42,-50,4150,16,-0.5,15.5);
   
   TH2F * NegativeNHitsRate_buf0 = new TH2F("NegativeNHitsRate_buf0","NegativeNHitsRate_buf0",66,-0.5,65.5,16,-0.5,15.5);
   TH2F * NegativeNHitsRate = new TH2F("NegativeNHitsRate","NegativeNHitsRate",66,-0.5,65.5,16,-0.5,15.5);
 
-  TH2F * NegativeBCID_buf0 = new TH2F("NegativeBCID_buf0","NegativeBCID_buf0",51,-50,5050,16,-0.5,15.5);
-  TH2F * NegativeBCID = new TH2F("NegativeBCID","NegativeBCID",51,-50,5050,16,-0.5,15.5);
+  TH2F * NegativeBCID_buf0 = new TH2F("NegativeBCID_buf0","NegativeBCID_buf0",42,-50,4150,16,-0.5,15.5);
+  TH2F * NegativeBCID = new TH2F("NegativeBCID","NegativeBCID",42,-50,4150,16,-0.5,15.5);
 
   //Loop over all enabled chips
   for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
