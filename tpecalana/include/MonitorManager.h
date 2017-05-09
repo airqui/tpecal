@@ -42,7 +42,10 @@ private:
     void simpleChannelAnalysis(ExperimentalSetup*);
     //The graphical representation
     void simpleChannelAnalysisGraphics(TString);
+    void simpleFilteredChannelAnalysisGraphics(TString);
+    void simpleTaggedChannelAnalysisGraphics(TString);
 
+    //CHANNEL FILTERED EVENTS ANALYSIS
     //A map that holds the number of triggers of all channels for all buffers for all enabled chips
     typedef std::map<unsigned, std::vector<std::vector<Double_t> > > channelInfoComplUnsigned_t;
     channelInfoComplUnsigned_t _ntrigVecMapHigh; 
@@ -53,13 +56,27 @@ private:
     std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap; //npedestals per chip and channel
     std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0; //ntriggers per chip and channel
     std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_buf0; //npedestals per chip and channel
-    std::map<unsigned,std::vector<unsigned> > _ErrorsChipChannelVecMap; //nerrors per chip and channel
 
     std::map<unsigned,std::vector<Double_t> > _PedWidthChipChannelVecMap; //pedestal width per chip and channel (one buffer)
     std::map<unsigned,std::vector<Double_t> > _SignalWidthChipChannelVecMap; //signal width per chip and channel (one buffer)
     std::map<unsigned,std::vector<Double_t> > _PedMeanChipChannelVecMap; //pedestal mean per chip and channel (one buffer)
-    std::map<unsigned,std::vector<Double_t> > _SignalMeanChipChannelVecMap; //signal mean per chip and channel (one buffer)
+    std::map<unsigned,std::vector<Double_t> > _SignalMeanChipChannelVecMap; //signal mean per chip and channel (one dbuffer)
 
+    //CHANNEL TAGGED EVENTS ANALYSIS
+    channelInfoComplUnsigned_t _ntrigVecMapHigh_retrig; 
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian_retrig; // median of triggerd buffers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_retrig; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_retrig; //npedestals per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0_retrig; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_buf0_retrig; //npedestals per chip and channel
+    
+    channelInfoComplUnsigned_t _ntrigVecMapHigh_negative; 
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian_negative; // median of triggerd buffers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_negative; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_negative; //npedestals per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0_negative; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_buf0_negative; //npedestals per chip and channel
+    
    // vector with the total number of triggers for each chip
     std::vector<unsigned>  _TrigChipVec;
     std::vector<unsigned>  _TrigChipVec_bcid1;
@@ -68,6 +85,10 @@ private:
     std::vector<unsigned>  _TrigChipVec_planeEvents;
     std::vector<unsigned>  _TrigChipVec_negativeData;
 
+    std::vector<double>  _RetriggerRatesChipVec;
+    std::vector<double>  _PlaneRatesChipVec;
+    std::vector<double>  _NegativeRatesChipVec;
+	
     // CHIP MONITORING
     //A method for a simple channel by channel
     void simpleChipAnalysis(ExperimentalSetup*);
