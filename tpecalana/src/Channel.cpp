@@ -90,7 +90,7 @@ void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t correctedbcid, I
     }  
     
   
-    if( xgainHit == 1 &&  val > 0 && val < 10  )  _nTriggers_negativeData++;
+    if( gainHit == 1 &&  val > 0 && val < 10  )  _nTriggers_negativeData++;
     //Count number of undefined entries
     if (gainHit < 0 || gainHit>2) _nUndefined++;
  

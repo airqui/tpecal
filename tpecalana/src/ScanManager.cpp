@@ -21,6 +21,8 @@ ScanManager::ScanManager(){
   _ntrigVecMapHigh.clear();
   _ntrigChipVecMapHigh_norm.clear();
   _ntrigChipVecMapHigh.clear();
+  _meanADCChipVecMapHigh.clear();
+
   _nRuns=0;
   f_scurve=0;
 }
@@ -39,6 +41,9 @@ void ScanManager::init(){
     _ntrigChipVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> > () ));
     _ntrigChipVecMapHigh_norm.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> > () ));
 
+    _meanADCChipVecMapHigh.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<std::vector<Double_t> > () ));
+
+
   }
   
   std::cout<<"Init the Analysis Manager for general analysis, with getAnalysisType()="<<globalvariables::getAnalysisType()<<std::endl;
@@ -49,6 +54,7 @@ void ScanManager::acquireRunInformation(ExperimentalSetup* aExpSetup, int buffer
   std::cout << "************** AcquireRunInformation new file: " << _nRuns << "***********************" << std::endl;
   if(globalvariables::getAnalysisType()=="scurves") sCurveAnalysis(aExpSetup, buffer);
   if(globalvariables::getAnalysisType()=="PlaneEventsScan") planeEventsAnalysis(aExpSetup);
+  if(globalvariables::getAnalysisType()=="holdscan") holdscanAnalysis(aExpSetup);
 
   _nRuns++;
 
@@ -58,17 +64,58 @@ void ScanManager::displayResults(TString file_prefix, int buffer){
   //Call the graphics part related to the simple graphics analysis (should be realised automatically if graphics is requires
   if(globalvariables::getAnalysisType()=="scurves") sCurveAnalysisGraphics(file_prefix,buffer);
   if(globalvariables::getAnalysisType()=="PlaneEventsScan") planeEventsAnalysisGraphics(file_prefix);
+  if(globalvariables::getAnalysisType()=="holdscan") holdscanAnalysisGraphics(file_prefix);
 
 }
+
+
+void ScanManager::holdscanAnalysis(ExperimentalSetup* aExpSetup) {
+    
+  //Loop over all enabled chips
+  for (channelInfoComplDouble_t::iterator mapiter = _meanADCChipVecMapHigh.begin();mapiter!=_meanADCChipVecMapHigh.end();mapiter++) {
+    std::cout << "*************holdscanAnalysis:: New chip: " << (*mapiter).first << "********************" << std::endl;
+
+    channelInfoComplDouble_t::iterator helpMapIter = _meanADCChipVecMapHigh.find((*mapiter).first);
+    //Loop over all enabled chips
+
+    unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
+
+    for (unsigned ichan=0; ichan < numChans; ichan++) {
+      //Build up the vector for the individual channels (needs to be done only once)
+      if((*mapiter).second.size() < ichan+1) (*mapiter).second.push_back (std::vector<Double_t> () );
+      //reads out the trigger of each channel
+      double meanADCmtmp(0);
+      int nbuf=0;
+
+      for(int ibuf=0; ibuf<15;ibuf++) {
+	std::vector<double> meantmpvec;
+	meantmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelMeanVec(ichan,"High");
+	if(meantmpvec.at(0)>0) {
+	  meanADCmtmp+=meantmpvec.at(0);
+	  nbuf++;
+	}
+      }
+      cout<<meanADCmtmp<<" "<<nbuf<< " ";
+      //if(nbuf>0) cout<<meanADCmtmp/nbuf;
+      //cout<<endl;
+      
+      if(nbuf>0) (*mapiter).second.at(ichan).push_back(meanADCmtmp/nbuf);//save the mean of signal per channel
+      else (*mapiter).second.at(ichan).push_back(0);
+    }
+
+  }
+
+}
+
 
 
 void ScanManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
     
   //Loop over all enabled chips
-  for (ChipInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh_norm.begin();mapiter!=_ntrigChipVecMapHigh_norm.end();mapiter++) {
+  for (channelInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh_norm.begin();mapiter!=_ntrigChipVecMapHigh_norm.end();mapiter++) {
     std::cout << "*************New chip: " << (*mapiter).first << "********************" << std::endl;
 
-    ChipInfoComplDouble_t::iterator helpMapIter = _ntrigChipVecMapHigh.find((*mapiter).first);
+    channelInfoComplDouble_t::iterator helpMapIter = _ntrigChipVecMapHigh.find((*mapiter).first);
 
     unsigned ntrigm(0);
     unsigned ntrigm_bcid1(0);
@@ -141,7 +188,6 @@ void ScanManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
   }
 }
 
-
 void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
     
   std::vector<std::pair<unsigned, unsigned> >acqnumber=aExpSetup->getDif(0).getDifStatVec();
@@ -150,7 +196,7 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
     //std::cout<< iac << " " << acqnumber.at(iac).first << " " << acqnumber.at(iac).second <<std::endl;
 
   //Loop over all enabled chips
-  for (channelInfoComplUnsigned_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
+  for (channelInfoComplDouble_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
     //    std::cout << "*************New chip: " << (*mapiter).first << "********************" << std::endl;
     std::map<unsigned, std::vector<Double_t> >::iterator helpMapIter = _maxHithelpVec.find((*mapiter).first);
     std::map<unsigned, std::vector<Double_t> >::iterator helpMapIter2 = _maxHitCounthelpVec.find((*mapiter).first);
@@ -206,6 +252,116 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
   }
 }
 
+void ScanManager::holdscanAnalysisGraphics(TString file_sufix) {
+
+  //  fout_scurves.open(file_sufix+".log",ios::out);
+
+  //fout_scurves<<"#Holdscan analysis summary" <<std::endl;
+  //fout_scurves<<"#"<<file_sufix <<std::endl;
+  //fout_scurves<<"#chip channel threshold width chi2/NDF first_zero" <<std::endl;
+
+  //Loop over all enabled chips
+  for (channelInfoComplDouble_t::iterator mapiter = _meanADCChipVecMapHigh.begin();mapiter!=_meanADCChipVecMapHigh.end();mapiter++) {
+    holdscanAnalysisGraphicsPainter(mapiter,file_sufix);
+  }
+
+  //fout_scurves.close();
+}
+
+
+void ScanManager::holdscanAnalysisGraphicsPainter(channelInfoComplDouble_t::iterator aMapIter, TString file_sufix) {
+    
+
+  // TString gain = globalvariables::getGainTStringAnalysis();
+  TString filerecreate = "RECREATE";
+  if((*aMapIter).first  > 0) filerecreate="UPDATE";
+  TFile *f_holdscan = TFile::Open(file_sufix+".root", filerecreate);
+  TDirectory *dir = f_holdscan->GetDirectory(TString::Format("holdscan_graphs"));
+  if (!dir) dir = f_holdscan->mkdir(TString::Format("holdscan_graphs"));
+
+  //Declare and open a Canvas
+  std::stringstream canvasNameStr;
+  canvasNameStr << "Chip" << (*aMapIter).first ;
+  std::stringstream canvasTitleStr;
+  canvasTitleStr << "Chip" << (*aMapIter).first << "_" << TString::Format("Holdscans_PlaneEvThresh%i",globalvariables::getPlaneEventsThreshold());//the iterator gives the chip ID
+  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasTitleStr.str().c_str(),11,30,1200,200);
+  c_chips->Divide(4,1);
+  c_chips->SetTitle(canvasTitleStr.str().c_str());
+
+  //Helper variabled to allow to switch to another pad in the canvas
+  unsigned ipad(0);
+  //A vector of graphs
+  std::vector<TGraphErrors*> graphHoldscan;//vector of graphs... extract the proper graph
+ 
+  //Loopover all chips
+  std::cout << "ScanManager::holdscanAnalysisGraphicsPainter: Chip: " << (*aMapIter).first << std::endl;
+  //Loop over all channels
+  //Helper variable to count channels
+  unsigned ichan(0);
+    
+  for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
+    std::cout << "ScanManager::holdscanAnalysisGraphicsPainter: Nchan: " << ichan << std::endl;
+    //At least as a sanity check we verify that the size of the vector for each channel corresponds to the size of the
+    //vector holding the hold values as defined above
+    if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
+      std::cout << "ScanManager::holdscanAnalysisGraphicsPainter Warning: Size of vector with hold values does not correspond to size of vector with readings for channel" << ichan << std::endl;
+      std::cout << "Size of vector with hold values is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
+      std::cout << "Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
+    }
+    //Define an array that holds the entries for each run
+    double valarray[ (*chanVeciter).size()];
+    double evalarray[ (*chanVeciter).size()];
+    double evalarray_x[ (*chanVeciter).size()];
+
+    //Loop over the entries with trigger in the given runs
+    //Helper variable to count runs
+    unsigned irun(0);
+    for (std::vector<Double_t>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
+      // std::cout << "ScanManager::holdscanAnalysisGraphicsPainter: Run " << irun << ": " << (*runIter) << std::endl;
+      //Fetch the value for that run
+      double runval(static_cast<double>((*runIter)));
+      //Fill the array with the relative counts for a given channel in a given run
+      if(runval >-1 && runval <99999) valarray[irun] = runval;
+      else  valarray[irun] = 0;
+      evalarray[irun] = 0;
+      evalarray_x[irun] = 0;///ref;
+      irun++;
+    }
+
+    f_holdscan->cd();
+    dir->cd();
+    //Now define and fill a graph for each channel
+    double vecarrayhelp[(*chanVeciter).size()];
+    double* vecarray;
+    vecarray = vectortoarray(globalvariables::getScanVectorDoubles(), &vecarrayhelp[0]);
+    graphHoldscan.push_back(new TGraphErrors(globalvariables::getScanVectorDoubles().size(), vecarray, valarray,  evalarray_x, evalarray));
+    graphHoldscan.back()->SetMarkerStyle(20+ichan%16);
+    //We have only 15 different marker symbols but in principle 16 channels to draw
+    if (ichan%16==15) graphHoldscan.back()->SetMarkerStyle(5);
+    graphHoldscan.back()->SetMarkerSize(0.8);
+    if (ichan%16 == 0) {
+      c_chips->cd(ipad+1);
+      ipad++;
+      graphHoldscan.back()->SetName(TString::Format("Chip%i_chn%i",int((*aMapIter).first),int(ichan)));
+      graphHoldscan.back()->SetTitle(TString::Format("Chip%i_chn%i-%i",int((*aMapIter).first),int(ichan),int(ichan)+15));
+      graphHoldscan.back()->Write();
+      graphHoldscan.back()->GetXaxis()->SetTitle("Hold Value");
+      graphHoldscan.back()->GetYaxis()->SetTitle("Nhit/Nref");
+      graphHoldscan.back()->Draw("APSL");
+    } else {
+      graphHoldscan.back()->SetName(TString::Format("Chip%i_chn%i",int((*aMapIter).first),int(ichan)));
+      graphHoldscan.back()->Write();
+      graphHoldscan.back()->Draw("PSL");
+    }
+ 
+    ichan++;
+  }
+
+  c_chips->Update(); 
+  f_holdscan->Close();     
+}
+
+// -------------------------------------------------------
 
 void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
 
@@ -216,7 +372,7 @@ void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
   fout_scurves<<"#chip channel threshold width chi2/NDF first_zero" <<std::endl;
 
   //Loop over all enabled chips
-  for (channelInfoComplUnsigned_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
+  for (channelInfoComplDouble_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
     sCurveAnalysisGraphicsPainter(mapiter,file_sufix, buffer);
   }
 
@@ -224,7 +380,7 @@ void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
 }
 
 
-void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator aMapIter, TString file_sufix, int buffer) {
+void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterator aMapIter, TString file_sufix, int buffer) {
     
 
   // TString gain = globalvariables::getGainTStringAnalysis();
@@ -496,7 +652,7 @@ void ScanManager::planeEventsAnalysisGraphics(TString file_sufix) {
   TFile *f_planevent = TFile::Open(file_sufix+gain+".root", filerecreate);
 
   //Loop over all enabled chips
-  for (ChipInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh.begin();mapiter!=_ntrigChipVecMapHigh.end();mapiter++) {
+  for (channelInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh.begin();mapiter!=_ntrigChipVecMapHigh.end();mapiter++) {
     planeEventsAnalysisGraphicsPainter(mapiter,f_planevent);
   }
 
@@ -504,7 +660,7 @@ void ScanManager::planeEventsAnalysisGraphics(TString file_sufix) {
 
 }
 
-void ScanManager::planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::iterator aMapIter, TFile* f_planevent) {
+void ScanManager::planeEventsAnalysisGraphicsPainter(channelInfoComplDouble_t::iterator aMapIter, TFile* f_planevent) {
     
   //Declare and open a Canvas
   std::stringstream canvasNameStr;
@@ -516,7 +672,7 @@ void ScanManager::planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::iter
   //A vector of graphs
   std::vector<TGraphErrors*> graphPlaneEvents;//vector of graphs... extract the proper graph
   std::vector<TGraphErrors*> graphPlaneEvents_norm;//vector of graphs... extract the proper graph                                                                                   
-  ChipInfoComplDouble_t::iterator helpMapIter = _ntrigChipVecMapHigh_norm.find((*aMapIter).first);
+  channelInfoComplDouble_t::iterator helpMapIter = _ntrigChipVecMapHigh_norm.find((*aMapIter).first);
 
   std::cout << "ScanManager::planeEventsAnalysisGraphicsPainter: Chip: " << (*aMapIter).first << std::endl;
   //Loop over all channels

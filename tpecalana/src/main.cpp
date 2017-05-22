@@ -40,7 +40,7 @@ using namespace boost::filesystem;
 void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string datadirStr_output ) {
 
   std::string path=datadirStr+"/";
-  //if(step >0 ) path+="roc1_0/";
+  if(step >0 ) path+="0/";
 
   if ( !exists( path ) ) {
     path=datadirStr;
@@ -53,20 +53,45 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
  
   boost::filesystem::path apk_path(path);
   boost::filesystem::directory_iterator end;
+
+  int istringsize=0;
+  for(int j=0; j<100; j++) {
+    for (boost::filesystem::directory_iterator i(apk_path); i != end; ++i)   {
+      const boost::filesystem::path cp = (*i);
       
+      std::string mystring = cp.string();
+      if(mystring.substr(mystring.length() - j) == string(dif+".raw.root") ){
+	istringsize=j;
+	continue;
+      }
+    }
+  }
+
   for (boost::filesystem::directory_iterator i(apk_path); i != end; ++i)   {
     const boost::filesystem::path cp = (*i);
 
     std::string mystring = cp.string();
-    if(mystring.substr(mystring.length() - 18) == string(dif+".raw.root") ){
+    if(mystring.substr(mystring.length() - istringsize) == string(dif+".raw.root") ){
+      string scanvalue_2;
       string scanvalue;
       if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
-	scanvalue =mystring.substr(mystring.find("trig")+4, 3);
-
-	if( atoi(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	std::cout<<" Main::GetScanValue "<<atof(scanvalue.c_str())<<std::endl;
-	std::cout<<mystring<<" for dif "<<dif<<std::endl;
+	scanvalue =mystring.substr(mystring.find("_trig")+5, 3);
       }
+      if(globalvariables::getAnalysisType() == "holdscan") {
+	scanvalue =mystring.substr(mystring.find("_hold")+5, 3);
+	scanvalue_2 =mystring.substr(mystring.find("_hold")+5, 2);
+	cout<<scanvalue<<" " <<scanvalue_2<<	" " <<mystring.substr() <<endl;
+      } 
+
+      if( ( globalvariables::getAnalysisType()=="scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") && atoi(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+      if( globalvariables::getAnalysisType()=="holdscan") {
+	if( atoi(scanvalue.c_str()) > 75 && atoi(scanvalue.c_str()) % 10 == 0) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+	//	else 	if( atoi(scanvalue_2.c_str()) > 75 && atoi(scanvalue_2.c_str()) % 10 == 0) globalvariables::pushScanValue(atof(scanvalue_2.c_str()));
+      }
+
+      //      std::cout<<" Main::GetScanValue "<<atof(scanvalue.c_str())<<std::endl;
+      //std::cout<<mystring<<" for dif "<<dif<<std::endl;
+	
     }
   }
 
@@ -94,11 +119,17 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
     if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") 
       scanstring="scurve_trig";       
       
+    if(globalvariables::getAnalysisType() == "holdscan") 
+      scanstring="cosmicrun_DAC230_30min_spill2Hz_250ms_hold";//      scanstring="run_inj_150fC_hold";
+
     if(step> 0)  {
-      for(int ifile =0; ifile<64; ifile+=step) {
+      int ifilemax=64;
+      if(globalvariables::getAnalysisType() == "holdscan") ifilemax=1;
+
+      for(int ifile =0; ifile<ifilemax; ifile+=step) {
 	std::cout<<" New set of measurements: file "<< ifile << " with trigger "<< globalvariables::getScanVectorDoubles().at(irun) <<" " << step << " " << ifile<< std::endl;
 	inputFileStr.str("");
-	inputFileStr << datadirStr << "/roc1_"<<ifile<<"/"<<+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_"+dif<<".raw.root";
+	inputFileStr << datadirStr << "/"<<ifile<<"/"<<+scanstring << globalvariables::getScanVectorDoubles().at(irun) << "_"+dif<<".raw.root";
 	runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
       }
     } else {
@@ -123,6 +154,9 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
 
   if(globalvariables::getAnalysisType() == "PlaneEventsScan" )  
     scanfile= TString(datadirStr_output)+TString::Format("/PlaneEventsScan_PlaneEvThresh%i_",globalvariables::getPlaneEventsThreshold());
+
+  if(globalvariables::getAnalysisType() == "holdscan" )  
+    scanfile = TString(datadirStr_output)+"/Holdscan_"+dif;
 
   scanManager.displayResults( scanfile , buffer );
     

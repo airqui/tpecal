@@ -45,27 +45,38 @@ private:
     unsigned _nRuns;
     //A method for a simple channel by channel
 
+    //-------------------------
+    //Holdscan analysis
+    //A map that holds the mean of the ADC distribution of all channels for all runs for all enabled chips
+    typedef std::map<unsigned, std::vector<std::vector<Double_t> > > channelInfoComplDouble_t;
+    channelInfoComplDouble_t _meanADCChipVecMapHigh;
+    //analysis
+    void holdscanAnalysis(ExperimentalSetup*);
+    //The method that will effectively call the graphics part
+    void holdscanAnalysisGraphics(TString);
+    void holdscanAnalysisGraphicsPainter(channelInfoComplDouble_t::iterator, TString);
+    
+    //-------------------------
     //S-curve analysis
     //A map that holds the number of triggers of all channels for all runs for all enabled chips
-    typedef std::map<unsigned, std::vector<std::vector<Double_t> > > channelInfoComplUnsigned_t;
-    channelInfoComplUnsigned_t _ntrigVecMapHigh;
+    channelInfoComplDouble_t _ntrigVecMapHigh;
     std::map<unsigned, std::vector<Double_t> > _maxHithelpVec;
     std::map<unsigned, std::vector<Double_t> > _maxHitCounthelpVec;
     //analysis
     void sCurveAnalysis(ExperimentalSetup*,int);
     //The method that will effectively call the graphics part
     void sCurveAnalysisGraphics(TString,int);
-    void sCurveAnalysisGraphicsPainter(channelInfoComplUnsigned_t::iterator, TString, int);
+    void sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterator, TString, int);
     
+    //-------------------------
     //Plane Events analysis, per chip
-    typedef std::map<unsigned, std::vector<std::vector<Double_t> > > ChipInfoComplDouble_t;
-    ChipInfoComplDouble_t _ntrigChipVecMapHigh;
-    ChipInfoComplDouble_t _ntrigChipVecMapHigh_norm;
+    channelInfoComplDouble_t _ntrigChipVecMapHigh;
+    channelInfoComplDouble_t _ntrigChipVecMapHigh_norm;
     //analysis
     void planeEventsAnalysis(ExperimentalSetup*);
     //... and here finally the job is done
     void planeEventsAnalysisGraphics(TString);
-    void planeEventsAnalysisGraphicsPainter(ChipInfoComplDouble_t::iterator, TFile*);
+    void planeEventsAnalysisGraphicsPainter(channelInfoComplDouble_t::iterator, TFile*);
 
     //A helper method to fill graphs
     double* vectortoarray(std::vector<double> thevec, double* theArray );

@@ -79,11 +79,10 @@ void Dif::dataAnalysis(TFile* aDifFile) {
   Int_t nhits[NASICS][MAXBUFDEPTH];
 
 
-  //initialize the variables since we
-  // were obtaining very crazy numbers at the end if we don't initialize here.
-  for(unsigned i=0; i<NASICS; i++) {                                                                                                                             
-    for(unsigned j=0; j<MAXBUFDEPTH; j++ ) {                                                                                                                       
-      for(unsigned k=0; k<MAXCHAN; k++) {                                                                                                                            
+  //initialize the variables 
+  for(unsigned i=0; i<NASICS; i++) { 
+    for(unsigned j=0; j<MAXBUFDEPTH; j++ ) {
+      for(unsigned k=0; k<MAXCHAN; k++) {
 	gain_hit_high[i][j][k]=-999;
 	gain_hit_low[i][j][k]=-999;
 	high_gain[i][j][k]=-999;
@@ -92,7 +91,7 @@ void Dif::dataAnalysis(TFile* aDifFile) {
       nhits[i][j]=-999;
       bcid[i][j]=-999;
       corrected_bcid[i][j]=-999;
-    }                                                                                                                                                              
+    }                          
     chipid[i]=-999;
   }   
   acqNumber=-999;

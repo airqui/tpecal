@@ -792,7 +792,7 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
 
 
   //Declare and open a Canvas
-  TCanvas* c_chips = new TCanvas("SimpleChipMonitoring "+file_sufix,"SimpleChipMonitoring "+file_sufix,11,30,1800,800);
+  TCanvas* c_chips = new TCanvas("SimpleChipMonitoring "+file_sufix,"SimpleChipMonitoring "+file_sufix,1000,30,1800,600);
   //Divide the canvas
   c_chips->Divide(4,3);
 
