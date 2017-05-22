@@ -53,7 +53,8 @@ public:
     std::vector<Int_t> getRetrigNhitsRate();
     std::vector<Int_t> getNegativeBcidVec();
     std::vector<Int_t> getNegativeNhitsRate(); 
-
+    std::vector<Int_t> getPlaneBcidVec();
+    std::vector<Int_t> getPlaneNhitsRate(); 
 
 private:
     //the buffer ID (=bufferDepth)
@@ -77,6 +78,8 @@ private:
     std::vector<Int_t> _chipRetrigBcidVec;
     std::vector<Int_t> _nNegativehitsVec;
     std::vector<Int_t> _chipNegativeBcidVec;
+    std::vector<Int_t> _nPlanehitsVec;
+    std::vector<Int_t> _chipPlaneBcidVec;
 };
 
 #endif /* defined(__cobana_project__ChipBuffer__) */

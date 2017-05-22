@@ -112,6 +112,12 @@ private:
 
     std::map<unsigned,std::vector<Int_t> > _NegativeBcidChipMap; //bcid per chip, bufer >0, badbcid>30 , negative events
     std::map<unsigned,std::vector<Int_t> > _NegativeBcidChipMap_buf0; //bcid per chip, bufer== 0, badbcid>30, negative events
+
+    std::map<unsigned,std::vector<Int_t> > _PlaneNhitsChipMap; //nhits rates per chip, bufer >0, badbcid>30, negative events
+    std::map<unsigned,std::vector<Int_t> > _PlaneNhitsChipMap_buf0; //nhits rates per chip, bufer== 0, badbcid>30 , negative events
+
+    std::map<unsigned,std::vector<Int_t> > _PlaneBcidChipMap; //bcid per chip, bufer >0, badbcid>30 , negative events
+    std::map<unsigned,std::vector<Int_t> > _PlaneBcidChipMap_buf0; //bcid per chip, bufer== 0, badbcid>30, negative events
     
     // AUXILIARY FUNCTIONS
     Double_t GetMean(std::vector<Double_t>);

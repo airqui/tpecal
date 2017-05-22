@@ -75,7 +75,12 @@ MonitorManager::MonitorManager() {
 
   _NegativeBcidChipMap.clear();
   _NegativeBcidChipMap_buf0.clear();
+  //-
+  _PlaneNhitsChipMap.clear();
+  _PlaneNhitsChipMap_buf0.clear();
 
+  _PlaneBcidChipMap.clear();
+  _PlaneBcidChipMap_buf0.clear();
 }
 
 
@@ -135,6 +140,12 @@ void MonitorManager::init(){
 
     _NegativeBcidChipMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
     _NegativeBcidChipMap_buf0.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
+    //--
+    _PlaneNhitsChipMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
+    _PlaneNhitsChipMap_buf0.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
+
+    _PlaneBcidChipMap.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
+    _PlaneBcidChipMap_buf0.insert(std::make_pair(globalvariables::getEnabledChipsVec().at(ichip), std::vector<Int_t>  () ));
   }
 
 }
@@ -662,12 +673,14 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
 
     std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _NhitsChipMap.find((*mapiter).first);
-
     for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
       std::vector<Int_t> Nhitsvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getNhitsRate();
-      for(unsigned ibcid=0; ibcid<Nhitsvec2.size(); ibcid++)   (*helpMapIter).second.push_back(Nhitsvec2.at(ibcid));
-
+      for(unsigned inhit=0; inhit<Nhitsvec2.size(); inhit++)   {
+	if((*helpMapIter).second.size()<inhit+1) (*helpMapIter).second.push_back(0);
+	(*helpMapIter).second.at(inhit)+=Nhitsvec2.at(inhit);
+      }
     }
+    
   }
   
 
@@ -689,12 +702,14 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
 
     std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _RetrigNhitsChipMap.find((*mapiter).first);
-
     for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
       std::vector<Int_t> RetrigNhitsvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getRetrigNhitsRate();
-      for(unsigned ibcid=0; ibcid<RetrigNhitsvec2.size(); ibcid++)   (*helpMapIter).second.push_back(RetrigNhitsvec2.at(ibcid));
-
+      for(unsigned inhit=0; inhit<RetrigNhitsvec2.size(); inhit++)   {
+	if((*helpMapIter).second.size()<inhit+1) (*helpMapIter).second.push_back(0);
+	(*helpMapIter).second.at(inhit)+=RetrigNhitsvec2.at(inhit);
+      }
     }
+
   }
   
   //-----------------------------------------------------------------------------
@@ -710,14 +725,41 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
     //  if(NegativeNhitsvec.size()==0) (*mapiter).second.push_back(0);
     
     unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
-
+    
     std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _NegativeNhitsChipMap.find((*mapiter).first);
-
     for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
       std::vector<Int_t> NegativeNhitsvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getNegativeNhitsRate();
-      for(unsigned ibcid=0; ibcid<NegativeNhitsvec2.size(); ibcid++)   (*helpMapIter).second.push_back(NegativeNhitsvec2.at(ibcid));
-
+      for(unsigned inhit=0; inhit<NegativeNhitsvec2.size(); inhit++)   {
+	if((*helpMapIter).second.size()<inhit+1) (*helpMapIter).second.push_back(0);
+	(*helpMapIter).second.at(inhit)+=NegativeNhitsvec2.at(inhit);
+      }
     }
+
+  }
+
+  //-----------------------------------------------------------------------------
+  // tagged as Plane Events events, nhits analysis -->
+  //Loop over all enabled chips to fill the nhit rate for SCA=0 and SCA>0
+  //Loop over all enabled chips to fill the bcid mean and rms calculation rate for SCA=0 and SCA>0
+  for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _PlaneNhitsChipMap_buf0.begin();mapiter!=_PlaneNhitsChipMap_buf0.end();mapiter++) {
+    std::cout << "MonitorManager::simpleChipAnalysis, BCID ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
+
+    std::vector<Int_t> PlaneNhitsvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getPlaneNhitsRate();
+    for(unsigned ibcid=0; ibcid<PlaneNhitsvec.size(); ibcid++)
+      (*mapiter).second.push_back(PlaneNhitsvec.at(ibcid));
+    //  if(PlaneNhitsvec.size()==0) (*mapiter).second.push_back(0);
+    
+    unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
+    
+    std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _PlaneNhitsChipMap.find((*mapiter).first);
+    for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
+      std::vector<Int_t> PlaneNhitsvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getPlaneNhitsRate();
+      for(unsigned inhit=0; inhit<PlaneNhitsvec2.size(); inhit++)   {
+	if((*helpMapIter).second.size()<inhit+1) (*helpMapIter).second.push_back(0);
+	(*helpMapIter).second.at(inhit)+=PlaneNhitsvec2.at(inhit);
+      }
+    }
+
   }
 
   /// #########################################################   BCID 
@@ -785,6 +827,28 @@ void MonitorManager::simpleChipAnalysis(ExperimentalSetup* aExpSetup) {
     }
   }
 
+  //--------------
+  // Plane Events
+  //Loop over all enabled chips to fill the bcid mean and rms calculation rate for SCA=0 and SCA>0
+  for (std::map<unsigned,std::vector<Int_t> >::iterator mapiter = _PlaneBcidChipMap_buf0.begin();mapiter!=_PlaneBcidChipMap_buf0.end();mapiter++) {
+    std::cout << "MonitorManager::simpleChipAnalysis, BCID ------------ New chip: " << (*mapiter).first << " ---------------- " << std::endl;
+
+    std::vector<Int_t> PlaneBcidvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getPlaneBcidVec();
+    for(unsigned ibcid=0; ibcid<PlaneBcidvec.size(); ibcid++)
+      (*mapiter).second.push_back(PlaneBcidvec.at(ibcid));
+    if(PlaneBcidvec.size()==0) (*mapiter).second.push_back(-100);
+    
+    unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
+
+    std::map<unsigned,std::vector<Int_t> >::iterator helpMapIter = _PlaneBcidChipMap.find((*mapiter).first);
+
+    for(unsigned ibuf =1; ibuf<bufdepth; ibuf++ ) {
+      std::vector<Int_t> PlaneBcidvec2=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getPlaneBcidVec();
+      for(unsigned ibcid=0; ibcid<PlaneBcidvec2.size(); ibcid++)   (*helpMapIter).second.push_back(PlaneBcidvec2.at(ibcid));
+
+    }
+  }
+
 }
 
 //
@@ -792,28 +856,34 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
 
 
   //Declare and open a Canvas
-  TCanvas* c_chips = new TCanvas("SimpleChipMonitoring "+file_sufix,"SimpleChipMonitoring "+file_sufix,1000,30,1800,600);
+  TCanvas* c_chips = new TCanvas("SimpleChipMonitoring "+file_sufix,"SimpleChipMonitoring "+file_sufix,1000,30,1800,800);
   //Divide the canvas
-  c_chips->Divide(4,3);
+  c_chips->Divide(4,4);
 
   //maps
-  TH2F * NHitsRate_buf0 = new TH2F("NHitsRate_buf0","NHitsRate_buf0",66,-0.5,65.5,16,-0.5,15.5);
-  TH2F * NHitsRate = new TH2F("NHitsRate","NHitsRate",66,-0.5,65.5,16,-0.5,15.5);
+  TH2F * NHitsRate_buf0 = new TH2F("NHitsRate_buf0","NHitsRate_buf0",65,0.5,64.5,16,-0.5,15.5);
+  TH2F * NHitsRate = new TH2F("NHitsRate","NHitsRate",65,0.5,64.5,16,-0.5,15.5);
 
   TH2F * BCID_buf0 = new TH2F("BCID_buf0","BCID_buf0",42,-50,4150,16,-0.5,15.5);
   TH2F * BCID = new TH2F("BCID","BCID",42,-50,4150,16,-0.5,15.5);
 
-  TH2F * RetrigNHitsRate_buf0 = new TH2F("RetrigNHitsRate_buf0","RetrigNHitsRate_buf0",66,-0.5,65.5,16,-0.5,15.5);
-  TH2F * RetrigNHitsRate = new TH2F("RetrigNHitsRate","RetrigNHitsRate",66,-0.5,65.5,16,-0.5,15.5);
+  TH2F * RetrigNHitsRate_buf0 = new TH2F("RetrigNHitsRate_buf0","RetrigNHitsRate_buf0",65,0.5,64.5,16,-0.5,15.5);
+  TH2F * RetrigNHitsRate = new TH2F("RetrigNHitsRate","RetrigNHitsRate",65,0.5,64.5,16,-0.5,15.5);
 
   TH2F * RetrigBCID_buf0 = new TH2F("RetrigBCID_buf0","RetrigBCID_buf0",42,-50,4150,16,-0.5,15.5);
   TH2F * RetrigBCID = new TH2F("RetrigBCID","RetrigBCID",42,-50,4150,16,-0.5,15.5);
   
-  TH2F * NegativeNHitsRate_buf0 = new TH2F("NegativeNHitsRate_buf0","NegativeNHitsRate_buf0",66,-0.5,65.5,16,-0.5,15.5);
-  TH2F * NegativeNHitsRate = new TH2F("NegativeNHitsRate","NegativeNHitsRate",66,-0.5,65.5,16,-0.5,15.5);
+  TH2F * NegativeNHitsRate_buf0 = new TH2F("NegativeNHitsRate_buf0","NegativeNHitsRate_buf0",65,0.5,64.5,16,-0.5,15.5);
+  TH2F * NegativeNHitsRate = new TH2F("NegativeNHitsRate","NegativeNHitsRate",65,0.5,64.5,16,-0.5,15.5);
 
   TH2F * NegativeBCID_buf0 = new TH2F("NegativeBCID_buf0","NegativeBCID_buf0",42,-50,4150,16,-0.5,15.5);
   TH2F * NegativeBCID = new TH2F("NegativeBCID","NegativeBCID",42,-50,4150,16,-0.5,15.5);
+
+  TH2F * PlaneNHitsRate_buf0 = new TH2F("PlaneNHitsRate_buf0","PlaneNHitsRate_buf0",65,0.5,64.5,16,-0.5,15.5);
+  TH2F * PlaneNHitsRate = new TH2F("PlaneNHitsRate","PlaneNHitsRate",65,0.5,64.5,16,-0.5,15.5);
+
+  TH2F * PlaneBCID_buf0 = new TH2F("PlaneBCID_buf0","PlaneBCID_buf0",42,-50,4150,16,-0.5,15.5);
+  TH2F * PlaneBCID = new TH2F("PlaneBCID","PlaneBCID",42,-50,4150,16,-0.5,15.5);
 
   //Loop over all enabled chips
   for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
@@ -859,7 +929,21 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
        NegativeBCID_buf0->Fill(_NegativeBcidChipMap_buf0.at(ichip).at(ichn),ichip);
     
     for(unsigned ichn=0; ichn<_NegativeBcidChipMap.at(ichip).size(); ichn++)
-      NegativeBCID->Fill(_NegativeBcidChipMap.at(ichip).at(ichn),ichip); 
+      NegativeBCID->Fill(_NegativeBcidChipMap.at(ichip).at(ichn),ichip);
+
+    // // Fill histograms with events tagged as plane events
+    for(unsigned ichn=0; ichn<_PlaneNhitsChipMap_buf0.at(ichip).size(); ichn++) 
+      PlaneNHitsRate_buf0->Fill(ichn, ichip, _PlaneNhitsChipMap_buf0.at(ichip).at(ichn));
+
+    for(unsigned ichn=0; ichn<_PlaneNhitsChipMap.at(ichip).size(); ichn++) 
+      PlaneNHitsRate->Fill(ichn, ichip, _PlaneNhitsChipMap.at(ichip).at(ichn));
+    
+
+    for(unsigned ichn=0; ichn<_PlaneBcidChipMap_buf0.at(ichip).size(); ichn++)
+       PlaneBCID_buf0->Fill(_PlaneBcidChipMap_buf0.at(ichip).at(ichn),ichip);
+    
+    for(unsigned ichn=0; ichn<_PlaneBcidChipMap.at(ichip).size(); ichn++)
+      PlaneBCID->Fill(_PlaneBcidChipMap.at(ichip).at(ichn),ichip); 
   }
 
 
@@ -920,7 +1004,7 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
   RetrigBCID->GetYaxis()->SetTitle("chip");
   RetrigBCID->Draw("colz");
 
-  c_chips->cd(9);
+   c_chips->cd(9);
   NegativeNHitsRate_buf0->SetTitle("SCA=0, negative");
   NegativeNHitsRate_buf0->GetXaxis()->SetTitle("NHits");
   NegativeNHitsRate_buf0->GetYaxis()->SetTitle("chip");
@@ -943,6 +1027,30 @@ void MonitorManager::simpleChipAnalysisGraphics(TString file_sufix) {
   NegativeBCID->GetXaxis()->SetTitle("BCID");
   NegativeBCID->GetYaxis()->SetTitle("chip");
   NegativeBCID->Draw("colz");
+
+  c_chips->cd(13);
+  PlaneNHitsRate_buf0->SetTitle("SCA=0, plane events");
+  PlaneNHitsRate_buf0->GetXaxis()->SetTitle("NHits");
+  PlaneNHitsRate_buf0->GetYaxis()->SetTitle("chip");
+  PlaneNHitsRate_buf0->Draw("colz");
+
+  c_chips->cd(14);
+  PlaneNHitsRate->SetTitle("SCA>0, plane events");
+  PlaneNHitsRate->GetXaxis()->SetTitle("NHits");
+  PlaneNHitsRate->GetYaxis()->SetTitle("chip");
+  PlaneNHitsRate->Draw("colz");
+
+  c_chips->cd(15);
+  PlaneBCID_buf0->SetTitle("SCA=0, plane events");
+  PlaneBCID_buf0->GetXaxis()->SetTitle("BCID");
+  PlaneBCID_buf0->GetYaxis()->SetTitle("chip");
+  PlaneBCID_buf0->Draw("colz");
+
+  c_chips->cd(16);
+  PlaneBCID->SetTitle("SCA>0, plane events");
+  PlaneBCID->GetXaxis()->SetTitle("BCID");
+  PlaneBCID->GetYaxis()->SetTitle("chip");
+  PlaneBCID->Draw("colz");
 
   c_chips->Update();
 

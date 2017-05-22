@@ -356,7 +356,7 @@ int main(int argc, char* argv[6])
   }
 
   if(globalvariables::getAnalysisType() == "MonitorChannel" || globalvariables::getAnalysisType() == "MonitorChip"  ) {
-    globalvariables::setPlaneEventsThreshold(64); 
+    globalvariables::setPlaneEventsThreshold(5); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     if( globalvariables::getAnalysisType() == "MonitorChannel" ) MonitorRun(datadirStr, datadirStr_output,"channel") ;
