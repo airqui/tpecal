@@ -1,6 +1,6 @@
 # tpecal
 
-Semionline Monitoring and Analaysis Software for the technollogical prototype ECAL for ILC 
+Semionline Monitoring and Analaysis Software for the technological prototype ECAL for ILC 
 
 R. Poeschl & A. Irles 
 
@@ -36,10 +36,10 @@ make install
 ------------------------------
 RUN:
 
-- Requires root raw files (produced, for example, with the RAW2ROOT.C macro present in the root_macros folder)
-- Requires chip mapping (txt file)
+- Requires root raw files (produced, for example, with the RAW2ROOT.C macro present in the tpecal/root_macros folder)
+- Requires chip mapping (txt file, in the tpecal/mapping folder)
 
-in the bin folder:
+from the in the tpecal/bin folder:
 
 
 -> for scans (threshold scan, holdscan, etc) 
