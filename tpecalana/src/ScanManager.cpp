@@ -359,7 +359,9 @@ void ScanManager::holdscanAnalysisGraphicsPainter(channelInfoComplDouble_t::iter
 
 void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
 
-  fout_scurves_chip.open(file_sufix+".cmd",ios::out);
+  fout_scurves_chip_3sigma.open(file_sufix+"_3sigma.cmd",ios::out);
+  fout_scurves_chip_5sigma.open(file_sufix+"_5sigma.cmd",ios::out);
+  fout_scurves_chip_3sigma_firstzero.open(file_sufix+"_5sigma_firstzero.cmd",ios::out);
 
   fout_scurves.open(file_sufix+".log",ios::out);
 
@@ -378,7 +380,9 @@ void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
   }
 
   fout_scurves.close();
-  fout_scurves_chip.close();
+  fout_scurves_chip_3sigma.close();
+  fout_scurves_chip_5sigma.close();
+  fout_scurves_chip_3sigma_firstzero.close();
 
 
 }
@@ -621,19 +625,30 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   hist_fitParScurve_2->GetYaxis()->SetTitle("");
   hist_fitParScurve_2->GetXaxis()->SetTitle("DAC");
   hist_fitParScurve_2->Draw("L");
-  c_mean->Update();
+  //c_mean->Update();
 
   c_sigma->cd((*aMapIter).first+1);
-  hist_fitParScurve_3->SetTitle("Sigma-Thresholds per chip");
+  hist_fitParScurve_3->SetTitle("Sigma/Thresholds per chip");
   hist_fitParScurve_3->GetYaxis()->SetTitle("");
   hist_fitParScurve_3->GetXaxis()->SetTitle("DAC");
   hist_fitParScurve_3->Draw("L");
-  c_sigma->Update();
+  //c_sigma->Update();
 
   int trigger = 230;
   trigger = hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean();
-  fout_scurves_chip<<"reconfigure(\"skiroc_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<")"<<endl;
-  if((*aMapIter).first+1 == globalvariables::getEnabledChipsVec().size() ) fout_scurves_chip<<"quit"<<endl;
+  fout_scurves_chip_3sigma<<"reconfigure(\"skiroc_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
+
+  trigger = hist_fitParScurve_2->GetMean() + 5 * hist_fitParScurve_3->GetMean();
+  fout_scurves_chip_5sigma<<"reconfigure(\"skiroc_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
+
+  trigger = TMath::Max(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean(), hist_fitParScurve_1->GetMean());
+  fout_scurves_chip_3sigma_firstzero<<"reconfigure(\"skiroc_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
+
+  if((*aMapIter).first+1 == globalvariables::getEnabledChipsVec().size() ) {
+    fout_scurves_chip_3sigma<<"quit"<<endl;
+    fout_scurves_chip_5sigma<<"quit"<<endl;
+    fout_scurves_chip_3sigma_firstzero<<"quit"<<endl;
+  }
 
   //Loop over all chips and display the maximum number of hits in a given channel
     
@@ -663,8 +678,13 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   // hist_fitParErrScurve_3->Write();
   hist_fitChisq->Write();
 
+  c_sigma->Update();
+  c_mean->Update();
+
   if((*aMapIter).first == globalvariables::getEnabledChipsVec().size() - 1 ) {
+    //c_sigma->Update();
     c_sigma->Write();
+    //c_mean->Update();
     c_mean->Write();
   }
   
