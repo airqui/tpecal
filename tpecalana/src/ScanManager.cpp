@@ -193,7 +193,7 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
   std::vector<std::pair<unsigned, unsigned> >acqnumber=aExpSetup->getDif(0).getDifStatVec();
   float nSpills= acqnumber.size();
   //for(int iac=0; iac<acqnumber.size();iac++) 
-    //std::cout<< iac << " " << acqnumber.at(iac).first << " " << acqnumber.at(iac).second <<std::endl;
+  //std::cout<< iac << " " << acqnumber.at(iac).first << " " << acqnumber.at(iac).second <<std::endl;
 
   //Loop over all enabled chips
   for (channelInfoComplDouble_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
@@ -254,18 +254,12 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
 
 void ScanManager::holdscanAnalysisGraphics(TString file_sufix) {
 
-  //  fout_scurves.open(file_sufix+".log",ios::out);
-
-  //fout_scurves<<"#Holdscan analysis summary" <<std::endl;
-  //fout_scurves<<"#"<<file_sufix <<std::endl;
-  //fout_scurves<<"#chip channel threshold width chi2/NDF first_zero" <<std::endl;
-
+ 
   //Loop over all enabled chips
   for (channelInfoComplDouble_t::iterator mapiter = _meanADCChipVecMapHigh.begin();mapiter!=_meanADCChipVecMapHigh.end();mapiter++) {
     holdscanAnalysisGraphicsPainter(mapiter,file_sufix);
   }
 
-  //fout_scurves.close();
 }
 
 
@@ -365,11 +359,18 @@ void ScanManager::holdscanAnalysisGraphicsPainter(channelInfoComplDouble_t::iter
 
 void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
 
+  fout_scurves_chip.open(file_sufix+".cmd",ios::out);
+
   fout_scurves.open(file_sufix+".log",ios::out);
 
   fout_scurves<<"#Scurve analysis summary" <<std::endl;
   fout_scurves<<"#"<<file_sufix <<std::endl;
   fout_scurves<<"#chip channel threshold width chi2/NDF first_zero" <<std::endl;
+
+  c_mean = new TCanvas("Threshold Mean","Threshold Mean",800,800);
+  c_mean->Divide(4,4);
+  c_sigma = new TCanvas("Threshold Sigma","Threshold sigma",800,800);
+  c_sigma->Divide(4,4);
 
   //Loop over all enabled chips
   for (channelInfoComplDouble_t::iterator mapiter = _ntrigVecMapHigh.begin();mapiter!=_ntrigVecMapHigh.end();mapiter++) {
@@ -377,6 +378,9 @@ void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
   }
 
   fout_scurves.close();
+  fout_scurves_chip.close();
+
+
 }
 
 
@@ -538,8 +542,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
       hist_fitParErrScurve_2->Fill(float(f->GetParError(1)));
       hist_fitParErrScurve_3->Fill(float(f->GetParError(2)));
       
-       hist_fitChisq->Fill(chi2ndf);
-
+      hist_fitChisq->Fill(chi2ndf);
       fout_scurves<<int((*aMapIter).first) << " " <<ichan << " ";
       fout_scurves<<std::fixed << std::setprecision(3) << f->GetParameter(1) << " " << f->GetParameter(2) <<  " " << chi2ndf <<" "<<first_zero<<std::endl;
 	
@@ -552,6 +555,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
 
     ichan++;
   }
+
 
 
   c_chips->cd(5);
@@ -612,6 +616,25 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
 
   c_chips->Update();
 
+  c_mean->cd((*aMapIter).first+1);
+  hist_fitParScurve_2->SetTitle("Thresholds per chip");
+  hist_fitParScurve_2->GetYaxis()->SetTitle("");
+  hist_fitParScurve_2->GetXaxis()->SetTitle("DAC");
+  hist_fitParScurve_2->Draw("L");
+  c_mean->Update();
+
+  c_sigma->cd((*aMapIter).first+1);
+  hist_fitParScurve_3->SetTitle("Sigma-Thresholds per chip");
+  hist_fitParScurve_3->GetYaxis()->SetTitle("");
+  hist_fitParScurve_3->GetXaxis()->SetTitle("DAC");
+  hist_fitParScurve_3->Draw("L");
+  c_sigma->Update();
+
+  int trigger = 230;
+  trigger = hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean();
+  fout_scurves_chip<<"reconfigure(\"skiroc_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<")"<<endl;
+  if((*aMapIter).first+1 == globalvariables::getEnabledChipsVec().size() ) fout_scurves_chip<<"quit"<<endl;
+
   //Loop over all chips and display the maximum number of hits in a given channel
     
   if (helpMapIter != _maxHithelpVec.end()) {
@@ -640,6 +663,11 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   // hist_fitParErrScurve_3->Write();
   hist_fitChisq->Write();
 
+  if((*aMapIter).first == globalvariables::getEnabledChipsVec().size() - 1 ) {
+    c_sigma->Write();
+    c_mean->Write();
+  }
+  
   f_scurve->Close();     
 }
 
@@ -681,7 +709,7 @@ void ScanManager::planeEventsAnalysisGraphicsPainter(channelInfoComplDouble_t::i
   c_chips->cd(1);
 
   for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
-     if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
+    if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
       std::cout << "ScanManager::planEventsAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for bad event selectionselection" << ierror << std::endl;
       std::cout << "Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
       std::cout << "Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
@@ -741,7 +769,7 @@ void ScanManager::planeEventsAnalysisGraphicsPainter(channelInfoComplDouble_t::i
   c_chips->cd(2);
     
   for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*helpMapIter).second.begin(); chanVeciter!=(*helpMapIter).second.end(); chanVeciter++) {
-     if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
+    if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
       std::cout << "ScanManager::planEventsAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for bad event selectionselection" << ierror << std::endl;
       std::cout << "Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
       std::cout << "Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
