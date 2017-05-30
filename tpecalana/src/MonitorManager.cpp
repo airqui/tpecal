@@ -422,12 +422,12 @@ void MonitorManager::simpleFilteredChannelAnalysisGraphics(TString file_sufix) {
       Triggers_negativeData->Fill(ichip,float(_TrigChipVec_negativeData.at(ichip))/float(_TrigChipVec.at(ichip)));
     }
 
-    Triggers_sca->Fill(ichip,_TrigChipVec_sca.at(ichip));
-    // normalize number of errors to the 
-    Triggers_retrig_sca->Fill(ichip,float(_TrigChipVec_retrig_sca.at(ichip)));
-    Triggers_planeEvents_sca->Fill(ichip,float(_TrigChipVec_planeEvents_sca.at(ichip)));
-    Triggers_negativeData_sca->Fill(ichip,float(_TrigChipVec_negativeData_sca.at(ichip)));
-       
+    if(_TrigChipVec_sca.at(ichip)>0) {
+      Triggers_sca->Fill(ichip,float(_TrigChipVec_sca.at(ichip))/float(_TrigChipVec_sca.at(ichip)));
+      Triggers_retrig_sca->Fill(ichip,float(_TrigChipVec_retrig_sca.at(ichip))/float(_TrigChipVec_sca.at(ichip)));
+      Triggers_planeEvents_sca->Fill(ichip,float(_TrigChipVec_planeEvents_sca.at(ichip))/float(_TrigChipVec_sca.at(ichip)));
+      Triggers_negativeData_sca->Fill(ichip,float(_TrigChipVec_negativeData_sca.at(ichip))/float(_TrigChipVec_sca.at(ichip)));
+    }
    
 
     for(int ichn=0; ichn<64; ichn++) {
@@ -472,7 +472,7 @@ void MonitorManager::simpleFilteredChannelAnalysisGraphics(TString file_sufix) {
   Triggers->GetYaxis()->SetRangeUser(1,Triggers->GetMaximum()*10);
   Triggers->SetLineColor(1);
   Triggers->SetLineWidth(2);
-  Triggers->Draw("h");
+  Triggers->Draw("histo");
 
   c_chips->cd(3);
   gPad->SetLogy();
@@ -484,27 +484,27 @@ void MonitorManager::simpleFilteredChannelAnalysisGraphics(TString file_sufix) {
 
   Triggers_bcid1->SetTitle("NHits / Nhits (ok)");
   Triggers_bcid1->GetXaxis()->SetTitle("Chip");
-  Triggers_bcid1->GetYaxis()->SetTitle("Nhits");
+  //Triggers_bcid1->GetYaxis()->SetTitle("Nhits");
   Triggers_bcid1->GetYaxis()->SetRangeUser(0.0001,50000000);
-  Triggers_bcid1->Draw("h");
+  Triggers_bcid1->Draw("histo");
   
   Triggers_bcid5->SetLineColor(2);
   Triggers_bcid5->SetLineWidth(2);
-  Triggers_bcid5->Draw("hsame");
+  Triggers_bcid5->Draw("histosame");
   
   Triggers_bcid10->SetLineColor(3);
   Triggers_bcid10->SetLineWidth(3);
-  Triggers_bcid10->Draw("hsame");
+  Triggers_bcid10->Draw("histosame");
   
   Triggers_planeEvents->SetLineStyle(2);
   Triggers_planeEvents->SetLineWidth(4);
   Triggers_planeEvents->SetLineColor(1);
-  Triggers_planeEvents->Draw("hsame");
+  Triggers_planeEvents->Draw("histosame");
   
   Triggers_negativeData->SetLineStyle(2);
   Triggers_negativeData->SetLineWidth(4);
   Triggers_negativeData->SetLineColor(2);
-  Triggers_negativeData->Draw("hsame");
+  Triggers_negativeData->Draw("histosame");
   
   TLegend *leg = new TLegend(0.1,0.6,0.9,0.9);
   leg->AddEntry(Triggers_bcid1,"bcid[buf]-bcid[buf-1]==1","l");
@@ -516,7 +516,7 @@ void MonitorManager::simpleFilteredChannelAnalysisGraphics(TString file_sufix) {
 
   c_chips->cd(4);
 
-  gPad->SetLogy();
+  // gPad->SetLogy();
   Triggers_sca->SetStats(kFALSE);
   Triggers_retrig_sca->SetStats(kFALSE);
   Triggers_planeEvents_sca->SetStats(kFALSE);
@@ -526,27 +526,27 @@ void MonitorManager::simpleFilteredChannelAnalysisGraphics(TString file_sufix) {
   Triggers_sca->GetXaxis()->SetTitle("Chip");
   Triggers_sca->SetLineColor(1);
   Triggers_sca->SetLineWidth(2);
-  Triggers_sca->GetYaxis()->SetRangeUser(0.0001,50000000);
-  Triggers_sca->Draw("h");
+  Triggers_sca->GetYaxis()->SetRangeUser(0,Triggers_sca->GetMaximum()*5);
+  Triggers_sca->Draw("histo");
 
-  Triggers_retrig_sca->Draw("hsame");
+  Triggers_retrig_sca->Draw("histosame");
   
   Triggers_planeEvents_sca->SetLineStyle(2);
   Triggers_planeEvents_sca->SetLineWidth(4);
   Triggers_planeEvents_sca->SetLineColor(1);
-  Triggers_planeEvents_sca->Draw("hsame");
+  Triggers_planeEvents_sca->Draw("histosame");
   
   Triggers_negativeData_sca->SetLineStyle(2);
   Triggers_negativeData_sca->SetLineWidth(4);
   Triggers_negativeData_sca->SetLineColor(2);
-  Triggers_negativeData_sca->Draw("hsame");
+  Triggers_negativeData_sca->Draw("histosame");
   
-  TLegend *leg2 = new TLegend(0.1,0.6,0.9,0.9);
-  leg2->AddEntry(Triggers_sca,"GOOD","l");
-  leg2->AddEntry(Triggers_retrig_sca,"retrig","l");
-  leg2->AddEntry(Triggers_planeEvents_sca,TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"l");
-  leg2->AddEntry(Triggers_negativeData_sca,"Negative Data","l");
-  leg2->Draw();
+  // TLegend *leg2 = new TLegend(0.1,0.6,0.9,0.9);
+  //leg2->AddEntry(Triggers_sca,"GOOD","l");
+  //leg2->AddEntry(Triggers_retrig_sca,"retrig","l");
+  //leg2->AddEntry(Triggers_planeEvents_sca,TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"l");
+  //leg2->AddEntry(Triggers_negativeData_sca,"Negative Data","l");
+  //leg2->Draw();
 
   
   c_chips->cd(5);
