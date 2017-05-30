@@ -81,8 +81,8 @@ TF1 *FitGraphs::FitScurve(TGraphErrors *gr)
    
   double par1=0, par2=0, par3=0;
 
-  TF1 *fit1 = new TF1("fit1","[0]*TMath::Erfc((x-[1])/[2])",170,250); 
-  TF1 *fit2 = new TF1("fit2","[0]*TMath::Erfc((x-[1])/[2])+[3]",170,250); 
+  TF1 *fit1 = new TF1("fit1","[0]*TMath::Erfc((x-[1])/[2])",181,240); 
+  TF1 *fit2 = new TF1("fit2","[0]*TMath::Erfc((x-[1])/[2])+[3]",181,240); 
 
   fit1->SetParameter(0,1); 
   fit1->SetParameter(1,190);
