@@ -20,15 +20,19 @@ ChipBuffer::ChipBuffer(unsigned bufferID){
   _channelCount=0;
 
   //nhits and bcid analysis
-  _nhitsVec.clear();
-  _nRetrighitsVec.clear();
-  _nNegativehitsVec.clear();
-  _nPlanehitsVec.clear();
+  _nhitsRateVec.clear();
+  _nRetrighitsRateVec.clear();
+  _nNegativehitsRateVec.clear();
+  _nPlanehitsRateVec.clear();
   _chipBcidVec.clear();
   _chipRetrigBcidVec.clear();
   _chipNegativeBcidVec.clear();
   _chipPlaneBcidVec.clear();
 
+  _nhits=0;
+  _nRetrighits=0;
+  _nNegativehits=0;
+  _nPlanehits=0;
 
 }
 
@@ -78,42 +82,49 @@ void ChipBuffer::setChipVals(Int_t bcid, Int_t corrected_bcid, Int_t badbcid, In
   //pass the measured value to the corresponding channel
 
   if(badbcid>30 ) {
-    if(_nNegativehitsVec.size() < (nhits+1) )
+    if(_nNegativehitsRateVec.size() < (nhits+1) )
       for (int ichan=0; ichan < (nhits + 1); ichan++)
-	_nNegativehitsVec.push_back(0);
+	_nNegativehitsRateVec.push_back(0);
     
-    _nNegativehitsVec.at(nhits)++;
+    _nNegativehitsRateVec.at(nhits)++;
     _chipNegativeBcidVec.push_back(bcid);
+
+    _nNegativehits++;
     
   } else {
     if(nhits>0 && nhits<=thresh ) {
       if( badbcid == 0) {
 	
-	if(_nhitsVec.size() < (nhits+1) ) 
+	if(_nhitsRateVec.size() < (nhits+1) ) 
 	  for (int ichan=0; ichan < (nhits + 1); ichan++)
-	    _nhitsVec.push_back(0);
+	    _nhitsRateVec.push_back(0);
 	
-	_nhitsVec.at(nhits)++;
+	_nhitsRateVec.at(nhits)++;
 	_chipBcidVec.push_back(bcid);
+	_nhits++;
+
       }
       
       if(badbcid>0 && badbcid<16 ) {
-	if(_nRetrighitsVec.size() < (nhits+1) )
+	if(_nRetrighitsRateVec.size() < (nhits+1) )
 	  for (int ichan=0; ichan < (nhits + 1); ichan++)
-	    _nRetrighitsVec.push_back(0);
+	    _nRetrighitsRateVec.push_back(0);
 	
-	_nRetrighitsVec.at(nhits)++;
+	_nRetrighitsRateVec.at(nhits)++;
 	_chipRetrigBcidVec.push_back(bcid);
-	
+	_nRetrighits++;
+
       }
     } else {
       if(nhits>thresh && badbcid>-0.5) {
-	if(_nPlanehitsVec.size() < (nhits+1) ) 
+	if(_nPlanehitsRateVec.size() < (nhits+1) ) 
 	  for (int ichan=0; ichan < (nhits + 1); ichan++)
-	    _nPlanehitsVec.push_back(0);
+	    _nPlanehitsRateVec.push_back(0);
 	
-	_nPlanehitsVec.at(nhits)++;
+	_nPlanehitsRateVec.at(nhits)++;
 	_chipPlaneBcidVec.push_back(bcid);
+	_nPlanehits++;
+	
       }
       
     }
@@ -129,7 +140,7 @@ std::vector<Int_t> ChipBuffer::getRetrigBcidVec() {
 }
 
 std::vector<Int_t> ChipBuffer::getRetrigNhitsRate( ) {
-  return _nRetrighitsVec;
+  return _nRetrighitsRateVec;
 }
 
 std::vector<Int_t> ChipBuffer::getNegativeBcidVec() {
@@ -137,7 +148,7 @@ std::vector<Int_t> ChipBuffer::getNegativeBcidVec() {
 }
 
 std::vector<Int_t> ChipBuffer::getNegativeNhitsRate( ) {
-  return _nNegativehitsVec;
+  return _nNegativehitsRateVec;
 }
 
 std::vector<Int_t> ChipBuffer::getPlaneBcidVec() {
@@ -145,7 +156,7 @@ std::vector<Int_t> ChipBuffer::getPlaneBcidVec() {
 }
 
 std::vector<Int_t> ChipBuffer::getPlaneNhitsRate( ) {
-  return _nPlanehitsVec;
+  return _nPlanehitsRateVec;
 }
 
 
@@ -154,7 +165,17 @@ std::vector<Int_t> ChipBuffer::getBcidVec() {
 }
 
 std::vector<Int_t> ChipBuffer::getNhitsRate( ) {
-  return _nhitsVec;
+  return _nhitsRateVec;
+}
+
+std::vector<Int_t> ChipBuffer::getNhits( ) {
+  std::vector<Int_t> temp;
+  temp.push_back(_nhits);
+  temp.push_back(_nRetrighits);
+  temp.push_back(_nNegativehits);
+  temp.push_back(_nPlanehits);
+
+  return temp;
 }
 
 
