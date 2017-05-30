@@ -76,6 +76,13 @@ private:
     std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_negative; //npedestals per chip and channel
     std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0_negative; //ntriggers per chip and channel
     std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_buf0_negative; //npedestals per chip and channel
+
+    channelInfoComplUnsigned_t _ntrigVecMapHigh_plane; 
+    std::map<unsigned,std::vector<Double_t> >  _bufferVecMapMedian_plane; // median of triggerd buffers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_plane; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_plane; //npedestals per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _TrigChipChannelVecMap_buf0_plane; //ntriggers per chip and channel
+    std::map<unsigned,std::vector<unsigned> > _PedChipChannelVecMap_buf0_plane; //npedestals per chip and channel
     
    // vector with the total number of triggers for each chip
     std::vector<unsigned>  _TrigChipVec;
@@ -84,6 +91,12 @@ private:
     std::vector<unsigned>  _TrigChipVec_bcid10;
     std::vector<unsigned>  _TrigChipVec_planeEvents;
     std::vector<unsigned>  _TrigChipVec_negativeData;
+
+    //vectors with the total number of sca that had triggers per chip
+    std::vector<unsigned>  _TrigChipVec_sca; //vector of unsigned
+    std::vector<unsigned>  _TrigChipVec_retrig_sca; //vector of unsigned
+    std::vector<unsigned>  _TrigChipVec_planeEvents_sca; //vector of unsigned
+    std::vector<unsigned>  _TrigChipVec_negativeData_sca; //vector of unsigned
 
     std::vector<double>  _RetriggerRatesChipVec;
     std::vector<double>  _PlaneRatesChipVec;

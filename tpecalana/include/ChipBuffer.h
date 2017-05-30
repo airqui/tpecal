@@ -48,6 +48,7 @@ public:
     //chip monitoring tools
     void setChipVals(Int_t , Int_t , Int_t , Int_t );
     std::vector<Int_t> getBcidVec();
+    std::vector<Int_t> getNhits();
     std::vector<Int_t> getNhitsRate();
     std::vector<Int_t> getRetrigBcidVec();
     std::vector<Int_t> getRetrigNhitsRate();
@@ -72,14 +73,19 @@ private:
     unsigned _channelCount;
     
     //chip buffer monitoring objects
-    std::vector<Int_t> _nhitsVec;
+    std::vector<Int_t> _nhitsRateVec;
     std::vector<Int_t> _chipBcidVec;
-    std::vector<Int_t> _nRetrighitsVec;
+    std::vector<Int_t> _nRetrighitsRateVec;
     std::vector<Int_t> _chipRetrigBcidVec;
-    std::vector<Int_t> _nNegativehitsVec;
+    std::vector<Int_t> _nNegativehitsRateVec;
     std::vector<Int_t> _chipNegativeBcidVec;
-    std::vector<Int_t> _nPlanehitsVec;
+    std::vector<Int_t> _nPlanehitsRateVec;
     std::vector<Int_t> _chipPlaneBcidVec;
+
+    Int_t _nhits;
+    Int_t _nRetrighits;
+    Int_t _nNegativehits;
+    Int_t _nPlanehits;
 };
 
 #endif /* defined(__cobana_project__ChipBuffer__) */
