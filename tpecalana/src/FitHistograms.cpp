@@ -25,7 +25,7 @@ std::vector<Double_t> FitHistograms::FitPedestal(TH1F * pedestal_histo){
   TSpectrum *s = new TSpectrum(5,1);
   s->Search(pedestal_histo, 1);
   
-  Float_t *PeakPosX;
+  Double_t *PeakPosX;
   int NPeaks;
   
   NPeaks = s->GetNPeaks();

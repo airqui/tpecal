@@ -40,6 +40,9 @@ private:
 
     TFile* f_scurve;
     ofstream fout_scurves;
+    ofstream fout_scurves_chip;
+    TCanvas * c_mean;
+    TCanvas * c_sigma;
 
     //Number of runs analysed by the manager
     unsigned _nRuns;
