@@ -651,15 +651,16 @@ void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
   canvasNameStr << "SimpleChannelMonitoring";//the iterator gives the chip ID
   TCanvas* c_chips = new TCanvas("TaggedSimpleChannelMonitoring "+file_sufix,"TaggedSimpleChannelMonitoring "+file_sufix,11,30,1800,600);
   //Divide the canvas
-  c_chips->Divide(3,4);
+  c_chips->Divide(5,4);
 
-
+  
   //median of number os filled SCAs
   TH2F * bufferMedian = new TH2F("buffer_median","buffer_median",64,-0.5,63.5,16,-0.5,15.5);
   // histograms of total number of triggers (with and without filtering
   TH2F * TriggersPerChannel = new TH2F("triggers_per_channel","triggers_per_channel",64,-0.5,63.5,16,-0.5,15.5);
   TH2F * TriggersPerChannel_buf0 = new TH2F("triggers_per_channel_buf0","triggers_per_channel_buf0",64,-0.5,63.5,16,-0.5,15.5);
-
+  TH2F * MapTriggersPerChannel = new TH2F("map_triggers_per_channel","map_triggers_per_channel",32,-86.5,86.5,32,-86.5,86.5);
+  TH2F * MapTriggersPerChannel_buf0 = new TH2F("map_triggers_per_channel_buf0","map_triggers_per_channel_buf0",32,-86.5,86.5,32,-86.5,86.5);
   
   // retriggered ---------
   //median of number os filled SCAs
@@ -667,42 +668,65 @@ void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
   // histograms of total number of triggers (with and without filtering
   TH2F * TriggersPerChannel_retrig = new TH2F("triggers_per_channel_retrig","triggers_per_channel_retrig",64,-0.5,63.5,16,-0.5,15.5);
   TH2F * TriggersPerChannel_buf0_retrig = new TH2F("triggers_per_channel_buf0_retrig","triggers_per_channel_buf0_retrig",64,-0.5,63.5,16,-0.5,15.5);
-
+  TH2F * MapTriggersPerChannel_retrig  = new TH2F("map_triggers_per_channel_retrig","map_triggers_per_channel_retrig",32,-86.5,86.5,32,-86.5,86.5);
+  TH2F * MapTriggersPerChannel_buf0_retrig  = new TH2F("map_triggers_per_channel_buf0_retrig","map_triggers_per_channel_buf0_retrig",32,-86.5,86.5,32,-86.5,86.5);
+  
   // negative ----------
   //median of number os filled SCAs
   TH2F * bufferMedian_negative = new TH2F("buffer_median_negative","buffer_median_negative",64,-0.5,63.5,16,-0.5,15.5);
   // histograms of total number of triggers (with and without filtering
   TH2F * TriggersPerChannel_negative = new TH2F("triggers_per_channel_negative","triggers_per_channel_negative",64,-0.5,63.5,16,-0.5,15.5);
   TH2F * TriggersPerChannel_buf0_negative = new TH2F("triggers_per_channel_buf0_negative","triggers_per_channel_buf0_negative",64,-0.5,63.5,16,-0.5,15.5);
-
+  TH2F * MapTriggersPerChannel_negative  = new TH2F("map_triggers_per_channel_negative","map_triggers_per_channel_negative",32,-86.5,86.5,32,-86.5,86.5);
+  TH2F * MapTriggersPerChannel_buf0_negative  = new TH2F("map_triggers_per_channel_buf0_negative","map_triggers_per_channel_buf0_negative",32,-86.5,86.5,32,-86.5,86.5);
+  
   // plane ----------
   //median of number os filled SCAs
   TH2F * bufferMedian_plane = new TH2F("buffer_median_plane","buffer_median_plane",64,-0.5,63.5,16,-0.5,15.5);
   // histograms of total number of triggers (with and without filtering
   TH2F * TriggersPerChannel_plane = new TH2F("triggers_per_channel_plane","triggers_per_channel_plane",64,-0.5,63.5,16,-0.5,15.5);
   TH2F * TriggersPerChannel_buf0_plane = new TH2F("triggers_per_channel_buf0_plane","triggers_per_channel_buf0_plane",64,-0.5,63.5,16,-0.5,15.5);
+  TH2F * MapTriggersPerChannel_plane  = new TH2F("map_triggers_per_channel_plane","map_triggers_per_channel_plane",32,-86.5,86.5,32,-86.5,86.5);
+  TH2F * MapTriggersPerChannel_buf0_plane  = new TH2F("map_triggers_per_channel_buf0_plane","map_triggers_per_channel_buf0_plane",32,-86.5,86.5,32,-86.5,86.5);
 
-  //Loop over all enabled chips
+
+  Mapping mapASU;
+  mapASU.init("/home/irles/WorkAreaECAL/2017/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  
+    //Loop over all enabled chips
   for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
    
 
     for(int ichn=0; ichn<64; ichn++) {
 
+      std::vector<double> xy = mapASU.getChannelPosition(ichip,ichn);
+      double x = xy.at(0);
+      double y = xy.at(1);
+
       bufferMedian->Fill(ichn,double(ichip),_bufferVecMapMedian.at(ichip).at(ichn));
       TriggersPerChannel->Fill(ichn,ichip,_TrigChipChannelVecMap.at(ichip).at(ichn));
       TriggersPerChannel_buf0->Fill(ichn,ichip,_TrigChipChannelVecMap_buf0.at(ichip).at(ichn));
-      
+      MapTriggersPerChannel->Fill(x,y,_TrigChipChannelVecMap.at(ichip).at(ichn));
+      MapTriggersPerChannel_buf0->Fill(x,y,_TrigChipChannelVecMap_buf0.at(ichip).at(ichn));
+
+    
       bufferMedian_retrig->Fill(ichn,double(ichip),_bufferVecMapMedian_retrig.at(ichip).at(ichn));
       TriggersPerChannel_retrig->Fill(ichn,ichip,_TrigChipChannelVecMap_retrig.at(ichip).at(ichn));
       TriggersPerChannel_buf0_retrig->Fill(ichn,ichip,_TrigChipChannelVecMap_buf0_retrig.at(ichip).at(ichn));
-
+      MapTriggersPerChannel_retrig->Fill(x,y,_TrigChipChannelVecMap_retrig.at(ichip).at(ichn));
+      MapTriggersPerChannel_buf0_retrig->Fill(x,y,_TrigChipChannelVecMap_buf0_retrig.at(ichip).at(ichn));
+      
       bufferMedian_negative->Fill(ichn,double(ichip),_bufferVecMapMedian_negative.at(ichip).at(ichn));
       TriggersPerChannel_negative->Fill(ichn,ichip,_TrigChipChannelVecMap_negative.at(ichip).at(ichn));
       TriggersPerChannel_buf0_negative->Fill(ichn,ichip,_TrigChipChannelVecMap_buf0_negative.at(ichip).at(ichn));
+      MapTriggersPerChannel_negative->Fill(x,y,_TrigChipChannelVecMap_negative.at(ichip).at(ichn));
+      MapTriggersPerChannel_buf0_negative->Fill(x,y,_TrigChipChannelVecMap_buf0_negative.at(ichip).at(ichn));
       
       bufferMedian_plane->Fill(ichn,double(ichip),_bufferVecMapMedian_plane.at(ichip).at(ichn));
       TriggersPerChannel_plane->Fill(ichn,ichip,_TrigChipChannelVecMap_plane.at(ichip).at(ichn));
       TriggersPerChannel_buf0_plane->Fill(ichn,ichip,_TrigChipChannelVecMap_buf0_plane.at(ichip).at(ichn));
+      MapTriggersPerChannel_plane->Fill(x,y,_TrigChipChannelVecMap_plane.at(ichip).at(ichn));
+      MapTriggersPerChannel_buf0_plane->Fill(x,y,_TrigChipChannelVecMap_buf0_plane.at(ichip).at(ichn));
     }
 
   }
@@ -728,6 +752,19 @@ void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
   TriggersPerChannel->Draw("colz");
 
   c_chips->cd(4);
+  MapTriggersPerChannel_buf0->SetTitle("N-hits, GOOD, SCA=0");
+  MapTriggersPerChannel_buf0->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel_buf0->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel_buf0->Draw("colz");
+
+  c_chips->cd(5);
+  MapTriggersPerChannel->SetTitle("N-hits, GOOD, SCA>0");
+  MapTriggersPerChannel->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel->Draw("colz");
+  
+  
+  c_chips->cd(6);
   bufferMedian_retrig->SetStats(kFALSE);
   bufferMedian_retrig->SetTitle("median of SCA, RT");
   bufferMedian_retrig->GetXaxis()->SetTitle("channel");
@@ -735,19 +772,96 @@ void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
   bufferMedian_retrig->GetZaxis()->SetRangeUser(0,16);
   bufferMedian_retrig->Draw("colz");
 
-  c_chips->cd(5);
+  c_chips->cd(7);
   TriggersPerChannel_buf0_retrig->SetTitle("N-hits, RT, SCA=0");
   TriggersPerChannel_buf0_retrig->GetXaxis()->SetTitle("Channel");
   TriggersPerChannel_buf0_retrig->GetYaxis()->SetTitle("Chip");
   TriggersPerChannel_buf0_retrig->Draw("colz");
 
-  c_chips->cd(6);
+  c_chips->cd(8);
   TriggersPerChannel_retrig->SetTitle("N-hits, RT, SCA>0");
   TriggersPerChannel_retrig->GetXaxis()->SetTitle("Channel");
   TriggersPerChannel_retrig->GetYaxis()->SetTitle("Chip");
   TriggersPerChannel_retrig->Draw("colz");
 
+  c_chips->cd(9);
+  MapTriggersPerChannel_buf0_retrig->SetTitle("N-hits, RT, SCA=0");
+  MapTriggersPerChannel_buf0_retrig->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel_buf0_retrig->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel_buf0_retrig->Draw("colz");
 
+  c_chips->cd(10);
+  MapTriggersPerChannel_retrig->SetTitle("N-hits, RT, SCA>0");
+  MapTriggersPerChannel_retrig->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel_retrig->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel_retrig->Draw("colz");
+
+
+  c_chips->cd(11);
+  bufferMedian_negative->SetStats(kFALSE);
+  bufferMedian_negative->SetTitle("median of SCA, Neg");
+  bufferMedian_negative->GetXaxis()->SetTitle("channel");
+  bufferMedian_negative->GetYaxis()->SetTitle("chip");
+  bufferMedian_negative->GetZaxis()->SetRangeUser(0,16);
+  bufferMedian_negative->Draw("colz");
+
+  c_chips->cd(12);
+  TriggersPerChannel_buf0_negative->SetTitle("N-hits, Neg, SCA=0");
+  TriggersPerChannel_buf0_negative->GetXaxis()->SetTitle("Channel");
+  TriggersPerChannel_buf0_negative->GetYaxis()->SetTitle("Chip");
+  TriggersPerChannel_buf0_negative->Draw("colz");
+
+  c_chips->cd(13);
+  TriggersPerChannel_negative->SetTitle("N-hits, Neg, SCA>0");
+  TriggersPerChannel_negative->GetXaxis()->SetTitle("Channel");
+  TriggersPerChannel_negative->GetYaxis()->SetTitle("Chip");
+  TriggersPerChannel_negative->Draw("colz");
+
+  c_chips->cd(14);
+  MapTriggersPerChannel_buf0_negative->SetTitle("N-hits, Neg, SCA=0");
+  MapTriggersPerChannel_buf0_negative->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel_buf0_negative->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel_buf0_negative->Draw("colz");
+
+  c_chips->cd(15);
+  MapTriggersPerChannel_negative->SetTitle("N-hits, Neg, SCA>0");
+  MapTriggersPerChannel_negative->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel_negative->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel_negative->Draw("colz");
+
+  c_chips->cd(16);
+  bufferMedian_plane->SetStats(kFALSE);
+  bufferMedian_plane->SetTitle("median of SCA, Plane");
+  bufferMedian_plane->GetXaxis()->SetTitle("channel");
+  bufferMedian_plane->GetYaxis()->SetTitle("chip");
+  bufferMedian_plane->GetZaxis()->SetRangeUser(0,16);
+  bufferMedian_plane->Draw("colz");
+
+  c_chips->cd(17);
+  TriggersPerChannel_buf0_plane->SetTitle("N-hits, Plane, SCA=0");
+  TriggersPerChannel_buf0_plane->GetXaxis()->SetTitle("Channel");
+  TriggersPerChannel_buf0_plane->GetYaxis()->SetTitle("Chip");
+  TriggersPerChannel_buf0_plane->Draw("colz");
+
+  c_chips->cd(18);
+  TriggersPerChannel_plane->SetTitle("N-hits, Plane, SCA>0");
+  TriggersPerChannel_plane->GetXaxis()->SetTitle("Channel");
+  TriggersPerChannel_plane->GetYaxis()->SetTitle("Chip");
+  TriggersPerChannel_plane->Draw("colz");
+
+  c_chips->cd(19);
+  MapTriggersPerChannel_buf0_plane->SetTitle("N-hits, Plane, SCA=0");
+  MapTriggersPerChannel_buf0_plane->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel_buf0_plane->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel_buf0_plane->Draw("colz");
+
+  c_chips->cd(20);
+  MapTriggersPerChannel_plane->SetTitle("N-hits, Plane, SCA>0");
+  MapTriggersPerChannel_plane->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel_plane->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel_plane->Draw("colz");
+
+  /*
   c_chips->cd(7);
   bufferMedian_negative->SetStats(kFALSE);
   bufferMedian_negative->SetTitle("median of SCA, NEG");
@@ -788,7 +902,7 @@ void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
   TriggersPerChannel_plane->GetYaxis()->SetTitle("Chip");
   TriggersPerChannel_plane->Draw("colz");
 
-
+  */
   c_chips->Update();
 
   TString gain = globalvariables::getGainTStringAnalysis();

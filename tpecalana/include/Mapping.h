@@ -35,6 +35,7 @@ public:
     double getXPadPosition(unsigned, unsigned);
     //y-position of pad
     double getYPadPosition(unsigned, unsigned);
+    std::vector<double> getChannelPosition(unsigned, unsigned);
 private:
     //A method to create the Chip/Channel Mapping
     void createChipChannelMapping();

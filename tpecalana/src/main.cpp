@@ -105,7 +105,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
   //Set the ASU mappings for a given run
   std::vector<std::string> mapfilesStrvec;
   mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapfilesStrvec.push_back("/home/irles/WorkAreaECAL/2017//tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
 
   for (unsigned irun=0; irun < globalvariables::getScanVectorDoubles().size();irun++) {
     std::stringstream inputFileStr;
@@ -175,7 +175,7 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
   //Set the ASU mappings for a given run
   std::vector<std::string> mapfilesStrvec;
   mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapfilesStrvec.push_back("/home/irles/WorkAreaECAL/2017//tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
   ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
   
   inputFileStr.str("");
@@ -209,7 +209,7 @@ void MonitorRun(string datadirStr, string datadirStr_output , TString type) {
   //Set the ASU mappings for a given run
   std::vector<std::string> mapfilesStrvec;
   mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapfilesStrvec.push_back("/home/irles/WorkAreaECAL/2017/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
   ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
   
   inputFileStr.str("");

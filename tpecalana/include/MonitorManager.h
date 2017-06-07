@@ -21,6 +21,7 @@
 #include <TH1I.h>
 #include <TString.h>
 #include "ExperimentalSetup.h"
+#include "Mapping.h"
 
 class MonitorManager {
 public:
