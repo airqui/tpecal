@@ -71,19 +71,20 @@ void Mapping::createChipChannelMapping() {
     //The check of the connection pattern for the last chip that has been handled
     checkConnectionPattern();
     //At the end of this method we should have the channel mapping, a list of connection patterns and the association of each chip to a connection pattern. We will validate thus in a dedicated method that will only be enabled for debugging purposes
-    //    verifyMapping();
+    //verifyMapping();
 }
 
 void Mapping::handleMappingData(unsigned ichip, double xchip, double ychip, unsigned ichan, double xchan, double ychan) {
-    
-    /*
+
+  /*
+  
     std::cout << "***** This is the Mapping Handler *****" << std::endl;
     std::cout << "Chip number is: " << ichip << std::endl;
     std::cout << "xy position of chip [" << ichip << "] is: xchip=" << xchip <<", ychip="<<  ychip << std::endl;
     std::cout << "Channel number is: " << ichan << std::endl;
     std::cout << "xy position of channel [" << ichan << "] is: xchan=" << xchan <<", ychan="<<  ychan << std::endl;
     std::cout << "*************************************" << std::endl;
-    */
+  */
     
     
     if(!_chipPositionMap.count(ichip)) {
@@ -215,3 +216,18 @@ double Mapping::getXPadPosition(unsigned chipid, unsigned chanid) {
 double Mapping::getYPadPosition(unsigned chipid, unsigned chanid) {
    return _connectionPatternVec.at(_connectionPatternIndexVec.at(chipid)).at(chanid).second;
 }
+
+std::vector<double> Mapping::getChannelPosition(unsigned chipid, unsigned chanid) {
+
+  std::pair<double,double> xychip=_chipPositionMap.at(chipid);
+  double xchip=xychip.first;
+  double ychip=xychip.second;
+  //  std::cout<<xchip<<" " <<ychip<<endl;
+      
+  std::vector<double> xy;
+  xy.push_back(getXPadPosition(chipid,chanid)+xchip);
+  xy.push_back(getYPadPosition(chipid,chanid)+ychip);
+	       
+  return xy;
+}
+
