@@ -365,7 +365,7 @@ int main(int argc, char* argv[6])
 
   }
 
-  fooApp->Run();
-  //return 0;
+  //fooApp->Run();
+  return 0;
 
 }
