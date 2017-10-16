@@ -82,7 +82,7 @@ void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t correctedbcid, I
       else if(nhits > 0 && nhits <= thresh){
 	if(badbcid==0)  _nTriggers++;
 	if(badbcid==1) _nTriggers_consBcid1++;
-	if(badbcid>1 && badbcid<6) _nTriggers_consBcid5++;
+	if(badbcid>2 && badbcid<6) _nTriggers_consBcid5++;
 	if(badbcid>5 && badbcid<16) _nTriggers_consBcid10++;
       } else {
 	if(nhits > thresh && badbcid>-0.5)  _nTriggers_planeEvents++;

@@ -171,7 +171,8 @@ void MonitorManager::init(){
 void MonitorManager::acquireRunInformation(ExperimentalSetup* aExpSetup, TString type){
   std::cout << "************** MonitorManager::AcquireRunInformation new file: " << std::endl;
   if(type == "channel" ) simpleChannelAnalysis(aExpSetup);
-  if(type == "chip" ) simpleChipAnalysis(aExpSetup);
+  if(type == "chip" ) cout<<"Skip chip analysis"<<endl;
+  if(type == "chip_forced" )simpleChipAnalysis(aExpSetup);
 
 }
 
@@ -179,10 +180,12 @@ void MonitorManager::displayResults(TString file_prefix, TString type){
 
   //Call the graphics part related to the simple graphics analysis (should be realised automatically if graphics is requires
   if(type == "channel" ) {
-    simpleFilteredChannelAnalysisGraphics(file_prefix);
-    simpleTaggedChannelAnalysisGraphics(file_prefix);
+    //simpleFilteredChannelAnalysisGraphics(file_prefix);
+    //simpleTaggedChannelAnalysisGraphics(file_prefix);
+    simpleTaggedChannelAnalysisGraphics_2(file_prefix);
   }
-  if(type == "chip" ) simpleChipAnalysisGraphics(file_prefix);
+  if(type == "chip" ) cout<<"Skip chip analysis"<<endl;
+  if(type == "chip_forced" )simpleChipAnalysisGraphics(file_prefix);
 
 }
 
@@ -643,6 +646,109 @@ void MonitorManager::simpleFilteredChannelAnalysisGraphics(TString file_sufix) {
 
 
 //
+void MonitorManager::simpleTaggedChannelAnalysisGraphics_2(TString file_sufix) {
+
+
+  //Declare and open a Canvas
+  std::stringstream canvasNameStr;
+  canvasNameStr << "SimpleChannelMonitoring";//the iterator gives the chip ID
+  TCanvas* c_chips = new TCanvas("TaggedSimpleChannelMonitoring "+file_sufix,"TaggedSimpleChannelMonitoring "+file_sufix,11,30,1000,800);
+  //Divide the canvas
+  c_chips->Divide(2,2);
+
+  
+  //median of number os filled SCAs
+  TH2F * bufferMedian = new TH2F("buffer_median","buffer_median",64,-0.5,63.5,16,-0.5,15.5);
+  TH2F * MapbufferMedian = new TH2F("map_buffer_median","map_buffer_median",32,-86.5,86.5,32,-86.5,86.5);
+
+  // histograms of total number of triggers (with and without filtering
+  TH2F * TriggersPerChannel = new TH2F("triggers_per_channel","triggers_per_channel",64,-0.5,63.5,16,-0.5,15.5);
+  TH2F * MapTriggersPerChannel = new TH2F("map_triggers_per_channel","map_triggers_per_channel",32,-86.5,86.5,32,-86.5,86.5);
+  
+  Mapping mapASU;
+  mapASU.init("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  
+    //Loop over all enabled chips
+  for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
+   
+
+    for(int ichn=0; ichn<64; ichn++) {
+
+      std::vector<double> xy = mapASU.getChannelPosition(ichip,ichn);
+      double x = -xy.at(0);
+      double y = -xy.at(1);
+
+      MapbufferMedian->Fill(x,y,_bufferVecMapMedian.at(ichip).at(ichn));
+      bufferMedian->Fill(ichn,double(ichip),_bufferVecMapMedian.at(ichip).at(ichn));
+      TriggersPerChannel->Fill(ichn,ichip,_TrigChipChannelVecMap_buf0.at(ichip).at(ichn)+_TrigChipChannelVecMap.at(ichip).at(ichn));
+      MapTriggersPerChannel->Fill(x,y,_TrigChipChannelVecMap_buf0.at(ichip).at(ichn)+_TrigChipChannelVecMap.at(ichip).at(ichn));
+
+    
+    }
+
+  }
+
+  c_chips->cd(1);
+  bufferMedian->SetStats(kFALSE);
+  bufferMedian->SetTitle("median of filled SCA, filtered");
+  bufferMedian->GetXaxis()->SetTitle("channel");
+  bufferMedian->GetYaxis()->SetTitle("chip");
+  bufferMedian->GetZaxis()->SetRangeUser(0,16);
+  bufferMedian->Draw("colz");
+
+  c_chips->cd(3);
+  MapbufferMedian->SetStats(kFALSE);
+  MapbufferMedian->SetTitle("median of filled SCA, filtered");
+  MapbufferMedian->GetXaxis()->SetTitle("x");
+  MapbufferMedian->GetYaxis()->SetTitle("y");
+  MapbufferMedian->GetZaxis()->SetRangeUser(0,16);
+  MapbufferMedian->Draw("colz");
+
+  c_chips->cd(2);
+  gPad->SetLogz();
+  TriggersPerChannel->SetTitle("N-hits, filtered");
+  TriggersPerChannel->GetXaxis()->SetTitle("Channel");
+  TriggersPerChannel->GetYaxis()->SetTitle("Chip");
+  TriggersPerChannel->GetZaxis()->SetRangeUser(1,20000);
+  TriggersPerChannel->Draw("colz");
+
+  c_chips->cd(4);
+  gPad->SetLogz();
+  MapTriggersPerChannel->SetTitle("N-hits, filtered");
+  MapTriggersPerChannel->GetXaxis()->SetTitle("x");
+  MapTriggersPerChannel->GetYaxis()->SetTitle("y");
+  MapTriggersPerChannel->GetZaxis()->SetRangeUser(1,20000);
+  MapTriggersPerChannel->Draw("colz");
+
+  c_chips->Update();
+
+  TString gain = globalvariables::getGainTStringAnalysis();
+  TString planevent = globalvariables::getPlaneEventsThresholdTStringAnalysis();
+
+  c_chips->Print(file_sufix+gain+planevent+"_MonitorChannelTagged_short.png");
+
+  TString filerecreate ="RECREATE";
+  TFile *f_scurve = TFile::Open(file_sufix+gain+planevent+"_MonitorChannelTagged_short.root",filerecreate);
+  //TDirectory *dir = f_scurve->GetDirectory("histograms");
+  //if (!dir) dir = f_scurve->mkdir("histograms");
+
+  f_scurve->cd();
+  c_chips->Write();
+  //dir->cd();
+  //bufferMedian_retrig->Write();
+  //TriggersPerChannel_buf0_retrig->Write();
+  //TriggersPerChannel_retrig->Write();
+  //bufferMedian_negative->Write();
+  //TriggersPerChannel_buf0_negative->Write();
+  //TriggersPerChannel_negative->Write();
+
+  f_scurve->Close();
+
+
+}
+
+
+//
 void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
 
 
@@ -691,7 +797,7 @@ void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
 
 
   Mapping mapASU;
-  mapASU.init("/home/irles/WorkAreaECAL/2017/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapASU.init("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
   
     //Loop over all enabled chips
   for (unsigned ichip=0;ichip<  globalvariables::getEnabledChipsVec().size();ichip++) {
@@ -700,8 +806,8 @@ void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
     for(int ichn=0; ichn<64; ichn++) {
 
       std::vector<double> xy = mapASU.getChannelPosition(ichip,ichn);
-      double x = xy.at(0);
-      double y = xy.at(1);
+      double x = -xy.at(0);
+      double y = -xy.at(1);
 
       bufferMedian->Fill(ichn,double(ichip),_bufferVecMapMedian.at(ichip).at(ichn));
       TriggersPerChannel->Fill(ichn,ichip,_TrigChipChannelVecMap.at(ichip).at(ichn));
@@ -927,7 +1033,6 @@ void MonitorManager::simpleTaggedChannelAnalysisGraphics(TString file_sufix) {
 
 
 }
-
 
 /// CHIP ANALYSIS
 // ---------------------------------------------------------------

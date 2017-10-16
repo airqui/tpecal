@@ -216,10 +216,15 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
 	  std::vector<unsigned> trigmtmpvec;
 	  trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
 	  //ntrigmtmp+=trigmtmpvec.at(0);
-	  for(int itrig=0; itrig<trigmtmpvec.size() ; itrig++) {
-	    if(itrig!=1 && itrig<5) ntrigmtmp+=trigmtmpvec.at(itrig); 
+	  //for(int itrig=0; itrig<trigmtmpvec.size() ; itrig++) {
+	  //   if(itrig<5) ntrigmtmp+=trigmtmpvec.at(itrig); 
 	    //save all triggers (bcid+1, bcid+x included) except plane and negative events
-	  }
+	    // ntrigmtmp+=trigmtmpvec.at(0); 
+	  // }
+	  ntrigmtmp+=trigmtmpvec.at(0); 
+	  ntrigmtmp+=trigmtmpvec.at(2); 
+	  ntrigmtmp+=trigmtmpvec.at(3); 
+	  ntrigmtmp+=trigmtmpvec.at(6); 
 	}//if
       }//ibuf
       
@@ -360,7 +365,7 @@ void ScanManager::holdscanAnalysisGraphicsPainter(channelInfoComplDouble_t::iter
 void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
 
   fout_scurves_chip_3sigma.open(file_sufix+"_3sigma.cmd",ios::out);
-  fout_scurves_chip_5sigma.open(file_sufix+"_5sigma.cmd",ios::out);
+  fout_scurves_chip_5sigma.open(file_sufix+"_6sigma.cmd",ios::out);
   fout_scurves_chip_3sigma_firstzero.open(file_sufix+"_3sigma_firstzero.cmd",ios::out);
 
   fout_scurves.open(file_sufix+".log",ios::out);
@@ -509,9 +514,24 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
       if(ref_count > 5) graphScurve.back()->Draw("PSL");
     }
     FitGraphs fit;
+    TF1 * f0;
     TF1 * f;
-    if(buffer!=0) f= fit.FitScurveGauss(graphScurve.back());
-    else f= fit.FitScurve(graphScurve.back());
+
+    int gaussianfit=0;
+
+    if(buffer!=0) f0= fit.FitScurveGauss(graphScurve.back());
+    else f0= fit.FitScurve(graphScurve.back());
+
+    if(f0->GetParameter(0) > 1000. || f0->GetParameter(1) > 1000. || f0->GetParameter(2) > 1000. || f0->GetParameter(0) < 0.5 || f0->GetParameter(1) < 150. || f0->GetParameter(2) < 1. ) {
+      f= fit.FitScurveGauss(graphScurve.back());
+      gaussianfit=1;
+    } else {
+      if(buffer!=0) {
+	f= fit.FitScurveGauss(graphScurve.back());
+	gaussianfit=1;
+      }
+      else f= fit.FitScurve(graphScurve.back());
+    } 
 
     float first_zero = fit.FirstZero(graphScurve.back());
     
@@ -522,7 +542,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
     hist_fitParScurve_1->Fill( first_zero);
     hist_fitParErrScurve_1->Fill(0);
 
-    if(f->GetParameter(1) > 150 ) {
+    //  if(f->GetParameter(1) > 160 ) {
       //  g_fitParScurve_1->SetPoint(pointID,ichan , f->GetParameter(0) );
       g_fitParScurve_2->SetPoint(pointID,ichan , f->GetParameter(1) );
       g_fitParScurve_3->SetPoint(pointID,ichan , f->GetParameter(2) );
@@ -548,14 +568,14 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
       
       hist_fitChisq->Fill(chi2ndf);
       fout_scurves<<int((*aMapIter).first) << " " <<ichan << " ";
-      fout_scurves<<std::fixed << std::setprecision(3) << f->GetParameter(1) << " " << f->GetParameter(2) <<  " " << chi2ndf <<" "<<first_zero<<std::endl;
+      fout_scurves<<std::fixed << std::setprecision(3) << f->GetParameter(1) << " " << f->GetParameter(2) <<  " " << chi2ndf <<" "<<first_zero<< " " << gaussianfit <<std::endl;
 	
-    } else {
+      //  } else {
       
-      fout_scurves<<int((*aMapIter).first) << " " <<ichan << " ";
-      fout_scurves<<fixed << setprecision(3) << 0 << " " << 0 <<  " " << 0 <<" " <<first_zero<<std::endl;
+      //   fout_scurves<<int((*aMapIter).first) << " " <<ichan << " ";
+      //   fout_scurves<<fixed << setprecision(3) << 0 << " " << 0 <<  " " << 0 <<" " <<first_zero<< " " << gaussianfit <<std::endl;
       
-    }
+      //  }
 
     ichan++;
   }
@@ -573,7 +593,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   g_fitParScurve_2->SetTitle(TString::Format("Chip%i_Scurve_mean",int((*aMapIter).first)));
   g_fitParScurve_2->SetName(TString::Format("Chip%i_Scurve_mean",int((*aMapIter).first)));
   g_fitParScurve_2->GetYaxis()->SetTitle("DAC");
-  g_fitParScurve_2->GetYaxis()->SetRangeUser(170,220);
+  g_fitParScurve_2->GetYaxis()->SetRangeUser(150,250);
   g_fitParScurve_2->GetXaxis()->SetTitle("channel");
   g_fitParScurve_2->Draw("AL");
 
@@ -618,31 +638,33 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   hist_fitChisq->GetXaxis()->SetTitle("#Chi^{2}/NDF");
   hist_fitChisq->Draw("L");
 
-  c_chips->Update();
+  //c_chips->Update();
 
   c_mean->cd((*aMapIter).first+1);
-  hist_fitParScurve_2->SetTitle("Thresholds per chip");
-  hist_fitParScurve_2->GetYaxis()->SetTitle("");
-  hist_fitParScurve_2->GetXaxis()->SetTitle("DAC");
-  hist_fitParScurve_2->Draw("L");
-  //c_mean->Update();
+  c_mean->Update();
+  g_fitParScurve_2->SetTitle("Scurve mean, per chip");
+  g_fitParScurve_2->GetYaxis()->SetTitle("");
+  g_fitParScurve_2->GetYaxis()->SetRangeUser(100,250);
+  g_fitParScurve_2->GetXaxis()->SetTitle("DAC");
+  g_fitParScurve_2->Draw("L");
 
   c_sigma->cd((*aMapIter).first+1);
-  hist_fitParScurve_3->SetTitle("Sigma/Thresholds per chip");
-  hist_fitParScurve_3->GetYaxis()->SetTitle("");
-  hist_fitParScurve_3->GetXaxis()->SetTitle("DAC");
-  hist_fitParScurve_3->Draw("L");
-  //c_sigma->Update();
+  c_sigma->Update();
+  g_fitParScurve_3->SetTitle("Scurve width, per chip");
+  g_fitParScurve_3->GetYaxis()->SetTitle("");
+  g_fitParScurve_3->GetYaxis()->SetRangeUser(0,50);
+  g_fitParScurve_3->GetXaxis()->SetTitle("DAC");
+  g_fitParScurve_3->Draw("L");
 
   int trigger = 230;
   if(hist_fitParScurve_2->GetEntries()>20) { 
-    trigger = TMath::Max(230,int(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean()));
+    trigger = TMath::Max(30,int(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean()));
     fout_scurves_chip_3sigma<<"reconfigure(\"skiroc_1_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
     
-    trigger = TMath::Max(230,int(hist_fitParScurve_2->GetMean() + 5 * hist_fitParScurve_3->GetMean()));
+    trigger = TMath::Max(30,int(hist_fitParScurve_2->GetMean() + 6 * hist_fitParScurve_3->GetMean()));
     fout_scurves_chip_5sigma<<"reconfigure(\"skiroc_1_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
   
-    trigger = TMath::Max(230, int(TMath::Max(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean(), hist_fitParScurve_1->GetMean())));
+    trigger = TMath::Max(30, int(TMath::Max(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean(), hist_fitParScurve_1->GetMean())));
     fout_scurves_chip_3sigma_firstzero<<"reconfigure(\"skiroc_1_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;  
   }
     
@@ -680,14 +702,16 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   // hist_fitParErrScurve_3->Write();
   hist_fitChisq->Write();
 
-  c_sigma->Update();
-  c_mean->Update();
+  // c_sigma->Update();
+  //c_mean->Update();
 
   if((*aMapIter).first == globalvariables::getEnabledChipsVec().size() - 1 ) {
     //c_sigma->Update();
     c_sigma->Write();
     //c_mean->Update();
     c_mean->Write();
+    c_mean->Print(file_sufix+"_scurves_mean.png");
+    c_sigma->Print(file_sufix+"_scurves_width.png");
   }
   
   f_scurve->Close();     

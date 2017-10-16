@@ -45,6 +45,8 @@ private:
     void simpleChannelAnalysisGraphics(TString);
     void simpleFilteredChannelAnalysisGraphics(TString);
     void simpleTaggedChannelAnalysisGraphics(TString);
+    void simpleTaggedChannelAnalysisGraphics_2(TString);
+
 
     //CHANNEL FILTERED EVENTS ANALYSIS
     //A map that holds the number of triggers of all channels for all buffers for all enabled chips

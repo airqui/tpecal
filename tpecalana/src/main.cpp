@@ -55,25 +55,30 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
   boost::filesystem::directory_iterator end;
 
   int istringsize=0;
-  for(int j=0; j<100; j++) {
+  for(int j=0; j<30; j++) {
     for (boost::filesystem::directory_iterator i(apk_path); i != end; ++i)   {
       const boost::filesystem::path cp = (*i);
       
       std::string mystring = cp.string();
       if(mystring.substr(mystring.length() - j) == string(dif+".raw.root") ){
+	cout<<mystring<<" "<<j<<" "<<istringsize<<endl;
 	istringsize=j;
 	continue;
       }
     }
   }
 
+
   for (boost::filesystem::directory_iterator i(apk_path); i != end; ++i)   {
     const boost::filesystem::path cp = (*i);
+
 
     std::string mystring = cp.string();
     if(mystring.substr(mystring.length() - istringsize) == string(dif+".raw.root") ){
       string scanvalue_2;
       string scanvalue;
+      cout<<mystring<<" "<<istringsize<<endl;
+
       if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
 	scanvalue =mystring.substr(mystring.find("_trig")+5, 3);
       }
@@ -86,11 +91,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
       if( ( globalvariables::getAnalysisType()=="scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") && atoi(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
       if( globalvariables::getAnalysisType()=="holdscan") {
 	if( atoi(scanvalue.c_str()) > 75 && atoi(scanvalue.c_str()) % 10 == 0) globalvariables::pushScanValue(atof(scanvalue.c_str()));
-	//	else 	if( atoi(scanvalue_2.c_str()) > 75 && atoi(scanvalue_2.c_str()) % 10 == 0) globalvariables::pushScanValue(atof(scanvalue_2.c_str()));
       }
-
-      //      std::cout<<" Main::GetScanValue "<<atof(scanvalue.c_str())<<std::endl;
-      //std::cout<<mystring<<" for dif "<<dif<<std::endl;
 	
     }
   }
@@ -105,7 +106,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
   //Set the ASU mappings for a given run
   std::vector<std::string> mapfilesStrvec;
   mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/irles/WorkAreaECAL/2017//tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapfilesStrvec.push_back("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
 
   for (unsigned irun=0; irun < globalvariables::getScanVectorDoubles().size();irun++) {
     std::stringstream inputFileStr;
@@ -175,7 +176,7 @@ void NormalRun(string datadirStr, string datadirStr_output ) {
   //Set the ASU mappings for a given run
   std::vector<std::string> mapfilesStrvec;
   mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/irles/WorkAreaECAL/2017//tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapfilesStrvec.push_back("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
   ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
   
   inputFileStr.str("");
@@ -208,8 +209,8 @@ void MonitorRun(string datadirStr, string datadirStr_output , TString type) {
   std::stringstream inputFileStr;
   //Set the ASU mappings for a given run
   std::vector<std::string> mapfilesStrvec;
-  mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/irles/WorkAreaECAL/2017/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
+  mapfilesStrvec.clear(); 
+  mapfilesStrvec.push_back("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
   ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
   
   inputFileStr.str("");
@@ -356,15 +357,15 @@ int main(int argc, char* argv[6])
   }
 
   if(globalvariables::getAnalysisType() == "MonitorChannel" || globalvariables::getAnalysisType() == "MonitorChip"  ) {
-    globalvariables::setPlaneEventsThreshold(5); 
+    globalvariables::setPlaneEventsThreshold(32); 
     globalvariables::setGainAnalysis(1); //high =1, low =0
     globalvariables::setGlobal_deepAnalysis(false);
     if( globalvariables::getAnalysisType() == "MonitorChannel" ) MonitorRun(datadirStr, datadirStr_output,"channel") ;
-    if(globalvariables::getAnalysisType() == "MonitorChip" ) MonitorRun(datadirStr, datadirStr_output,"chip") ;
+    if(globalvariables::getAnalysisType() == "MonitorChip" ) return 0;//MonitorRun(datadirStr, datadirStr_output,"chip") ;
 
   }
 
   fooApp->Run();
-  return 0;
+  //return 0;
 
 }
