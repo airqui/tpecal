@@ -646,7 +646,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   g_fitParScurve_2->GetYaxis()->SetTitle("");
   g_fitParScurve_2->GetYaxis()->SetRangeUser(100,250);
   g_fitParScurve_2->GetXaxis()->SetTitle("DAC");
-  g_fitParScurve_2->Draw("L");
+  g_fitParScurve_2->Draw("AL");
 
   c_sigma->cd((*aMapIter).first+1);
   c_sigma->Update();
@@ -654,7 +654,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   g_fitParScurve_3->GetYaxis()->SetTitle("");
   g_fitParScurve_3->GetYaxis()->SetRangeUser(0,50);
   g_fitParScurve_3->GetXaxis()->SetTitle("DAC");
-  g_fitParScurve_3->Draw("L");
+  g_fitParScurve_3->Draw("AL");
 
   int trigger = 230;
   if(hist_fitParScurve_2->GetEntries()>20) { 
