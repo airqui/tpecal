@@ -41,7 +41,7 @@ private:
     TFile* f_scurve;
     ofstream fout_scurves;
     ofstream fout_scurves_chip_3sigma;
-    ofstream fout_scurves_chip_5sigma;
+    ofstream fout_scurves_chip_6sigma;
     ofstream fout_scurves_chip_3sigma_firstzero;
 
     TCanvas * c_mean;
