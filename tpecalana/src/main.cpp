@@ -24,8 +24,6 @@
 #include "ExperimentalSetup.h"
 // analysis managers
 #include "ScanManager.h"
-#include "AnalysisManager.h"
-#include "MonitorManager.h"
 
 #include "global.h"
 
@@ -79,7 +77,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
       string scanvalue;
       cout<<mystring<<" "<<istringsize<<endl;
 
-      if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") {
+      if(globalvariables::getAnalysisType() == "scurves" ) {
 	scanvalue =mystring.substr(mystring.find("_trig")+5, 3);
       }
       if(globalvariables::getAnalysisType() == "holdscan") {
@@ -88,7 +86,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
 	cout<<scanvalue<<" " <<scanvalue_2<<	" " <<mystring.substr() <<endl;
       } 
 
-      if( ( globalvariables::getAnalysisType()=="scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") && atoi(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
+      if( globalvariables::getAnalysisType()=="scurves"  && atoi(scanvalue.c_str()) > 0 ) globalvariables::pushScanValue(atof(scanvalue.c_str()));
       if( globalvariables::getAnalysisType()=="holdscan") {
 	if( atoi(scanvalue.c_str()) > 75 && atoi(scanvalue.c_str()) % 10 == 0) globalvariables::pushScanValue(atof(scanvalue.c_str()));
       }
@@ -117,7 +115,7 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
     ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
       
     TString scanstring;
-    if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "PlaneEventsScan") 
+    if(globalvariables::getAnalysisType() == "scurves" ) 
       scanstring="scurve_trig";       
       
     if(globalvariables::getAnalysisType() == "holdscan") 
@@ -153,9 +151,6 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
   if(globalvariables::getAnalysisType() == "scurves" )  
     scanfile = TString(datadirStr_output)+TString::Format("/Scurves_PlaneEvThresh%i_buff%i_",globalvariables::getPlaneEventsThreshold(),buffer)+dif;
 
-  if(globalvariables::getAnalysisType() == "PlaneEventsScan" )  
-    scanfile= TString(datadirStr_output)+TString::Format("/PlaneEventsScan_PlaneEvThresh%i_",globalvariables::getPlaneEventsThreshold());
-
   if(globalvariables::getAnalysisType() == "holdscan" )  
     scanfile = TString(datadirStr_output)+"/Holdscan_"+dif;
 
@@ -165,78 +160,6 @@ void ScanAnalysis(TString dif, int step, int buffer, string datadirStr, string d
 }
 
 
-void NormalRun(string datadirStr, string datadirStr_output ) {
-
-
-  RunManager runmanager;    
-  AnalysisManager analysisManager;    analysisManager.init();
-
- 
-  std::stringstream inputFileStr;
-  //Set the ASU mappings for a given run
-  std::vector<std::string> mapfilesStrvec;
-  mapfilesStrvec.clear();
-  mapfilesStrvec.push_back("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
-  ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
-  
-  inputFileStr.str("");
-  inputFileStr << datadirStr;
-  runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
-  
-  
-  ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec());
-  
-  TString output_path ;
-  output_path =  TString(datadirStr_output) ;
-
-  analysisManager.acquireRunInformation(ExperimentalSetup::getInstance(), output_path, output_path );
-  analysisManager.displayResults(output_path);
-
-
-  ////reset experimental setup and run manager
-  ExperimentalSetup::getInstance()->reset();
-  runmanager.reset();
-  
-}
-
-void MonitorRun(string datadirStr, string datadirStr_output , TString type) {
-
-
-  RunManager runmanager;    
-  MonitorManager monManager;    monManager.init();
-
- 
-  std::stringstream inputFileStr;
-  //Set the ASU mappings for a given run
-  std::vector<std::string> mapfilesStrvec;
-  mapfilesStrvec.clear(); 
-  mapfilesStrvec.push_back("/home/calice/tpecal/mapping/tb-2015/fev10_chip_channel_x_y_mapping.txt");
-  ExperimentalSetup::getInstance()->setRunSetup(mapfilesStrvec);
-  
-  inputFileStr.str("");
-  inputFileStr << datadirStr;
-  runmanager.registerDifFile(new TFile(inputFileStr.str().c_str()));
-  
-  
-  ExperimentalSetup::getInstance()->executeExperiment(runmanager.getDifFileVec());
-  
-  TString output_path ;
-  output_path =  TString(datadirStr_output);
-  gStyle->SetOptStat("i");
-  gStyle->SetStatY(0.97);
-  gStyle->SetStatX(0.95);
-  gStyle->SetStatW(0.2);
-  gStyle->SetStatH(0.25); 
-  monManager.init();
-  monManager.acquireRunInformation(ExperimentalSetup::getInstance(),type);
-  monManager.displayResults(output_path,type);
-
-
-  ////reset experimental setup and run manager
-  ExperimentalSetup::getInstance()->reset();
-  runmanager.reset();
-  
-}
 
 
 
@@ -255,7 +178,7 @@ int main(int argc, char* argv[6])
   std::cout << "  " << std::endl;
   std::cout << "./tpecalana for scan analysis (threshold scan, holdscan, etc) " << std::endl;
   std::cout << "    input_folder  == full path last subrun folder, containing converted root files. For No scan runs, this is the " << std::endl;
-  std::cout << "    output_folder == relative path to the ouptut folder, which should be in input_folder/output_folder. " << std::endl;
+  std::cout << "    output_folder == full path to the ouptut folder, which should be in input_folder/output_folder. " << std::endl;
   std::cout << "    analysis_type == scurves, holdscan" << std::endl;
   std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
   std::cout << "    step          == in case of scans, the number of channels in each subrun (default 8) " << std::endl;
@@ -263,11 +186,6 @@ int main(int argc, char* argv[6])
   std::cout << "    dif_id        == dif_id string (default dif_1_1_1)" << std::endl;
   std::cout << "  " << std::endl;
   std::cout << "  " << std::endl;
-  std::cout << "./tpecalana for normal runs" << std::endl;
-  std::cout << "    input_file    == input root file, i.e. /home/data/Run1.raw.root " << std::endl;
-  std::cout << "    output_file_prefix_name ==  full path plus first part of the name of the file, i.e /home/data/outpu/Run1 " << std::endl;
-  std::cout << "    analysis_type == Pedestal, PedestalMIP, MIP, MonitorChannel, MonitorChip" << std::endl;
-  std::cout << "    enabled_chips == Number of enabled chips per dif (default 16) " << std::endl;
   
   std::cout << " " << std::endl;
   std::cout << "========    Current run: " << std::endl;
@@ -344,26 +262,12 @@ int main(int argc, char* argv[6])
   
   if(globalvariables::getAnalysisType() == "scurves" || globalvariables::getAnalysisType() == "holdscan" || globalvariables::getAnalysisType() == "PlaneEventsScan" ) {
     globalvariables::setGainAnalysis(1); //high =1, low =0
-    globalvariables::setPlaneEventsThreshold(64); //high =1, low =0
+    globalvariables::setPlaneEventsThreshold(64);
     globalvariables::setGlobal_deepAnalysis(false);
+    globalvariables::setSkiroc(dif);
     ScanAnalysis(dif,step, buffer, datadirStr, datadirStr_output) ;
   }
 
-  if(globalvariables::getAnalysisType() == "Pedestal" || globalvariables::getAnalysisType() == "PedestalMIP" || globalvariables::getAnalysisType() == "MIP" ) {
-    globalvariables::setGainAnalysis(1); //high =1, low =0
-    globalvariables::setPlaneEventsThreshold(32); //high =1, low =0
-    globalvariables::setGlobal_deepAnalysis(true);
-    NormalRun(datadirStr, datadirStr_output) ;
-  }
-
-  if(globalvariables::getAnalysisType() == "MonitorChannel" || globalvariables::getAnalysisType() == "MonitorChip"  ) {
-    globalvariables::setPlaneEventsThreshold(32); 
-    globalvariables::setGainAnalysis(1); //high =1, low =0
-    globalvariables::setGlobal_deepAnalysis(false);
-    if( globalvariables::getAnalysisType() == "MonitorChannel" ) MonitorRun(datadirStr, datadirStr_output,"channel") ;
-    if(globalvariables::getAnalysisType() == "MonitorChip" ) return 0;//MonitorRun(datadirStr, datadirStr_output,"chip") ;
-
-  }
 
   //fooApp->Run();
   return 0;

@@ -3,6 +3,14 @@
 namespace globalvariables
 {
 
+  TString skiroc ="skiroc_1_1_1_1";
+  void setSkiroc(TString dif) {
+    if(dif.Length()==9) skiroc="skiroc_1_"+dif.Remove(0,4);
+  }
+  TString getSkiroc() {
+    return skiroc;
+  }
+
   //------------------------------------------------------------------
   // values set for scan runs, (threshold scans, hold scans)
   std::vector<Double_t> scanValVec;

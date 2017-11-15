@@ -15,6 +15,10 @@
 
 namespace globalvariables
 {
+
+  void setSkiroc(TString);
+  TString getSkiroc();
+
   // for scan runs, (threshold scans, hold scans),
   // we need a method to fill a vector with the values set in any scan
   // and the type of scan done

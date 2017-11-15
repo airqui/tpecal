@@ -2,8 +2,8 @@
 //  ScanManager.cpp
 //  tpecalana_project
 //
-//  Created by Roman Poeschl on 10/08/15.
-//
+//  Created by Adrian Irles on November/2017
+//  Copyright (c) 2015 CNRS. All rights reserved.
 //
 
 #include <string>
@@ -53,7 +53,6 @@ void ScanManager::init(){
 void ScanManager::acquireRunInformation(ExperimentalSetup* aExpSetup, int buffer){
   std::cout << "************** AcquireRunInformation new file: " << _nRuns << "***********************" << std::endl;
   if(globalvariables::getAnalysisType()=="scurves") sCurveAnalysis(aExpSetup, buffer);
-  if(globalvariables::getAnalysisType()=="PlaneEventsScan") planeEventsAnalysis(aExpSetup);
   if(globalvariables::getAnalysisType()=="holdscan") holdscanAnalysis(aExpSetup);
 
   _nRuns++;
@@ -63,7 +62,6 @@ void ScanManager::acquireRunInformation(ExperimentalSetup* aExpSetup, int buffer
 void ScanManager::displayResults(TString file_prefix, int buffer){
   //Call the graphics part related to the simple graphics analysis (should be realised automatically if graphics is requires
   if(globalvariables::getAnalysisType()=="scurves") sCurveAnalysisGraphics(file_prefix,buffer);
-  if(globalvariables::getAnalysisType()=="PlaneEventsScan") planeEventsAnalysisGraphics(file_prefix);
   if(globalvariables::getAnalysisType()=="holdscan") holdscanAnalysisGraphics(file_prefix);
 
 }
@@ -107,87 +105,6 @@ void ScanManager::holdscanAnalysis(ExperimentalSetup* aExpSetup) {
 
 }
 
-
-
-void ScanManager::planeEventsAnalysis(ExperimentalSetup* aExpSetup) {
-    
-  //Loop over all enabled chips
-  for (channelInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh_norm.begin();mapiter!=_ntrigChipVecMapHigh_norm.end();mapiter++) {
-    std::cout << "*************New chip: " << (*mapiter).first << "********************" << std::endl;
-
-    channelInfoComplDouble_t::iterator helpMapIter = _ntrigChipVecMapHigh.find((*mapiter).first);
-
-    unsigned ntrigm(0);
-    unsigned ntrigm_bcid1(0);
-    unsigned ntrigm_bcid5(0);
-    unsigned ntrigm_bcid10(0);
-    unsigned ntrigm_planeevents(0);
-    unsigned ntrigm_negativedata(0);
-    unsigned ntrigm_total(0);
-
-    unsigned numChans(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(0).getNumberOfChannels());
-
-    for (unsigned ichan=0; ichan < numChans; ichan++) {
-      //Build up the vector for the individual channels (needs to be done only once)
-      //reads out the trigger of each channel
-      unsigned bufdepth(aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getBufferDepth());
-      std::vector<unsigned> trigmtmpvec;
-            
-      for(unsigned ibuf=1; ibuf<bufdepth; ibuf++){
-	trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
-	ntrigm+=trigmtmpvec.at(0);
-	if(ibuf>0) {
-	  ntrigm_bcid1+=trigmtmpvec.at(2);
-	  ntrigm_bcid5+=trigmtmpvec.at(3);
-	  ntrigm_bcid10+=trigmtmpvec.at(4);
-	  ntrigm_planeevents+=trigmtmpvec.at(5);
-	  ntrigm_negativedata+=trigmtmpvec.at(6);
-	  ntrigm_total+=(trigmtmpvec.at(2)+trigmtmpvec.at(4)+trigmtmpvec.at(5)+trigmtmpvec.at(6));
-	}
-      }   
-    }
-
-    //Build up the vector for the different ratio counters
-    for(unsigned isize=0; isize<7; isize++ ) {
-      if( (*mapiter).second.size() < (isize + 1 )) (*mapiter).second.push_back (std::vector<Double_t> () );
-      if( (*helpMapIter).second.size() < (isize + 1 )) (*helpMapIter).second.push_back (std::vector<Double_t> () );
-    }
-
-    //Add for each run the value of each ratio
-    //fills the triggers into a vector that is a part of a map of chips and channels
-    if(ntrigm>0){ 
-      (*mapiter).second.at(6).push_back(double(ntrigm)/double(ntrigm));
-      (*mapiter).second.at(0).push_back(double(ntrigm_bcid1)/double(ntrigm));
-      (*mapiter).second.at(1).push_back(double(ntrigm_bcid5)/double(ntrigm));
-      (*mapiter).second.at(2).push_back(double(ntrigm_bcid10)/double(ntrigm));
-      (*mapiter).second.at(3).push_back(double(ntrigm_planeevents)/double(ntrigm));
-      (*mapiter).second.at(4).push_back(double(ntrigm_negativedata)/double(ntrigm));
-      (*mapiter).second.at(5).push_back(double(ntrigm_total)/double(ntrigm));
-    } else {
-      (*mapiter).second.at(0).push_back(0);
-      (*mapiter).second.at(1).push_back(0);
-      (*mapiter).second.at(2).push_back(0);
-      (*mapiter).second.at(3).push_back(0);
-      (*mapiter).second.at(4).push_back(0);
-      (*mapiter).second.at(5).push_back(0);
-      (*mapiter).second.at(6).push_back(0);
-    }
-
-    (*helpMapIter).second.at(6).push_back(double(ntrigm));
-    (*helpMapIter).second.at(0).push_back(double(ntrigm_bcid1));
-    (*helpMapIter).second.at(1).push_back(double(ntrigm_bcid5));
-    (*helpMapIter).second.at(2).push_back(double(ntrigm_bcid10));
-    (*helpMapIter).second.at(3).push_back(double(ntrigm_planeevents));
-    (*helpMapIter).second.at(4).push_back(double(ntrigm_negativedata));
-    (*helpMapIter).second.at(5).push_back(double(ntrigm_total));
-    
-
-    if(ntrigm>0) 
-      std::cout << "ScanManager::planeEventsAnalysis - chip " << (*mapiter).first << 
-	" TriggersBad/AllTriggers: " << double(ntrigm_total)/double(ntrigm) <<" TriggersBad= "<<ntrigm_total<<" All Triggers="<<ntrigm<< std::endl;  
-  }
-}
-
 void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
     
   std::vector<std::pair<unsigned, unsigned> >acqnumber=aExpSetup->getDif(0).getDifStatVec();
@@ -215,16 +132,12 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
 	if(ibuf==buffer || buffer == 15 ) {
 	  std::vector<unsigned> trigmtmpvec;
 	  trigmtmpvec=aExpSetup->getDif(0).getASU(0).getChip((*mapiter).first).getChipBuffer(ibuf).getChannelTriggersVec(ichan);
-	  //ntrigmtmp+=trigmtmpvec.at(0);
-	  //for(int itrig=0; itrig<trigmtmpvec.size() ; itrig++) {
-	  //   if(itrig<5) ntrigmtmp+=trigmtmpvec.at(itrig); 
-	    //save all triggers (bcid+1, bcid+x included) except plane and negative events
-	    // ntrigmtmp+=trigmtmpvec.at(0); 
-	  // }
-	  ntrigmtmp+=trigmtmpvec.at(0); 
-	  ntrigmtmp+=trigmtmpvec.at(2); 
-	  ntrigmtmp+=trigmtmpvec.at(3); 
-	  ntrigmtmp+=trigmtmpvec.at(6); 
+	  ntrigmtmp+=trigmtmpvec.at(0); //good hits
+	  ntrigmtmp+=trigmtmpvec.at(2); //bcid+1 original hit
+	  //ntrigmtmp+=trigmtmpvec.at(3); //empty trigger
+	  ntrigmtmp+=trigmtmpvec.at(4); //retrigger hit
+          ntrigmtmp+=trigmtmpvec.at(5); //plane events                                                                                                                                                    
+          //ntrigmtmp+=trigmtmpvec.at(6); //negative hits
 	}//if
       }//ibuf
       
@@ -232,9 +145,8 @@ void ScanManager::sCurveAnalysis(ExperimentalSetup* aExpSetup, int buffer) {
       //fills the triggers into a vector that is a part of a map of chips and channels
 
       double trig_per_spill = 0;
-      if( nSpills > 1 )trig_per_spill = ntrigmtmp/nSpills;
+      if( nSpills > 10 )trig_per_spill = ntrigmtmp/nSpills;
       (*mapiter).second.at(ichan).push_back(trig_per_spill);
-      //      if(ntrigmtmp>0) std::cout << "ScanManager::sCurveAnalysis - chip " << (*mapiter).first << " Channel: " << ichan << " Triggers: " << ntrigmtmp << " " << nSpills << " " << ntrigmtmp/nSpills << std::endl;
       //Store the maximum nummber of triggers/spills
       if (helpMapIter != _maxHithelpVec.end()) {
   	if ((*helpMapIter).second.size()<ichan+1 ) (*helpMapIter).second.push_back(trig_per_spill);
@@ -365,7 +277,7 @@ void ScanManager::holdscanAnalysisGraphicsPainter(channelInfoComplDouble_t::iter
 void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
 
   fout_scurves_chip_3sigma.open(file_sufix+"_3sigma.cmd",ios::out);
-  fout_scurves_chip_5sigma.open(file_sufix+"_6sigma.cmd",ios::out);
+  fout_scurves_chip_6sigma.open(file_sufix+"_6sigma.cmd",ios::out);
   fout_scurves_chip_3sigma_firstzero.open(file_sufix+"_3sigma_firstzero.cmd",ios::out);
 
   fout_scurves.open(file_sufix+".log",ios::out);
@@ -386,7 +298,7 @@ void ScanManager::sCurveAnalysisGraphics(TString file_sufix, int buffer) {
 
   fout_scurves.close();
   fout_scurves_chip_3sigma.close();
-  fout_scurves_chip_5sigma.close();
+  fout_scurves_chip_6sigma.close();
   fout_scurves_chip_3sigma_firstzero.close();
 
 
@@ -557,12 +469,9 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
       if(f->GetNDF()!=0) chi2ndf = f->GetChisquare()/f->GetNDF();
       g_fitChisq->SetPoint(pointID,ichan , chi2ndf);
       
-      
-      // hist_fitParScurve_1->Fill(float(f->GetParameter(0)));
       hist_fitParScurve_2->Fill(float(f->GetParameter(1)));
       hist_fitParScurve_3->Fill(float(f->GetParameter(2)));
       
-      // hist_fitParErrScurve_1->Fill(float(f->GetParError(0)));
       hist_fitParErrScurve_2->Fill(float(f->GetParError(1)));
       hist_fitParErrScurve_3->Fill(float(f->GetParError(2)));
       
@@ -570,13 +479,7 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
       fout_scurves<<int((*aMapIter).first) << " " <<ichan << " ";
       fout_scurves<<std::fixed << std::setprecision(3) << f->GetParameter(1) << " " << f->GetParameter(2) <<  " " << chi2ndf <<" "<<first_zero<< " " << gaussianfit <<std::endl;
 	
-      //  } else {
-      
-      //   fout_scurves<<int((*aMapIter).first) << " " <<ichan << " ";
-      //   fout_scurves<<fixed << setprecision(3) << 0 << " " << 0 <<  " " << 0 <<" " <<first_zero<< " " << gaussianfit <<std::endl;
-      
-      //  }
-
+ 
     ichan++;
   }
 
@@ -656,21 +559,22 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   g_fitParScurve_3->GetXaxis()->SetTitle("DAC");
   g_fitParScurve_3->Draw("AL");
 
-  int trigger = 230;
+  int trigger = 225;
+  TString skiroc=globalvariables::getSkiroc();
   if(hist_fitParScurve_2->GetEntries()>20) { 
-    trigger = TMath::Max(30,int(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean()));
-    fout_scurves_chip_3sigma<<"reconfigure(\"skiroc_1_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
+    trigger = TMath::Max(225,int(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean()));
+    fout_scurves_chip_3sigma<<"reconfigure(\""<<skiroc<<"_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
     
-    trigger = TMath::Max(30,int(hist_fitParScurve_2->GetMean() + 6 * hist_fitParScurve_3->GetMean()));
-    fout_scurves_chip_5sigma<<"reconfigure(\"skiroc_1_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
+    trigger = TMath::Max(225,int(hist_fitParScurve_2->GetMean() + 6 * hist_fitParScurve_3->GetMean()));
+    fout_scurves_chip_6sigma<<"reconfigure(\""<<skiroc<<"_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;
   
-    trigger = TMath::Max(30, int(TMath::Max(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean(), hist_fitParScurve_1->GetMean())));
-    fout_scurves_chip_3sigma_firstzero<<"reconfigure(\"skiroc_1_1_1_1_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;  
+    trigger = TMath::Max(225,int(TMath::Max(hist_fitParScurve_2->GetMean() + 3 * hist_fitParScurve_3->GetMean(), hist_fitParScurve_1->GetMean())));
+    fout_scurves_chip_3sigma_firstzero<<"reconfigure(\""<<skiroc<<"_"<<(*aMapIter).first+1<<"\",\"set_gtrigger_skiroc\",str("<<trigger<<"))"<<endl;  
   }
     
     if((*aMapIter).first+1 == globalvariables::getEnabledChipsVec().size() ) {
       fout_scurves_chip_3sigma<<"quit"<<endl;
-      fout_scurves_chip_5sigma<<"quit"<<endl;
+      fout_scurves_chip_6sigma<<"quit"<<endl;
       fout_scurves_chip_3sigma_firstzero<<"quit"<<endl;
     }
 
@@ -716,170 +620,6 @@ void ScanManager::sCurveAnalysisGraphicsPainter(channelInfoComplDouble_t::iterat
   
   f_scurve->Close();     
 }
-
-
-
-void ScanManager::planeEventsAnalysisGraphics(TString file_sufix) {
-    
-  TString gain = globalvariables::getGainTStringAnalysis();
-  TString filerecreate = "RECREATE";
-  TFile *f_planevent = TFile::Open(file_sufix+gain+".root", filerecreate);
-
-  //Loop over all enabled chips
-  for (channelInfoComplDouble_t::iterator mapiter = _ntrigChipVecMapHigh.begin();mapiter!=_ntrigChipVecMapHigh.end();mapiter++) {
-    planeEventsAnalysisGraphicsPainter(mapiter,f_planevent);
-  }
-
-  f_planevent->Close();   
-
-}
-
-void ScanManager::planeEventsAnalysisGraphicsPainter(channelInfoComplDouble_t::iterator aMapIter, TFile* f_planevent) {
-    
-  //Declare and open a Canvas
-  std::stringstream canvasNameStr;
-  canvasNameStr << "Chip" << (*aMapIter).first ;//the iterator gives the chip ID
-  TCanvas* c_chips = new TCanvas(canvasNameStr.str().c_str(), canvasNameStr.str().c_str(),11,30,1200,600);
-  c_chips->Divide(2,1);
-
-  //Divide the canvas
-  //A vector of graphs
-  std::vector<TGraphErrors*> graphPlaneEvents;//vector of graphs... extract the proper graph
-  std::vector<TGraphErrors*> graphPlaneEvents_norm;//vector of graphs... extract the proper graph                                                                                   
-  channelInfoComplDouble_t::iterator helpMapIter = _ntrigChipVecMapHigh_norm.find((*aMapIter).first);
-
-  std::cout << "ScanManager::planeEventsAnalysisGraphicsPainter: Chip: " << (*aMapIter).first << std::endl;
-  //Loop over all channels
-  unsigned ierror(0);
-    
-  c_chips->cd(1);
-
-  for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*aMapIter).second.begin(); chanVeciter!=(*aMapIter).second.end(); chanVeciter++) {
-    if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
-      std::cout << "ScanManager::planEventsAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for bad event selectionselection" << ierror << std::endl;
-      std::cout << "Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
-      std::cout << "Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
-    }
-    //If the maximum is >2 we assume that this channel was enabled and we process it further
-    //Define an array that holds the entries for each run
-    double valarray[ (*chanVeciter).size()];
-    double evalarray[ (*chanVeciter).size()];
-    double evalarray_x[ (*chanVeciter).size()];
-
-    //Loop over the entries with trigger in the given runs
-    //Helper variable to count runs
-    unsigned irun(0);
-    for (std::vector<Double_t>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
-      //Fetch the value for that run
-      double runval=(static_cast<double>((*runIter)));
-      //Fill the array with the relative counts for a given channel in a given run
-      valarray[irun] = runval;
-      evalarray[irun] = 0;
-      evalarray_x[irun] = 0;///ref;
-      irun++;
-    }
-
-    //Now define and fill a graph for each channel
-    double vecarrayhelp[(*chanVeciter).size()];
-    double* vecarray;
-    vecarray = vectortoarray(globalvariables::getScanVectorDoubles(), &vecarrayhelp[0]);
-    graphPlaneEvents.push_back(new TGraphErrors(globalvariables::getScanVectorDoubles().size(), vecarray, valarray,  evalarray_x, evalarray));
-    graphPlaneEvents.back()->SetMarkerStyle(20+ierror);
-    graphPlaneEvents.back()->SetMarkerColor(ierror+1);
-    graphPlaneEvents.back()->SetLineColor(ierror+1);
-    graphPlaneEvents.back()->SetMarkerSize(1.2);
-    graphPlaneEvents.back()->SetName(TString::Format("Chip%i_SetError%i",int((*aMapIter).first),int(ierror)));
-    graphPlaneEvents.back()->SetTitle(TString::Format("Chip%i, buffer>0",int((*aMapIter).first)));
-    graphPlaneEvents.back()->Write();
-    graphPlaneEvents.back()->GetXaxis()->SetTitle("Threshold");
-    graphPlaneEvents.back()->GetYaxis()->SetTitle("N_hit");
-    if(ierror==0) graphPlaneEvents.back()->Draw("APL");
-    else graphPlaneEvents.back()->Draw("PL");
-    ierror++;
-  }
-  TLegend *leg = new TLegend(0.6,0.7,0.9,0.9);
-  leg->AddEntry(TString::Format("Chip%i_SetError0",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]==1","lp");
-  leg->AddEntry(TString::Format("Chip%i_SetError1",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=5 (>1)","lp");
-  leg->AddEntry(TString::Format("Chip%i_SetError2",int((*aMapIter).first)),"bcid[buf]-bcid[buf-1]<=15 (>5)","lp");
-  leg->AddEntry(TString::Format("Chip%i_SetError3",int((*aMapIter).first)),TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"lp");
-  leg->AddEntry(TString::Format("Chip%i_SetError4",int((*aMapIter).first)),"Negative Data","lp");
-  leg->AddEntry(TString::Format("Chip%i_SetError5",int((*aMapIter).first)),"Total Bad Events","lp");
-  leg->AddEntry(TString::Format("Chip%i_SetError6",int((*aMapIter).first)),"All","lp");
-  leg->Draw();
-
-  //c_chips->Update();
-
-
-  //-------------------------------------------------------
-  ierror=0;
-  c_chips->cd(2);
-    
-  for (std::vector<std::vector<Double_t> >::iterator chanVeciter=(*helpMapIter).second.begin(); chanVeciter!=(*helpMapIter).second.end(); chanVeciter++) {
-    if (globalvariables::getScanVectorDoubles().size() != (*chanVeciter).size()) {
-      std::cout << "ScanManager::planEventsAnalysisGraphicsPainter Warning: Size of vector with thresholds does not correspond to size of vector with readings for bad event selectionselection" << ierror << std::endl;
-      std::cout << "Size of vector with thresholds is: " << globalvariables::getScanVectorDoubles().size() << std::endl;
-      std::cout << "Size of vector with readings is: " << (*chanVeciter).size()  << std::endl;
-    }
-    //If the maximum is >2 we assume that this channel was enabled and we process it further
-    //Define an array that holds the entries for each run
-    double valarray[ (*chanVeciter).size()];
-    double evalarray[ (*chanVeciter).size()];
-    double evalarray_x[ (*chanVeciter).size()];
-
-    //Loop over the entries with trigger in the given runs
-    //Helper variable to count runs
-    unsigned irun(0);
-    for (std::vector<Double_t>::iterator runIter = (*chanVeciter).begin(); runIter != (*chanVeciter).end(); runIter++) {
-      //Fetch the value for that run
-      double runval(static_cast<double>((*runIter)));
-      //Fill the array with the relative counts for a given channel in a given run
-      valarray[irun] = runval;
-      evalarray[irun] = 0;
-      evalarray_x[irun] = 0;///ref;
-      irun++;
-    }
-
-    //Now define and fill a graph for each channel
-    double vecarrayhelp[(*chanVeciter).size()];
-    double* vecarray;
-    vecarray = vectortoarray(globalvariables::getScanVectorDoubles(), &vecarrayhelp[0]);
-    graphPlaneEvents_norm.push_back(new TGraphErrors(globalvariables::getScanVectorDoubles().size(), vecarray, valarray,  evalarray_x, evalarray));
-    graphPlaneEvents_norm.back()->SetMarkerStyle(20+ierror);
-    graphPlaneEvents_norm.back()->SetMarkerColor(ierror+1);
-    graphPlaneEvents_norm.back()->SetLineColor(ierror+1);
-    graphPlaneEvents_norm.back()->SetMarkerSize(1.2);
-    graphPlaneEvents_norm.back()->SetName(TString::Format("Chip%i_SetError%i",int((*helpMapIter).first),int(ierror)));
-    graphPlaneEvents_norm.back()->SetTitle(TString::Format("Chip%i, buffer>0",int((*helpMapIter).first)));
-    graphPlaneEvents_norm.back()->Write();
-    graphPlaneEvents_norm.back()->GetXaxis()->SetTitle("Threshold");
-    graphPlaneEvents_norm.back()->GetYaxis()->SetTitle("N_Badhit/N_All");
-    if(ierror==0) graphPlaneEvents_norm.back()->Draw("APL");
-    else graphPlaneEvents_norm.back()->Draw("PL");
-    ierror++;
-  }
-  //  c_chips->Update();
-
-  // c_chips->cd(0);
-  TLegend *leg2 = new TLegend(0.6,0.7,0.9,0.9);
-  leg2->AddEntry(TString::Format("Chip%i_SetError0",int((*helpMapIter).first)),"bcid[buf]-bcid[buf-1]==1","lp");
-  leg2->AddEntry(TString::Format("Chip%i_SetError1",int((*helpMapIter).first)),"bcid[buf]-bcid[buf-1]<=5 (>1)","lp");
-  leg2->AddEntry(TString::Format("Chip%i_SetError2",int((*helpMapIter).first)),"bcid[buf]-bcid[buf-1]<=10 (>5)","lp");
-  leg2->AddEntry(TString::Format("Chip%i_SetError3",int((*helpMapIter).first)),TString::Format("Nhits(chip)>%i",globalvariables::getPlaneEventsThreshold()),"lp");
-  leg2->AddEntry(TString::Format("Chip%i_SetError4",int((*helpMapIter).first)),"Negative Data","lp");
-  leg2->AddEntry(TString::Format("Chip%i_SetError5",int((*helpMapIter).first)),"Total Bad Events","lp");
-  leg2->AddEntry(TString::Format("Chip%i_SetError6",int((*helpMapIter).first)),"All","lp");
-  leg2->Draw();
-
-  c_chips->Update();
-
-
-  f_planevent->cd();
-  c_chips->Write();
-
-
-}
-
-
 
 
 
