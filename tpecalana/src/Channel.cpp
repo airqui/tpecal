@@ -3,6 +3,7 @@
 //  cobana_project
 //
 //  Created by Roman Poeschl on 03/08/15.
+//  Adrian Irles on November/2017.
 //
 //
 
@@ -39,9 +40,9 @@ Channel::Channel(unsigned ichan){
   _nTriggers=0;
   _nPedestals=0;
   _nTriggers_planeEvents=0;
-  _nTriggers_consBcid1=0;
-  _nTriggers_consBcid5=0;
-  _nTriggers_consBcid10=0;
+  _nTriggers_nextBcid1=0;
+  _nTriggers_empty=0;
+  _nTriggers_retrig=0;
   _nTriggers_negativeData=0;
   //reset the number of undefined entries )can happen for buffers > 1 in case of 'clean' fonctioning i.e. no retriggering bcid+1 etc.)
   _nUndefined=0;
@@ -81,9 +82,9 @@ void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t correctedbcid, I
       if (badbcid>30 || val<10) _nTriggers_negativeData++;
       else if(nhits > 0 && nhits <= thresh){
 	if(badbcid==0)  _nTriggers++;
-	if(badbcid==1) _nTriggers_consBcid1++;
-	if(badbcid>2 && badbcid<6) _nTriggers_consBcid5++;
-	if(badbcid>5 && badbcid<16) _nTriggers_consBcid10++;
+	if(badbcid==1) _nTriggers_nextBcid1++;
+	if(badbcid==2) _nTriggers_empty++;
+	if(badbcid==3) _nTriggers_retrig++;
       } else {
 	if(nhits > thresh && badbcid>-0.5)  _nTriggers_planeEvents++;
       }
@@ -91,27 +92,7 @@ void Channel::acquireDataGain(Int_t nhits, Int_t badbcid, Int_t correctedbcid, I
     if(gainHit==0 &&  val>10 && badbcid == 0 && nhits < thresh)  _nPedestals++;
     if (gainHit < 0 || gainHit>2) _nUndefined++;
 
-    
-       /*
-    if (gainHit >-0.5  &&  val>10 && badbcid == 0 && nhits < thresh){//&&  val>10 && badbcid <30 && nhits < thresh ) {
-      calculateSums(val,gainHit);
-      if (gainHit == 0 )   _nPedestals++;
-      if (gainHit == 1 )    _nTriggers++;
-    }
-    
-    // Clasify and count the events not included in the filtering, with consequtive bcid
-    if( badbcid> 0 && gainHit == 1 &&  val>10 ) {
-      if (  badbcid == 1   && nhits <= thresh ) _nTriggers_consBcid1++;
-      else if (  (badbcid >1 && badbcid < 6)  && nhits <= thresh  ) _nTriggers_consBcid5++;
-      else if( (badbcid >5 && badbcid < 16)  && nhits <= thresh   ) _nTriggers_consBcid10++;
-      else if(  nhits >= thresh ) _nTriggers_planeEvents++;  
-    }  
-    
-  
-    if( gainHit == 1 &&  val > 0 && val < 10  )  _nTriggers_negativeData++;
-    //Count number of undefined entries
-    if (gainHit < 0 || gainHit>2) _nUndefined++;
-       */
+ 
   }
   
 }
@@ -166,9 +147,9 @@ std::vector<unsigned> Channel::getNTriggersVec() {
   std::vector<unsigned> _nTriggersVec;
   _nTriggersVec.push_back(_nTriggers);
   _nTriggersVec.push_back(_nPedestals);
-  _nTriggersVec.push_back(_nTriggers_consBcid1);
-  _nTriggersVec.push_back(_nTriggers_consBcid5);
-  _nTriggersVec.push_back(_nTriggers_consBcid10);
+  _nTriggersVec.push_back(_nTriggers_nextBcid1);
+  _nTriggersVec.push_back(_nTriggers_empty);
+  _nTriggersVec.push_back(_nTriggers_retrig);
   _nTriggersVec.push_back(_nTriggers_planeEvents);
   _nTriggersVec.push_back(_nTriggers_negativeData);
   _nTriggersVec.push_back(_nUndefined);

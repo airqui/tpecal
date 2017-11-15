@@ -64,9 +64,9 @@ private:
     unsigned _nTriggers;
     unsigned _nPedestals;
     unsigned _nTriggers_planeEvents;
-    unsigned _nTriggers_consBcid1;
-    unsigned _nTriggers_consBcid5;
-    unsigned _nTriggers_consBcid10;
+    unsigned _nTriggers_nextBcid1;
+    unsigned _nTriggers_empty;
+    unsigned _nTriggers_retrig;
     unsigned _nTriggers_negativeData;
 
     //A data memeber that holds the number of undefined entries (<0)
